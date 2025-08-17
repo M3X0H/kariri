@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>محمد كريري — مطوّر ومصمم (Front‑End/Back‑End)</title>
+  <meta name="description" content="محمد كريري — مطوّر ومصمم واجهات وتجربة مستخدم، ومطوّر Back‑End. صيانة أجهزة، شبكات، تعريف طابعات. أعمال احترافية وبناء مواقع وتطبيقات ويب متكاملة." />
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
+  <!-- Devicon for tech logos -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
+
+  <style>
+    :root {
+      --bg:#0b0f17;--bg2:#131a2b;--panel:rgba(255,255,255,.06);--border:rgba(255,255,255,.16);
+      --txt:#eaf2ff;--muted:#9fb3d6;--brand:#64e1ff;--brand2:#9b6bff;--accent:#14f1d9;
+      --shadow: 0 14px 38px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:"Cairo",system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--txt);
+      background: radial-gradient(1200px 800px at -10% -10%, #1e2b5a 0%, transparent 55%),
+                 radial-gradient(1200px 800px at 110% -20%, #2a1f4d 0%, transparent 50%),
+                 linear-gradient(180deg,var(--bg),var(--bg2));
+      overflow-x:hidden}
+    a{color:inherit}
+
+    /* fx */
+    .blob{position:fixed;filter:blur(50px);opacity:.5;z-index:0;animation:float 18s ease-in-out infinite}
+    .b1{width:420px;height:420px;left:-120px;top:-80px;background:linear-gradient(135deg,var(--brand),var(--brand2))}
+    .b2{width:460px;height:460px;right:-160px;bottom:-120px;background:linear-gradient(135deg,var(--brand2),#ff92ca);animation-delay:-6s}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-24px)}}
+
+    .container{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:32px 20px 80px}
+
+    /* HERO */
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;padding:28px;background:var(--panel);border:1px solid var(--border);border-radius:28px;backdrop-filter:blur(12px);box-shadow:var(--shadow)}
+    .headline{margin:0 0 8px;font-size:40px;font-weight:800;line-height:1.15}
+    .gradient{background:linear-gradient(135deg,var(--brand),var(--accent) 45%,var(--brand2));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .sub{margin:0 0 16px;color:var(--muted);font-size:18px}
+    .cta{display:flex;gap:12px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:10px;padding:13px 18px;border-radius:14px;text-decoration:none;font-weight:800;
+      background:linear-gradient(135deg,var(--brand),var(--brand2));color:#0b0f17;box-shadow:0 10px 24px rgba(155,107,255,.28);transition:transform .15s ease, box-shadow .2s ease}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(100,225,255,.35)}
+    .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--border);box-shadow:none}
+    .btn.ghost:hover{background:rgba(255,255,255,.06)}
+    .avatar-wrap{position:relative;border-radius:24px;overflow:hidden;border:1px solid var(--border)}
+    .avatar-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+
+    /* LOGO STRIP */
+    .logos{display:grid;grid-template-columns:repeat(8,1fr);gap:14px;margin:24px 0 6px}
+    .logo{display:grid;place-items:center;height:56px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:#cfe2ff}
+    .logo i{font-size:26px}
+
+    /* SECTIONS */
+    .grid{display:grid;gap:24px;margin-top:28px}
+    .two{grid-template-columns:1fr 1fr}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:24px;padding:22px;box-shadow:var(--shadow);backdrop-filter:blur(10px)}
+    .card h2{margin:0 0 12px;font-size:24px}
+    .card p{color:var(--txt);line-height:1.9}
+    .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .chip{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--border);font-weight:700;font-size:14px}
+
+    /* SERVICES */
+    .services{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+    .svc{padding:18px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--border);display:grid;gap:8px}
+    .svc i{width:42px;height:42px;display:grid;place-items:center;color:#0b0f17;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand2))}
+    .svc h3{margin:2px 0 0;font-size:18px}
+    .svc p{margin:0;color:var(--muted);font-size:14px}
+
+    /* PORTFOLIO */
+    .work{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .shot{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--border)}
+    .shot img{width:100%;height:220px;object-fit:cover;display:block;filter:saturate(1.05)}
+    .shot .cap{position:absolute;inset:auto 0 0 0;padding:12px 14px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.7));color:#d9e6ff;font-weight:700}
+
+    /* CONTACT */
+    .contact{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+    footer{text-align:center;color:var(--muted);margin-top:34px;font-size:14px}
+
+    /* Responsive */
+    @media (max-width:1024px){.logos{grid-template-columns:repeat(6,1fr)}.work{grid-template-columns:repeat(2,1fr)}.services{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}}
+    @media (max-width:640px){.logos{grid-template-columns:repeat(4,1fr)}.work{grid-template-columns:1fr}.services{grid-template-columns:1fr}.headline{font-size:32px}}
+  </style>
+</head>
+<body>
+  <!-- Background FX -->
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <div class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <h1 class="headline">محمد كريري — <span class="gradient">مطوّر ومصمم واجهات (Front‑End) وبنية خلفية (Back‑End)</span></h1>
+        <p class="sub">أبني مواقع وتطبيقات ويب أنيقة وسريعة، من التصميم والتجربة إلى قاعدة البيانات والخوادم. كذلك أقدم خدمات تقنية: صيانة أجهزة، تهيئة أنظمة، تعريف طابعات وشبكات.</p>
+        <div class="cta">
+          <a class="btn" href="CV.pdf" target="_blank" rel="noopener"><i class="fa-regular fa-file-lines"></i> السيرة الذاتية</a>
+          <a class="btn ghost" href="https://linkedin.com/in/username" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
+          <a class="btn ghost" href="mailto:example@email.com"><i class="fa-regular fa-paper-plane"></i> تواصل</a>
+        </div>
+        <div class="logos" aria-label="تقنيات أستخدمها">
+          <div class="logo" title="HTML5"><i class="devicon-html5-plain colored"></i></div>
+          <div class="logo" title="CSS3"><i class="devicon-css3-plain colored"></i></div>
+          <div class="logo" title="JavaScript"><i class="devicon-javascript-plain colored"></i></div>
+          <div class="logo" title="TypeScript"><i class="devicon-typescript-plain colored"></i></div>
+          <div class="logo" title="React"><i class="devicon-react-original colored"></i></div>
+          <div class="logo" title="Node.js"><i class="devicon-nodejs-plain colored"></i></div>
+          <div class="logo" title="Express"><i class="devicon-express-original"></i></div>
+          <div class="logo" title="MongoDB"><i class="devicon-mongodb-plain colored"></i></div>
+        </div>
+      </div>
+      <div class="avatar-wrap" aria-hidden="true">
+        <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=1200&auto=format&fit=crop" alt="صورة عمل احترافية" loading="lazy">
+      </div>
+    </section>
+
+    <!-- ABOUT + SERVICES -->
+    <section class="grid two">
+      <article class="card">
+        <h2>نبذة سريعة</h2>
+        <p>كمطور Full‑Stack، أصمم واجهات مستخدم جذابة وسريعة الاستجابة، وأنفذ بنية خلفية آمنة وقابلة للتوسع باستخدام Node.js وExpress وMongoDB أو MySQL. أهتم بالأداء، إمكانية الوصول، وتجربة المستخدم.</p>
+        <div class="chips">
+          <span class="chip">UI/UX</span>
+          <span class="chip">React • Next (قابل للإضافة)</span>
+          <span class="chip">REST APIs</span>
+          <span class="chip">Auth & Security</span>
+          <span class="chip">DevOps أساسي</span>
+        </div>
+      </article>
+      <article class="card">
+        <h2>خدماتي</h2>
+        <div class="services">
+          <div class="svc">
+            <i class="fa-solid fa-layer-group"></i>
+            <h3>Front‑End</h3>
+            <p>تصميم وتطوير واجهات حديثة متجاوبة مع رسوميات ناعمة وتجربة ممتازة.</p>
+          </div>
+          <div class="svc">
+            <i class="fa-solid fa-database"></i>
+            <h3>Back‑End</h3>
+            <p>APIs آمنة، قواعد بيانات، صلاحيات، وإدارة ملفات وإشعارات.</p>
+          </div>
+          <div class="svc">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            <h3>خدمات تقنية</h3>
+            <p>فورمات وتهيئة أنظمة، تعريف طابعات، تركيب شبكات منزلية ومكتبية.</p>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- PORTFOLIO -->
+    <section class="card" style="margin-top:24px">
+      <h2>نماذج أعمال</h2>
+      <div class="work">
+        <a class="shot" href="#" target="_blank" rel="noopener">
+          <img src="https://images.unsplash.com/photo-1551033406-611cf9a28f67?q=80&w=1200&auto=format&fit=crop" alt="لوحة تحكم حديثة" loading="lazy">
+          <div class="cap">لوحة تحكم — React + Node</div>
+        </a>
+        <a class="shot" href="#" target="_blank" rel="noopener">
+          <img src="https://images.unsplash.com/photo-1551292831-023188e78222?q=80&w=1200&auto=format&fit=crop" alt="موقع شركة أنيق" loading="lazy">
+          <div class="cap">موقع شركة — واجهة فخمة</div>
+        </a>
+        <a class="shot" href="#" target="_blank" rel="noopener">
+          <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1200&auto=format&fit=crop" alt="متجر إلكتروني" loading="lazy">
+          <div class="cap">متجر إلكتروني — بوابة دفع</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- CONTACT CTA -->
+    <section class="card" style="margin-top:24px">
+      <h2>تواصل</h2>
+      <p style="color:var(--muted);margin-top:-4px">هل لديك مشروع واجهات، نظام خلفي، أو خدمة تقنية سريعة؟ يسعدني التعاون معك.</p>
+      <div class="contact">
+        <a class="btn" href="https://wa.me/966500000000" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
+        <a class="btn ghost" href="tel:+966500000000"><i class="fa-solid fa-phone"></i> اتصال</a>
+        <a class="btn ghost" href="mailto:example@email.com"><i class="fa-regular fa-envelope"></i> بريد إلكتروني</a>
+        <a class="btn ghost" href="https://github.com/m3x0h" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
+      </div>
+    </section>
+
+    <footer>© <span id="y"></span> محمد كريري — واجهات فخمة · خلفيات قوية · تجربة استخدام راقية</footer>
+  </div>
+
+  <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+</body>
+</html>
