@@ -3,224 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>محمد كريري — Portfolio</title>
-  <meta name="description" content="بورتفوليو محمد كريري — مطوّر واجهات وخلفية، أعمال، سيرة، خدمات، وتواصل." />
+  <title>محمد كريري — مطوّر ومصمم (Front-End/Back-End)</title>
+  <meta name="description" content="محمد كريري — مطوّر ومصمم واجهات وتجربة مستخدم، ومطوّر Back-End. صيانة أجهزة، شبكات، تعريف طابعات. أعمال احترافية وبناء مواقع وتطبيقات ويب متكاملة." />
 
   <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
 
   <style>
     :root{
-      --bg:#070b13;--bg2:#0f1626;--panel:rgba(255,255,255,.06);--border:rgba(255,255,255,.16);
-      --txt:#edf3ff;--muted:#9fb3d6;--p:#64e1ff;--s:#9b6bff;--a:#1cf1d9;
-      --shadow:0 16px 44px rgba(0,0,0,.35)
+      --bg:#0b1020;--bg2:#0a0714;--panel:rgba(255,255,255,.06);--border:rgba(255,255,255,.18);
+      --txt:#f3f7ff;--muted:#9fb3d6;--p:#00e5ff;--s:#6a00ff;--a:#ff3d8a;--ok:#00d08a;
+      --shadow:0 22px 60px rgba(0,0,0,.45);
     }
+    :root[data-theme="pastel"]{
+      --bg:#0f1220;--bg2:#101424;--panel:rgba(255,255,255,.08);--border:rgba(255,255,255,.16);
+      --txt:#f7fbff;--muted:#b8c7e6;--p:#9ae7ff;--s:#b79bff;--a:#ffb1d1;--ok:#a0f0c7;
+    }
+    :root[data-theme="amber"]{
+      --bg:#0d0b05;--bg2:#141008;--panel:rgba(255,255,255,.07);--border:rgba(255,255,255,.16);
+      --txt:#fff9e6;--muted:#e8d9a8;--p:#ffc107;--s:#ff8f00;--a:#ffd54f;--ok:#aeea00;
+    }
+
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:"Cairo",system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--txt);
-      background:radial-gradient(1200px 800px at -10% -10%, #1b2650 0%, transparent 55%),
-                 radial-gradient(1200px 800px at 110% -20%, #2a1f4d 0%, transparent 55%),
-                 linear-gradient(180deg,var(--bg),var(--bg2));
-      overflow-x:hidden}
-    a{color:inherit}
+    body{margin:0;font-family:"Cairo",system-ui,sans-serif;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--txt)}
+    a{color:inherit;text-decoration:none}
 
-    /* ====== 3D Grid Background (canvas) ====== */
-    canvas#fx{position:fixed;inset:0;z-index:0;opacity:.45}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:14px;font-weight:700;cursor:pointer;
+      background:linear-gradient(135deg,var(--p),var(--a));color:#0b0f17;box-shadow:0 6px 16px rgba(0,0,0,.3);transition:.2s}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,0,0,.4)}
+    .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--border)}
+    .btn.ghost:hover{background:rgba(255,255,255,.08)}
 
-    /* ====== Sticky Navbar ====== */
-    nav{position:sticky;top:0;z-index:5;backdrop-filter:blur(10px);background:linear-gradient(180deg,rgba(10,14,24,.7),rgba(10,14,24,.2));border-bottom:1px solid var(--border)}
-    .nav-wrap{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:10px 16px}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
-    .brand i{color:var(--p)}
-    .links{display:flex;gap:14px;margin-inline-start:auto}
-    .links a{padding:8px 12px;border-radius:10px;color:var(--muted);text-decoration:none}
-    .links a.active,.links a:hover{background:rgba(255,255,255,.06);color:var(--txt)}
+    .cta{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
 
-    /* ====== Hero ====== */
-    .container{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:24px 16px 80px}
-    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;margin-top:20px;padding:28px;border-radius:28px;backdrop-filter:blur(14px);
-      background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden}
-    .hero:before{content:"";position:absolute;inset:-1px;border-radius:30px;padding:1px;background:linear-gradient(135deg,var(--p),var(--s));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-    .headline{margin:0 0 8px;font-size:40px;font-weight:800;line-height:1.15}
-    .gradient{background:linear-gradient(135deg,var(--p),var(--a) 45%,var(--s));-webkit-background-clip:text;background-clip:text;color:transparent}
-    .sub{margin:0 0 16px;color:var(--muted);font-size:18px}
-    .cta{display:flex;gap:12px;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:10px;padding:13px 18px;border-radius:14px;text-decoration:none;font-weight:800;background:linear-gradient(135deg,var(--p),var(--s));color:#0b0f17;box-shadow:0 10px 24px rgba(155,107,255,.28);transition:transform .15s ease,filter .2s ease}
-    .btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
-    .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--border);box-shadow:none}
-    .btn.ghost:hover{background:rgba(255,255,255,.06)}
-    .avatar{position:relative;border-radius:24px;overflow:hidden;border:1px solid var(--border)}
-    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-    .badge{position:absolute;bottom:10px;inset-inline-start:10px;background:rgba(11,15,23,.7);border:1px solid var(--border);backdrop-filter:blur(8px);padding:8px 12px;border-radius:12px;font-weight:700}
-
-    /* ====== Cards/Sections ====== */
-    .grid{display:grid;gap:24px;margin-top:28px}
-    .two{grid-template-columns:1fr 1fr}
-    .card{background:var(--panel);border:1px solid var(--border);border-radius:24px;padding:22px;box-shadow:var(--shadow);backdrop-filter:blur(10px);position:relative}
-    .card h2{margin:0 0 12px;font-size:24px}
-    .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .chip{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--border);font-weight:700;font-size:14px}
-
-    /* ====== Skills Progress ====== */
-    .skills{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    .bar{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:999px;overflow:hidden}
-    .bar span{display:block;height:10px;background:linear-gradient(90deg,var(--p),var(--s));width:0}
-
-    /* ====== Portfolio Grid + Lightbox ====== */
-    .work{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-    .shot{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--border);cursor:pointer}
-    .shot img{width:100%;height:220px;object-fit:cover;display:block;filter:saturate(1.05);transition:transform .3s ease}
-    .shot:hover img{transform:scale(1.04)}
-    .cap{position:absolute;inset:auto 0 0 0;padding:12px 14px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.7));color:#d9e6ff;font-weight:700}
-    .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:99}
-    .lightbox.active{display:flex}
-    .lightbox img{max-width:92vw;max-height:86vh;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow)}
-
-    /* ====== Scroll Reveal ====== */
-    .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease, transform .6s ease}
-    .reveal.in{opacity:1;transform:none}
-
-    /* ====== Floating contact ====== */
-    .fab{position:fixed;inset:auto 18px 18px auto;background:linear-gradient(135deg,var(--p),var(--s));color:#0b0f17;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;box-shadow:0 12px 26px rgba(100,225,255,.35);z-index:6}
-
-    footer{text-align:center;color:var(--muted);margin:34px 0 0;font-size:14px}
-
-    @media (max-width:1024px){.work{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.hero{grid-template-columns:1fr}}
-    @media (max-width:640px){.work{grid-template-columns:1fr}.headline{font-size:32px}}
+    .hero{padding:32px;text-align:center}
+    .headline{font-size:38px;font-weight:800;margin-bottom:12px}
+    .gradient{background:linear-gradient(135deg,var(--p),var(--s),var(--a));-webkit-background-clip:text;color:transparent}
   </style>
 </head>
 <body>
-  <canvas id="fx"></canvas>
-
-  <nav>
-    <div class="nav-wrap">
-      <div class="brand"><i class="fa-solid fa-code"></i> محمد كريري</div>
-      <div class="links">
-        <a href="#about" class="active">نبذة</a>
-        <a href="#services">خدمات</a>
-        <a href="#skills">مهارات</a>
-        <a href="#portfolio">أعمال</a>
-        <a href="#contact">تواصل</a>
-      </div>
+  <div class="hero">
+    <h1 class="headline">محمد كريري — <span class="gradient">مطوّر ومصمم واجهات وبنية خلفية</span></h1>
+    <div class="cta">
+      <a class="btn" href="Cvm.pdf" target="_blank" rel="noopener" download><i class="fa-regular fa-file-lines"></i> السيرة الذاتية</a>
+      <a class="btn ghost" href="https://wa.me/966506036322" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
+      <a class="btn ghost" href="tel:+966506036322"><i class="fa-solid fa-phone"></i> اتصال</a>
+      <a class="btn ghost" href="mailto:m.e.k05060@gmail.com"><i class="fa-regular fa-envelope"></i> بريد</a>
+      <a class="btn ghost" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
     </div>
-  </nav>
-
-  <div class="container">
-    <section class="hero reveal" id="about">
-      <div>
-        <h1 class="headline">مرحبا، أنا <span class="gradient">محمد كريري</span></h1>
-        <p class="sub">مطوّر واجهات وخلفية. أبني مواقع وتطبيقات ويب أنيقة وسريعة، و أقدّم خدمات تقنية: صيانة أجهزة، تهيئة أنظمة، تعريف طابعات وشبكات.</p>
-        <div class="cta">
-          <a class="btn" href="Cvm.pdf" target="_blank" rel="noopener" download><i class="fa-regular fa-file-lines"></i> السيرة الذاتية</a>
-          <a class="btn ghost" href="mailto:m.e.k05060@gmail.com"><i class="fa-regular fa-paper-plane"></i> تواصل</a>
-          <a class="btn ghost" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
-        </div>
-      </div>
-      <figure class="avatar">
-        <img src="me.jpg" alt="محمد كريري" loading="lazy">
-        <figcaption class="badge"><i class="fa-solid fa-location-dot"></i> السعودية</figcaption>
-      </figure>
-    </section>
-
-    <section class="grid two">
-      <article class="card reveal" id="services">
-        <h2>خدماتي</h2>
-        <div class="chips">
-          <span class="chip">Front‑End</span>
-          <span class="chip">Back‑End</span>
-          <span class="chip">صيانة أجهزة</span>
-          <span class="chip">تعريف طابعات</span>
-          <span class="chip">شبكات منزلية</span>
-        </div>
-        <div class="work" style="margin-top:14px">
-          <div class="shot"><img src="https://images.unsplash.com/photo-1551033406-611cf9a28f67?q=80&w=1200&auto=format&fit=crop" alt="لوحة تحكم"><div class="cap">لوحة تحكم — React + Node</div></div>
-          <div class="shot"><img src="https://images.unsplash.com/photo-1551292831-023188e78222?q=80&w=1200&auto=format&fit=crop" alt="موقع شركة"><div class="cap">موقع شركة — واجهة فخمة</div></div>
-          <div class="shot"><img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1200&auto=format&fit=crop" alt="متجر إلكتروني"><div class="cap">متجر إلكتروني — بوابة دفع</div></div>
-        </div>
-      </article>
-
-      <article class="card reveal" id="skills">
-        <h2>مهارات</h2>
-        <div class="skills">
-          <div><small>HTML/CSS</small><div class="bar"><span style="--val:95%"></span></div></div>
-          <div><small>JavaScript/TypeScript</small><div class="bar"><span style="--val:85%"></span></div></div>
-          <div><small>React</small><div class="bar"><span style="--val:80%"></span></div></div>
-          <div><small>Node.js/Express</small><div class="bar"><span style="--val:78%"></span></div></div>
-          <div><small>شبكات/طابعات</small><div class="bar"><span style="--val:88%"></span></div></div>
-          <div><small>Troubleshooting</small><div class="bar"><span style="--val:90%"></span></div></div>
-        </div>
-        <div class="chips" style="margin-top:12px">
-          <span class="chip">UI/UX</span>
-          <span class="chip">REST APIs</span>
-          <span class="chip">Auth & Security</span>
-          <span class="chip">Backup & Restore</span>
-        </div>
-      </article>
-    </section>
-
-    <section class="card reveal" style="margin-top:24px" id="portfolio">
-      <h2>أعمال مختارة</h2>
-      <div class="work">
-        <div class="shot" data-full="https://images.unsplash.com/photo-1551033406-611cf9a28f67?q=80&w=1600&auto=format&fit=crop"><img src="https://images.unsplash.com/photo-1551033406-611cf9a28f67?q=80&w=1200&auto=format&fit=crop" alt="لوحة تحكم حديثة"><div class="cap">لوحة تحكم — React + Node</div></div>
-        <div class="shot" data-full="https://images.unsplash.com/photo-1551292831-023188e78222?q=80&w=1600&auto=format&fit=crop"><img src="https://images.unsplash.com/photo-1551292831-023188e78222?q=80&w=1200&auto=format&fit=crop" alt="موقع شركة"><div class="cap">موقع شركة — واجهة فخمة</div></div>
-        <div class="shot" data-full="https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1600&auto=format&fit=crop"><img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1200&auto=format&fit=crop" alt="متجر إلكتروني"><div class="cap">متجر إلكتروني — بوابة دفع</div></div>
-      </div>
-    </section>
-
-    <section class="card reveal" style="margin-top:24px" id="contact">
-      <h2>تواصل</h2>
-      <p style="color:var(--muted);margin-top:-6px">هل لديك مشروع واجهات، نظام خلفي، أو خدمة تقنية سريعة؟</p>
-      <div class="chips">
-        <a class="btn" href="https://wa.me/966506036322" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
-        <a class="btn ghost" href="tel:+966506036322"><i class="fa-solid fa-phone"></i> اتصال</a>
-        <a class="btn ghost" href="mailto:m.e.k05060@gmail.com"><i class="fa-regular fa-envelope"></i> بريد</a>
-        <a class="btn ghost" href="Cvm.pdf" target="_blank" rel="noopener"><i class="fa-regular fa-file-pdf"></i> السيرة PDF</a>
-      </div>
-    </section>
-
-    <footer>© <span id="y"></span> محمد كريري — جميع الحقوق محفوظة</footer>
   </div>
 
-  <!-- Lightbox -->
-  <div class="lightbox" id="lb" role="dialog" aria-modal="true" aria-label="عرض صورة العمل"><img alt="" src=""></div>
-
-  <!-- Floating WhatsApp -->
-  <a class="fab" href="https://wa.me/966506036322" target="_blank" rel="noopener" title="تواصل واتساب"><i class="fa-brands fa-whatsapp"></i></a>
-
   <script>
-    // Year
-    document.getElementById('y').textContent = new Date().getFullYear();
-
-    // ====== 3D grid background ======
-    const c = document.getElementById('fx'), x = c.getContext('2d');
-    let W, H, DPR, t=0; function rs(){DPR=Math.min(devicePixelRatio||1,2);W=c.width=innerWidth*DPR;H=c.height=innerHeight*DPR;c.style.width=innerWidth+'px';c.style.height=innerHeight+'px'}
-    function grid(){x.clearRect(0,0,W,H);x.lineWidth=1*DPR;const s=36*DPR, ox=(t*0.25)%s, oy=(t*0.15)%s;for(let i=-s;i<W+s;i+=s){x.strokeStyle='rgba(100,225,255,.10)';x.beginPath();x.moveTo(i+ox,0);x.lineTo(i+ox,H);x.stroke()}for(let j=-s;j<H+s;j+=s){x.strokeStyle='rgba(155,107,255,.08)';x.beginPath();x.moveTo(0,j+oy);x.lineTo(W,j+oy);x.stroke()}t+=1;requestAnimationFrame(grid)}
-    if(!matchMedia('(prefers-reduced-motion: reduce)').matches){rs();grid();addEventListener('resize',rs)}
-
-    // ====== Scroll reveal ======
-    const io = new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
-    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-
-    // ====== Skills bars animate ======
-    const bars = document.querySelectorAll('.bar span');
-    const io2 = new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.style.width=getComputedStyle(e.target).getPropertyValue('--val');io2.unobserve(e.target)}}),{threshold:.6});
-    bars.forEach(b=>io2.observe(b));
-
-    // ====== Lightbox ======
-    const lb = document.getElementById('lb');
-    document.querySelectorAll('.shot').forEach(s=>s.addEventListener('click',()=>{lb.classList.add('active');lb.querySelector('img').src=s.dataset.full||s.querySelector('img').src}))
-    lb.addEventListener('click',()=>lb.classList.remove('active'))
-
-    // ====== Active link on scroll ======
-    const sections=[...document.querySelectorAll('section.card, section.hero')];
-    const navLinks=[...document.querySelectorAll('.links a')];
-    const spy=new IntersectionObserver((es)=>{
-      es.forEach(e=>{if(e.isIntersecting){const id=e.target.id;navLinks.forEach(a=>a.classList.toggle('active', a.getAttribute('href')==='#'+id))}})
-    },{threshold:.55});
-    sections.forEach(s=>spy.observe(s));
+    const root=document.documentElement;
+    const saved=localStorage.getItem('theme');
+    if(saved) root.setAttribute('data-theme',saved);
   </script>
 </body>
 </html>
