@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>محمد كريري — مطوّر ومصمم (Front‑End/Back‑End)</title>
-  <meta name="description" content="محمد كريري — مطوّر ومصمم واجهات وتجربة مستخدم، ومطوّر Back‑End. صيانة أجهزة، شبكات، تعريف طابعات. أعمال احترافية وبناء مواقع وتطبيقات ويب متكاملة." />
+  <title>محمد كريري — مطوّر ومصمم (Front-End/Back-End)</title>
+  <meta name="description" content="محمد كريري — مطوّر ومصمم واجهات وتجربة مستخدم، ومطوّر Back-End. صيانة أجهزة، شبكات، تعريف طابعات. أعمال احترافية وبناء مواقع وتطبيقات ويب متكاملة." />
 
   <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,7 +29,6 @@
       overflow-x:hidden}
     a{color:inherit}
 
-    /* fx */
     .blob{position:fixed;filter:blur(50px);opacity:.5;z-index:0;animation:float 18s ease-in-out infinite}
     .b1{width:420px;height:420px;left:-120px;top:-80px;background:linear-gradient(135deg,var(--brand),var(--brand2))}
     .b2{width:460px;height:460px;right:-160px;bottom:-120px;background:linear-gradient(135deg,var(--brand2),#ff92ca);animation-delay:-6s}
@@ -37,7 +36,6 @@
 
     .container{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:32px 20px 80px}
 
-    /* HERO */
     .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;padding:28px;background:var(--panel);border:1px solid var(--border);border-radius:28px;backdrop-filter:blur(12px);box-shadow:var(--shadow)}
     .headline{margin:0 0 8px;font-size:40px;font-weight:800;line-height:1.15}
     .gradient{background:linear-gradient(135deg,var(--brand),var(--accent) 45%,var(--brand2));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -51,12 +49,10 @@
     .avatar-wrap{position:relative;border-radius:24px;overflow:hidden;border:1px solid var(--border)}
     .avatar-wrap img{width:100%;height:100%;object-fit:cover;display:block}
 
-    /* LOGO STRIP */
     .logos{display:grid;grid-template-columns:repeat(8,1fr);gap:14px;margin:24px 0 6px}
     .logo{display:grid;place-items:center;height:56px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:#cfe2ff}
     .logo i{font-size:26px}
 
-    /* SECTIONS */
     .grid{display:grid;gap:24px;margin-top:28px}
     .two{grid-template-columns:1fr 1fr}
     .card{background:var(--panel);border:1px solid var(--border);border-radius:24px;padding:22px;box-shadow:var(--shadow);backdrop-filter:blur(10px)}
@@ -65,44 +61,44 @@
     .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
     .chip{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--border);font-weight:700;font-size:14px}
 
-    /* SERVICES */
     .services{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
     .svc{padding:18px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--border);display:grid;gap:8px}
     .svc i{width:42px;height:42px;display:grid;place-items:center;color:#0b0f17;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand2))}
     .svc h3{margin:2px 0 0;font-size:18px}
     .svc p{margin:0;color:var(--muted);font-size:14px}
 
-    /* PORTFOLIO */
+    .cv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:14px}
+    .cv-item{padding:16px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--border);display:grid;gap:6px}
+    .cv-item i{width:40px;height:40px;display:grid;place-items:center;color:#0b0f17;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand2));font-size:18px}
+    .cv-item h3{margin:0;font-size:17px}
+    .cv-item p{margin:0;color:var(--muted);font-size:14px}
+
     .work{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
     .shot{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--border)}
     .shot img{width:100%;height:220px;object-fit:cover;display:block;filter:saturate(1.05)}
     .shot .cap{position:absolute;inset:auto 0 0 0;padding:12px 14px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.7));color:#d9e6ff;font-weight:700}
 
-    /* CONTACT */
     .contact{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 
     footer{text-align:center;color:var(--muted);margin-top:34px;font-size:14px}
 
-    /* Responsive */
     @media (max-width:1024px){.logos{grid-template-columns:repeat(6,1fr)}.work{grid-template-columns:repeat(2,1fr)}.services{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}}
     @media (max-width:640px){.logos{grid-template-columns:repeat(4,1fr)}.work{grid-template-columns:1fr}.services{grid-template-columns:1fr}.headline{font-size:32px}}
   </style>
 </head>
 <body>
-  <!-- Background FX -->
   <div class="blob b1"></div>
   <div class="blob b2"></div>
 
   <div class="container">
-    <!-- HERO -->
     <section class="hero">
       <div>
-        <h1 class="headline">محمد كريري — <span class="gradient">مطوّر ومصمم واجهات (Front‑End) وبنية خلفية (Back‑End)</span></h1>
+        <h1 class="headline">محمد كريري — <span class="gradient">مطوّر ومصمم واجهات (Front-End) وبنية خلفية (Back-End)</span></h1>
         <p class="sub">أبني مواقع وتطبيقات ويب أنيقة وسريعة، من التصميم والتجربة إلى قاعدة البيانات والخوادم. كذلك أقدم خدمات تقنية: صيانة أجهزة، تهيئة أنظمة، تعريف طابعات وشبكات.</p>
         <div class="cta">
-          <a class="btn" href="CV.pdf" target="_blank" rel="noopener"><i class="fa-regular fa-file-lines"></i> السيرة الذاتية</a>
-          <a class="btn ghost" href="https://linkedin.com/in/username" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
-          <a class="btn ghost" href="mailto:example@email.com"><i class="fa-regular fa-paper-plane"></i> تواصل</a>
+          <a class="btn" href="Cvm.pdf" target="_blank" rel="noopener"><i class="fa-regular fa-file-lines"></i> السيرة الذاتية</a>
+          <a class="btn ghost" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
+          <a class="btn ghost" href="mailto:m.e.k05060@gmail.com"><i class="fa-regular fa-paper-plane"></i> تواصل</a>
         </div>
         <div class="logos" aria-label="تقنيات أستخدمها">
           <div class="logo" title="HTML5"><i class="devicon-html5-plain colored"></i></div>
@@ -116,18 +112,17 @@
         </div>
       </div>
       <div class="avatar-wrap" aria-hidden="true">
-        <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=1200&auto=format&fit=crop" alt="صورة عمل احترافية" loading="lazy">
+        <img src="me.jpg" alt="محمد كريري" loading="lazy">
       </div>
     </section>
 
-    <!-- ABOUT + SERVICES -->
     <section class="grid two">
       <article class="card">
         <h2>نبذة سريعة</h2>
-        <p>كمطور Full‑Stack، أصمم واجهات مستخدم جذابة وسريعة الاستجابة، وأنفذ بنية خلفية آمنة وقابلة للتوسع باستخدام Node.js وExpress وMongoDB أو MySQL. أهتم بالأداء، إمكانية الوصول، وتجربة المستخدم.</p>
+        <p>كمطور Full-Stack، أصمم واجهات مستخدم جذابة وسريعة الاستجابة، وأنفذ بنية خلفية آمنة وقابلة للتوسع باستخدام Node.js وExpress وMongoDB أو MySQL. أهتم بالأداء، إمكانية الوصول، وتجربة المستخدم.</p>
         <div class="chips">
           <span class="chip">UI/UX</span>
-          <span class="chip">React • Next (قابل للإضافة)</span>
+          <span class="chip">React • Next</span>
           <span class="chip">REST APIs</span>
           <span class="chip">Auth & Security</span>
           <span class="chip">DevOps أساسي</span>
@@ -138,12 +133,12 @@
         <div class="services">
           <div class="svc">
             <i class="fa-solid fa-layer-group"></i>
-            <h3>Front‑End</h3>
+            <h3>Front-End</h3>
             <p>تصميم وتطوير واجهات حديثة متجاوبة مع رسوميات ناعمة وتجربة ممتازة.</p>
           </div>
           <div class="svc">
             <i class="fa-solid fa-database"></i>
-            <h3>Back‑End</h3>
+            <h3>Back-End</h3>
             <p>APIs آمنة، قواعد بيانات، صلاحيات، وإدارة ملفات وإشعارات.</p>
           </div>
           <div class="svc">
@@ -155,7 +150,34 @@
       </article>
     </section>
 
-    <!-- PORTFOLIO -->
+    <!-- CV PREVIEW -->
+    <section class="card" style="margin-top:24px">
+      <h2>مقتطف من السيرة الذاتية</h2>
+      <div class="cv-grid">
+        <div class="cv-item">
+          <i class="fa-solid fa-user-graduate"></i>
+          <h3>المؤهل</h3>
+          <p>بكالوريوس علوم الحاسب — جامعة تبوك (2025). معتمد كأخصائي علوم حاسب من هيئة المهندسين السعوديين.</p>
+        </div>
+        <div class="cv-item">
+          <i class="fa-solid fa-chalkboard-teacher"></i>
+          <h3>الدورات</h3>
+          <p>برمجة Java • تطوير أندرويد • قواعد بيانات • SEO • هندسة البرمجيات.</p>
+        </div>
+        <div class="cv-item">
+          <i class="fa-solid fa-lightbulb"></i>
+          <h3>المهارات</h3>
+          <p>برمجة • تصميم جرافيك • التفكير الإبداعي • إدارة الوقت • حل المشكلات • القيادة.</p>
+        </div>
+        <div class="cv-item">
+          <i class="fa-solid fa-language"></i>
+          <h3>اللغات</h3>
+          <p>العربية • الإنجليزية</p>
+        </div>
+      </div>
+      <a class="btn" href="Cvm.pdf" target="_blank" rel="noopener" style="margin-top:16px"><i class="fa-regular fa-file-pdf"></i> عرض السيرة كاملة</a>
+    </section>
+
     <section class="card" style="margin-top:24px">
       <h2>نماذج أعمال</h2>
       <div class="work">
@@ -174,21 +196,10 @@
       </div>
     </section>
 
-    <!-- CONTACT CTA -->
     <section class="card" style="margin-top:24px">
       <h2>تواصل</h2>
       <p style="color:var(--muted);margin-top:-4px">هل لديك مشروع واجهات، نظام خلفي، أو خدمة تقنية سريعة؟ يسعدني التعاون معك.</p>
       <div class="contact">
-        <a class="btn" href="https://wa.me/966500000000" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
-        <a class="btn ghost" href="tel:+966500000000"><i class="fa-solid fa-phone"></i> اتصال</a>
-        <a class="btn ghost" href="mailto:example@email.com"><i class="fa-regular fa-envelope"></i> بريد إلكتروني</a>
-        <a class="btn ghost" href="https://github.com/m3x0h" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> GitHub</a>
-      </div>
-    </section>
-
-    <footer>© <span id="y"></span> محمد كريري — واجهات فخمة · خلفيات قوية · تجربة استخدام راقية</footer>
-  </div>
-
-  <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
-</body>
-</html>
+        <a class="btn" href="https://wa.me/966506036322" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
+        <a class="btn ghost" href="tel:+966506036322"><i class="fa-solid fa-phone"></i> اتصال</a>
+        <a class="btn ghost" href="mailto:m.e.k05060@gmail.com"><i class="fa-regular fa-envelope"></i>
