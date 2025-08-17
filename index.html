@@ -1,66 +1,99 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>محمد كريري — مطوّر ومصمم (Front-End/Back-End)</title>
-  <meta name="description" content="محمد كريري — مطوّر ومصمم واجهات وتجربة مستخدم، ومطوّر Back-End. صيانة أجهزة، شبكات، تعريف طابعات. أعمال احترافية وبناء مواقع وتطبيقات ويب متكاملة." />
+<script>
+(() => {
+  const canvas = document.getElementById('bgCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
 
-  <!-- Fonts & Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
+  // احترام تفضيل المستخدم لتقليل الحركة
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  <style>
-    :root{
-      --bg:#0b1020;--bg2:#0a0714;--panel:rgba(255,255,255,.06);--border:rgba(255,255,255,.18);
-      --txt:#f3f7ff;--muted:#9fb3d6;--p:#00e5ff;--s:#6a00ff;--a:#ff3d8a;--ok:#00d08a;
-      --shadow:0 22px 60px rgba(0,0,0,.45);
+  // نقرأ ألوان الثيم من :root (تتغير تلقائياً لو فعلت الوضع الداكن)
+  const cs = getComputedStyle(document.documentElement);
+  function col(n){ return cs.getPropertyValue(n).trim() || '#22d3ee'; }
+  let C1 = col('--p1'), C2 = col('--p2'), C3 = col('--p3');
+
+  let DPR=1, W=0, H=0, particles=[];
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.width  = Math.floor(innerWidth * DPR);
+    H = canvas.height = Math.floor(innerHeight * DPR);
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height= innerHeight + 'px';
+    makeParticles();
+  }
+
+  function makeParticles(){
+    const count = Math.max(28, Math.round((innerWidth * innerHeight) / 16000));
+    particles = Array.from({length: count}, () => ({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      r: (Math.random()*1.2 + 0.6) * DPR,
+      dx: (Math.random()-.5) * (0.35 + Math.random()*0.25) * DPR,
+      dy: (Math.random()-.5) * (0.35 + Math.random()*0.25) * DPR,
+      color: [C1,C2,C3][Math.floor(Math.random()*3)]
+    }));
+  }
+
+  function drawGlow(p){
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*10);
+    g.addColorStop(0, p.color);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r*10, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // أمواج خفيفة تعطي إحساس عمق
+  let t = 0;
+  function drawWaves(){
+    t += 0.0025;
+    const rows = 3;
+    for(let i=0;i<rows;i++){
+      const y = (H/(rows+1))*(i+1) + Math.sin(t*120 + i)*8*DPR;
+      ctx.beginPath();
+      for(let x=0;x<=W;x+=24*DPR){
+        const amp = 10*DPR + i*4*DPR;
+        const yy = y + Math.sin(x*0.01 + t*140 + i)*amp;
+        ctx.lineTo(x, yy);
+      }
+      ctx.lineWidth = 1.2*DPR;
+      // مزيج لوني ناعم بين ألوان الثيم
+      ctx.strokeStyle = i%2 ? C2+'cc' : C1+'cc';
+      ctx.stroke();
     }
-    :root[data-theme="pastel"]{
-      --bg:#0f1220;--bg2:#101424;--panel:rgba(255,255,255,.08);--border:rgba(255,255,255,.16);
-      --txt:#f7fbff;--muted:#b8c7e6;--p:#9ae7ff;--s:#b79bff;--a:#ffb1d1;--ok:#a0f0c7;
+  }
+
+  function step(){
+    // خلفية شفافة (ما نمسح بلون كامل عشان يبقى لطيف)
+    ctx.clearRect(0,0,W,H);
+
+    // رسم الجسيمات
+    for(const p of particles){
+      p.x += p.dx; p.y += p.dy;
+      if(p.x < -30*DPR) p.x = W + 30*DPR;
+      if(p.x > W + 30*DPR) p.x = -30*DPR;
+      if(p.y < -30*DPR) p.y = H + 30*DPR;
+      if(p.y > H + 30*DPR) p.y = -30*DPR;
+      drawGlow(p);
     }
-    :root[data-theme="amber"]{
-      --bg:#0d0b05;--bg2:#141008;--panel:rgba(255,255,255,.07);--border:rgba(255,255,255,.16);
-      --txt:#fff9e6;--muted:#e8d9a8;--p:#ffc107;--s:#ff8f00;--a:#ffd54f;--ok:#aeea00;
-    }
 
-    *{box-sizing:border-box}
-    body{margin:0;font-family:"Cairo",system-ui,sans-serif;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--txt)}
-    a{color:inherit;text-decoration:none}
+    // أمواج خفيفة فوق الجسيمات
+    ctx.globalAlpha = 0.25;
+    drawWaves();
+    ctx.globalAlpha = 1;
 
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:14px;font-weight:700;cursor:pointer;
-      background:linear-gradient(135deg,var(--p),var(--a));color:#0b0f17;box-shadow:0 6px 16px rgba(0,0,0,.3);transition:.2s}
-    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,0,0,.4)}
-    .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--border)}
-    .btn.ghost:hover{background:rgba(255,255,255,.08)}
+    if(!reduceMotion) requestAnimationFrame(step);
+  }
 
-    .cta{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+  // تحديث الألوان عند تغيير الثيم (لو عندك زر تبديل)
+  const obs = new MutationObserver(() => {
+    C1 = col('--p1'); C2 = col('--p2'); C3 = col('--p3');
+  });
+  obs.observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
 
-    .hero{padding:32px;text-align:center}
-    .headline{font-size:38px;font-weight:800;margin-bottom:12px}
-    .gradient{background:linear-gradient(135deg,var(--p),var(--s),var(--a));-webkit-background-clip:text;color:transparent}
-  </style>
-</head>
-<body>
-  <div class="hero">
-    <h1 class="headline">محمد كريري — <span class="gradient">مطوّر ومصمم واجهات وبنية خلفية</span></h1>
-    <div class="cta">
-      <a class="btn" href="Cvm.pdf" target="_blank" rel="noopener" download><i class="fa-regular fa-file-lines"></i> السيرة الذاتية</a>
-      <a class="btn ghost" href="https://wa.me/966506036322" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
-      <a class="btn ghost" href="tel:+966506036322"><i class="fa-solid fa-phone"></i> اتصال</a>
-      <a class="btn ghost" href="mailto:m.e.k05060@gmail.com"><i class="fa-regular fa-envelope"></i> بريد</a>
-      <a class="btn ghost" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
-    </div>
-  </div>
-
-  <script>
-    const root=document.documentElement;
-    const saved=localStorage.getItem('theme');
-    if(saved) root.setAttribute('data-theme',saved);
-  </script>
-</body>
-</html>
+  resize();
+  if(!reduceMotion) step();
+  addEventListener('resize', resize);
+})();
+</script>
