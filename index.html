@@ -3,116 +3,782 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mohammed Kariri — IT Specialist</title>
-  <meta name="description" content="Mohammed Kariri — IT Specialist (IT Support, Hardware, CCTV).">
+  <title>محمد كريري — IT Specialist</title>
+  <meta name="description" content="بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وتواصل.">
   <link rel="icon" href="data:," />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-<style>
-:root{
---bg1:#0b0f1a;--bg2:#0f1422;--ink:#eef2ff;--muted:#a9b6d3;--bdr:#1f2a3b;
---p1:#22d3ee;--p2:#7c5cff;--p3:#ffc857;
---shadow:0 16px 36px rgba(0,0,0,.35)
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-margin:0;font-family:Cairo,sans-serif;color:var(--ink);
-background:linear-gradient(#0a0f19,var(--bg1))
-}
-a{text-decoration:none;color:inherit}
-#bgCanvas{position:fixed;inset:0;z-index:-1}
-header{position:sticky;top:0;background:rgba(10,14,24,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr)}
-.nav{max-width:1100px;margin:auto;display:flex;align-items:center;gap:10px;padding:10px}
-.links{display:flex;gap:8px;margin-inline-start:auto}
-.links a{padding:8px 12px;border-radius:10px;color:var(--muted)}
-.links a:hover,.links a.active{background:rgba(124,92,255,.2)}
-.btn,.icon-btn{
-background:var(--bg2);border:1px solid var(--bdr);color:var(--ink);
-padding:8px 12px;border-radius:10px;cursor:pointer;display:inline-flex;gap:6px;align-items:center
-}
-.wrap{max-width:1100px;margin:auto;padding:24px}
-.hero{
-display:grid;grid-template-columns:1.1fr .9fr;gap:20px;
-background:var(--bg2);border:1px solid var(--bdr);
-border-radius:20px;padding:20px;box-shadow:var(--shadow)
-}
-.hero img{width:100%;border-radius:18px}
-h1{margin:0 0 8px}
-.lead{color:var(--muted)}
-.card{
-background:var(--bg2);border:1px solid var(--bdr);
-border-radius:18px;padding:18px;margin-top:20px;box-shadow:var(--shadow)
-}
-.copy-msg{font-size:13px;color:var(--muted);display:none}
-footer{text-align:center;color:var(--muted);margin:30px 0}
-</style>
+  <style>
+    :root{
+      --bg1:#f7fbff; --bg2:#ffffff; --ink:#101828; --muted:#667085; --bdr:#e6e9ef;
+      --p1:#22d3ee; --p2:#a78bfa; --p3:#ffc857; --btn:#6ee7b7;
+      --shadow:0 10px 30px rgba(16,24,40,.08); --linkh:#3730a3;
+    }
+    :root[data-theme="dark"]{
+      --bg1:#0b0f1a; --bg2:#0f1422; --ink:#eef2ff; --muted:#a9b6d3; --bdr:#1f2a3b;
+      --p1:#22d3ee; --p2:#7c5cff; --p3:#ffc857; --btn:#34d399;
+      --shadow:0 16px 36px rgba(0,0,0,.35); --linkh:#a5b4fc;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0; font-family:"Cairo",system-ui,-apple-system,Segoe UI,Arial,sans-serif; color:var(--ink);
+      background:
+        radial-gradient(900px 600px at 10% -10%, rgba(34,211,238,.08) 0%, transparent 60%),
+        radial-gradient(900px 600px at 110% 0%, rgba(124,92,255,.08) 0%, transparent 60%),
+        linear-gradient(#0a0f19, var(--bg1));
+    }
+    :root:not([data-theme="dark"]) body{
+      background:
+        radial-gradient(900px 600px at 10% -10%, rgba(34,211,238,.15) 0%, transparent 60%),
+        radial-gradient(900px 600px at 110% 0%, rgba(167,139,250,.12) 0%, transparent 60%),
+        linear-gradient(#fdfefe, var(--bg1));
+    }
+    a{color:inherit; text-decoration:none}
+
+    /* Canvas */
+    #bgCanvas{position:fixed; inset:0; z-index:-1; width:100%; height:100%; background:transparent; pointer-events:none}
+
+    /* Navbar */
+    header.top{position:sticky;top:0;z-index:10;background:rgba(10,14,24,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr)}
+    :root:not([data-theme="dark"]) header.top{background:rgba(255,255,255,.85)}
+    .nav{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:10px 16px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .brand .bubble{width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--p1),var(--p2));box-shadow:0 0 0 6px rgba(34,211,238,.18)}
+    .links{display:flex;gap:8px;margin-inline-start:auto}
+    .links a{padding:8px 12px;border-radius:10px;color:var(--muted)}
+    .links a.active,.links a:hover{background:rgba(167,139,250,.18);color:var(--linkh)}
+
+    /* Buttons */
+    .hamburger{display:none; margin-inline-start:6px; border:1px solid var(--bdr); background:var(--bg2); color:var(--ink);
+      padding:8px 10px; border-radius:10px; cursor:pointer}
+    .theme-btn,.lang-btn{border:1px solid var(--bdr); background:var(--bg2); color:var(--ink);
+      padding:8px 10px; border-radius:10px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; white-space:nowrap}
+
+    @media (max-width:860px){
+      .links{position:absolute; right:16px; left:16px; top:64px; flex-direction:column; gap:6px;
+        background:var(--bg2); border:1px solid var(--bdr); border-radius:12px; padding:10px;
+        box-shadow:var(--shadow); opacity:0; transform:translateY(-6px); pointer-events:none; transition:.18s ease}
+      header.top.open .links{opacity:1; transform:none; pointer-events:auto}
+      .hamburger{display:inline-flex}
+    }
+
+    /* Layout */
+    .wrap{max-width:1100px;margin:0 auto;padding:24px 16px 80px}
+
+    /* Hero */
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;margin-top:24px;background:var(--bg2);border:1px solid var(--bdr);border-radius:20px;padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+    .hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:
+      radial-gradient(600px 200px at 100% 0%, rgba(167,139,250,.18), transparent 60%),
+      radial-gradient(600px 200px at 0% 100%, rgba(34,211,238,.14), transparent 60%)}
+    h1.title{margin:0 0 8px;font-size:36px;font-weight:800}
+    .grad{background:linear-gradient(135deg,var(--p2),var(--p1) 50%,var(--p3));-webkit-background-clip:text;background-clip:text;color:transparent}
+    p.lead{margin:0 0 14px;color:var(--muted);font-size:18px}
+
+    .cta{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;font-weight:800;border:1px solid transparent;transition:.15s ease; cursor:pointer}
+    .btn--fill{background:linear-gradient(135deg,var(--p3),#ffd36f);color:#2a1a00;box-shadow:0 8px 18px rgba(255,200,87,.25)}
+    .btn--fill:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(255,200,87,.32)}
+    .btn--solid{background:linear-gradient(135deg,var(--p1),#7de3f4);color:#05313a;box-shadow:0 8px 18px rgba(34,211,238,.16)}
+    .btn--solid:hover{transform:translateY(-2px)}
+    .btn--ghost{border-color:var(--bdr);color:var(--ink);background:var(--bg2)}
+    .btn--ghost:hover{background:rgba(255,255,255,.06)}
+    :root:not([data-theme="dark"]) .btn--ghost:hover{background:rgba(0,0,0,.04)}
+
+    .avatar{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--bdr)}
+    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+    .badge{position:absolute;bottom:10px;inset-inline-start:10px;background:#ffffffd9;color:#0f172a;border:1px solid var(--bdr);padding:6px 10px;border-radius:10px;font-weight:700;font-size:14px}
+
+    /* Sections */
+    .card{background:var(--bg2);border:1px solid var(--bdr);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+    .card h2{margin:0 0 10px;font-size:22px}
+    .muted{color:var(--muted)}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .chip{padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px;color:var(--ink);background:rgba(255,255,255,.06);border:1px solid var(--bdr)}
+    :root:not([data-theme="dark"]) .chip{background:#f1f5f9}
+
+    /* Services */
+    .services{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .svc{padding:14px;border:1px solid var(--bdr);border-radius:14px;background:var(--bg2)}
+    .svc h3{margin:4px 0 6px;font-size:16px}
+    .svc p{margin:0;color:var(--muted);font-size:14px}
+
+    /* Grid blocks */
+    .cv{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .cv .item{padding:14px;border:1px solid var(--bdr);border-radius:14px;background:var(--bg2)}
+    .cv .item h3{margin:0 0 6px;font-size:16px}
+    .cv .item p{margin:0;color:var(--muted);font-size:14px}
+    .bullets{margin:10px 0 0; padding:0 18px 0 0}
+    .bullets li{margin:6px 0;color:var(--muted)}
+
+    /* Experience */
+    .timeline{display:grid;gap:12px;margin-top:10px}
+    .job{padding:14px;border:1px solid var(--bdr);border-radius:14px;background:var(--bg2)}
+    .job h3{margin:0 0 6px;font-size:16px}
+    .meta{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:13px}
+    .tag{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--bdr);background:rgba(255,255,255,.06)}
+    :root:not([data-theme="dark"]) .tag{background:#f1f5f9}
+
+    /* Highlights */
+    .work{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .shot{border:1px solid var(--bdr);border-radius:14px;background:var(--bg2);padding:14px}
+
+    /* Reveal */
+    .reveal{opacity:0;transform:translateY(10px);transition:opacity .55s ease, transform .55s ease}
+    .reveal.in{opacity:1;transform:none}
+
+    footer{margin:26px 0 0;text-align:center;color:var(--muted);font-size:13px}
+    @media (max-width:1024px){.work{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}}
+    @media (max-width:640px){.work{grid-template-columns:1fr} h1.title{font-size:30px}}
+    @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none}}
+
+    /* Toast */
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      background:rgba(15,20,34,.92); color:#fff; border:1px solid rgba(255,255,255,.12);
+      padding:10px 12px; border-radius:12px; box-shadow:var(--shadow);
+      display:flex; align-items:center; gap:10px;
+      opacity:0; pointer-events:none; transition:opacity .18s ease, transform .18s ease;
+      z-index:50;
+    }
+    :root:not([data-theme="dark"]) .toast{background:rgba(16,24,40,.92)}
+    .toast.show{opacity:1; transform:translateX(-50%) translateY(-2px)}
+    .toast i{opacity:.9}
+
+    /* LTR tweaks */
+    html[dir="ltr"] .links{margin-inline-start:auto; margin-inline-end:0;}
+    html[dir="ltr"] .badge{inset-inline-start:auto; inset-inline-end:10px;}
+    html[dir="ltr"] .bullets{padding:0 0 0 18px;}
+  </style>
 </head>
 
 <body>
-<canvas id="bgCanvas"></canvas>
+  <canvas id="bgCanvas" aria-hidden="true"></canvas>
 
-<header>
-  <div class="nav">
-    <strong>Mohammed Kariri</strong>
+  <header class="top" id="topbar">
+    <div class="nav">
+      <div class="brand"><span class="bubble"></span> <span data-i18n="brand">محمد كريري</span></div>
 
-    <nav class="links">
-      <a href="#about">About</a>
-      <a href="#skills">Skills</a>
-      <a href="#contact">Contact</a>
-    </nav>
+      <button id="hamburger" class="hamburger" aria-expanded="false" aria-controls="navLinks" title="القائمة">
+        <i class="fa-solid fa-bars"></i>
+      </button>
 
-    <button id="langBtn" class="icon-btn"><i class="fa-solid fa-language"></i></button>
+      <nav id="navLinks" class="links" role="navigation">
+        <a href="#about" class="active" data-i18n="nav_about">نبذة</a>
+        <a href="#skills" data-i18n="nav_skills">مهارات</a>
+        <a href="#experience" data-i18n="nav_exp">خبرات</a>
+        <a href="#education" data-i18n="nav_edu">تعليم</a>
+        <a href="#certs" data-i18n="nav_certs">دورات</a>
+        <a href="#highlights" data-i18n="nav_high">إنجازات</a>
+        <a href="#contact" data-i18n="nav_contact">تواصل</a>
+      </nav>
+
+      <button id="langBtn" class="lang-btn" type="button" aria-pressed="false" title="Language">
+        <i class="fa-solid fa-language"></i> <span id="langLabel">English</span>
+      </button>
+
+      <button id="themeBtn" class="theme-btn" type="button" aria-pressed="true" title="Theme">
+        <i class="fa-solid fa-moon"></i> <span data-i18n="theme">الثيم</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="about" class="hero reveal">
+      <div>
+        <h1 class="title">
+          <span data-i18n="hero_hi">مرحبًا، أنا</span>
+          <span class="grad" data-i18n="hero_name">محمد إسماعيل كريري</span>
+        </h1>
+
+        <p class="lead" data-i18n="hero_lead">
+          أخصائي تقنية معلومات بخبرة تقارب سنة في الدعم الفني وصيانة الأنظمة.
+          أقدّم دعمًا شاملاً لمشاكل الموظفين التقنية، وصيانة للأجهزة والطابعات، وإدارة أنظمة المراقبة CCTV،
+          لضمان أقل وقت توقف ورفع الكفاءة التشغيلية.
+        </p>
+
+        <div class="chips">
+          <span class="chip" data-i18n="chip_loc"><i class="fa-solid fa-location-dot"></i> الرياض، السعودية</span>
+          <span class="chip"><i class="fa-solid fa-headset"></i> IT Support</span>
+          <span class="chip"><i class="fa-solid fa-screwdriver-wrench"></i> Hardware</span>
+          <span class="chip"><i class="fa-solid fa-video"></i> CCTV</span>
+        </div>
+
+        <div class="cta" role="group" aria-label="Links">
+          <a class="btn btn--fill" href="CVMK.pdf" target="_blank" rel="noopener" download>
+            <i class="fa-regular fa-file-lines"></i> <span data-i18n="btn_cv">السيرة الذاتية</span>
+          </a>
+          <a class="btn btn--solid" href="https://wa.me/966506036322" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp"></i> <span data-i18n="btn_whatsapp">واتساب</span>
+          </a>
+          <a class="btn btn--ghost" href="tel:+966506036322">
+            <i class="fa-solid fa-phone"></i> <span data-i18n="btn_call">اتصال</span>
+          </a>
+          <a class="btn btn--ghost" id="mailSafe">
+            <i class="fa-regular fa-envelope"></i> <span data-i18n="btn_email">بريد</span>
+          </a>
+          <button class="btn btn--ghost" type="button" id="copyEmailBtnHero">
+            <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy_email">نسخ البريد</span>
+          </button>
+          <a class="btn btn--ghost" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener">
+            <i class="fa-brands fa-linkedin"></i> LinkedIn
+          </a>
+        </div>
+      </div>
+
+      <figure class="avatar">
+        <img src="me.jpg" alt="Mohammed Kariri" loading="lazy">
+        <figcaption class="badge"><i class="fa-solid fa-id-badge"></i> <span data-i18n="badge">Computer Science Specialist</span></figcaption>
+      </figure>
+    </section>
+
+    <section id="skills" class="card reveal" style="margin-top:20px">
+      <h2 data-i18n="skills_title">المهارات التقنية</h2>
+
+      <div class="services" style="margin-top:10px">
+        <div class="svc">
+          <h3><i class="fa-solid fa-headset"></i> <span data-i18n="svc1_title">IT Support</span></h3>
+          <p data-i18n="svc1_desc">دعم تقني متعدد المستويات + حل مشاكل المستخدمين لرفع الإنتاجية.</p>
+        </div>
+        <div class="svc">
+          <h3><i class="fa-solid fa-screwdriver-wrench"></i> <span data-i18n="svc2_title">Hardware & Maintenance</span></h3>
+          <p data-i18n="svc2_desc">صيانة دورية وطارئة للحواسيب والطابعات والملحقات.</p>
+        </div>
+        <div class="svc">
+          <h3><i class="fa-solid fa-video"></i> <span data-i18n="svc3_title">CCTV Monitoring</span></h3>
+          <p data-i18n="svc3_desc">مراقبة وإدارة أنظمة الكاميرات لضمان أمن واستقرار الموقع.</p>
+        </div>
+      </div>
+
+      <div class="chips" style="margin-top:12px">
+        <span class="chip">RDBMS</span>
+        <span class="chip">Data Entry</span>
+        <span class="chip">Java (OOP)</span>
+        <span class="chip">HTML</span>
+        <span class="chip">CSS</span>
+        <span class="chip">Android (Intro)</span>
+      </div>
+
+      <ul class="bullets">
+        <li data-i18n="soft1">التواصل الفعّال + العمل ضمن فريق + قيادة وتعاون.</li>
+        <li data-i18n="soft2">حل المشكلات والتفكير التحليلي + سرعة التعلم والتكيّف.</li>
+        <li data-i18n="soft3">إدارة وقت + تحمل ضغط + إنجاز مهام بسرعة ودقة.</li>
+      </ul>
+    </section>
+
+    <section id="experience" class="card reveal" style="margin-top:20px">
+      <h2 data-i18n="exp_title">الخبرات</h2>
+
+      <div class="timeline">
+        <div class="job">
+          <h3 data-i18n="job1_title">أخصائي تقنية معلومات — Bashaer AL-Benaa Contracting Company</h3>
+          <div class="meta">
+            <span class="tag"><i class="fa-solid fa-briefcase"></i> <span data-i18n="job_fulltime">دوام كامل</span></span>
+            <span class="tag"><i class="fa-regular fa-calendar"></i> Jun 2025 – Dec 2025</span>
+          </div>
+          <ul class="bullets">
+            <li data-i18n="job1_b1">نقطة الاتصال الأساسية لمشاكل الموظفين التقنية (سوفت/هارد) لضمان استمرارية الإنتاجية.</li>
+            <li data-i18n="job1_b2">صيانة أجهزة متعددة (كمبيوتر، طابعات، ملحقات) بشكل دوري وطارئ.</li>
+            <li data-i18n="job1_b3">إدارة ومراقبة أنظمة CCTV لضمان أمن المواقع واستمرارية المراقبة.</li>
+            <li data-i18n="job1_b4">دعم شامل للأنظمة واتصالات الشبكة لاستقرار أدوات العمل.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <h3 data-i18n="job2_title">متدرّب — Tabuk Health Cluster</h3>
+          <div class="meta">
+            <span class="tag"><i class="fa-solid fa-graduation-cap"></i> <span data-i18n="job_intern">تدريب</span></span>
+            <span class="tag"><i class="fa-regular fa-calendar"></i> Jun 2024 – Aug 2024</span>
+          </div>
+          <ul class="bullets">
+            <li data-i18n="job2_b1">المساعدة في إصلاح الأعطال واستكشاف مشاكل أجهزة الكمبيوتر والجوالات.</li>
+            <li data-i18n="job2_b2">تحديد أخطاء الأنظمة ومعالجتها لدعم البنية الرقمية للمنشأة.</li>
+            <li data-i18n="job2_b3">التعاون مع فريق تقنية المعلومات لتنفيذ حلول تحسّن جودة الخدمة.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="education" class="card reveal" style="margin-top:20px">
+      <h2 data-i18n="edu_title">التعليم</h2>
+      <div class="cv" style="margin-top:10px">
+        <div class="item">
+          <h3><i class="fa-solid fa-user-graduate"></i> <span data-i18n="edu_degree">بكالوريوس علوم الحاسب</span></h3>
+          <p data-i18n="edu_school">جامعة تبوك — May 2025</p>
+          <ul class="bullets">
+            <li data-i18n="edu_b1">معترف بها رسميًا من الهيئة السعودية للمهندسين كأخصائي علوم حاسب.</li>
+            <li data-i18n="edu_b2">تركيز: هندسة برمجيات، قواعد بيانات علائقية، واكتشاف أخطاء العتاد.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="certs" class="card reveal" style="margin-top:20px">
+      <h2 data-i18n="certs_title">الدورات والشهادات</h2>
+
+      <div class="cv" style="margin-top:10px">
+        <div class="item"><h3><i class="fa-solid fa-certificate"></i> <span data-i18n="c1">Computer Science Specialist</span></h3><p>Saudi Council of Engineers — 2025</p></div>
+        <div class="item"><h3><i class="fa-solid fa-mobile-screen"></i> <span data-i18n="c2">Introduction to Android Mobile Application Development</span></h3><p data-i18n="c2s">مقدمة لتطوير تطبيقات أندرويد</p></div>
+        <div class="item"><h3><i class="fa-solid fa-code"></i> <span data-i18n="c3">Build Your Portfolio Website with HTML and CSS</span></h3><p>HTML & CSS</p></div>
+        <div class="item"><h3><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="c4">Search Engine Optimization (SEO)</span></h3><p data-i18n="c4s">تحسين محركات البحث</p></div>
+        <div class="item"><h3><i class="fa-solid fa-computer"></i> <span data-i18n="c5">Computer Basics</span></h3><p data-i18n="c5s">أساسيات الكمبيوتر</p></div>
+        <div class="item"><h3><i class="fa-solid fa-pen-ruler"></i> <span data-i18n="c6">Basics of Design Tools</span></h3><p data-i18n="c6s">أساسيات أدوات التصميم</p></div>
+        <div class="item"><h3><i class="fa-solid fa-cubes"></i> <span data-i18n="c7">Intermediate Object-Oriented Programming with Java</span></h3><p data-i18n="c7s">برمجة كائنية التوجه (Java) — مستوى متوسط</p></div>
+        <div class="item"><h3><i class="fa-solid fa-database"></i> <span data-i18n="c8">Introduction to Relational Databases (RDBMS)</span></h3><p data-i18n="c8s">مقدمة لقواعد البيانات العلائقية</p></div>
+        <div class="item"><h3><i class="fa-solid fa-gears"></i> <span data-i18n="c9">Software Engineering Best Practices for Building High-Quality Programs</span></h3><p data-i18n="c9s">أفضل الممارسات لبناء برامج عالية الجودة</p></div>
+        <div class="item"><h3><i class="fa-solid fa-bullhorn"></i> <span data-i18n="c10">Marketing Fundamentals</span></h3><p data-i18n="c10s">أساسيات التسويق</p></div>
+        <div class="item"><h3><i class="fa-solid fa-keyboard"></i> <span data-i18n="c11">Data Entry Skills</span></h3><p data-i18n="c11s">مهارات إدخال البيانات</p></div>
+      </div>
+    </section>
+
+    <section id="highlights" class="card reveal" style="margin-top:20px">
+      <h2 data-i18n="high_title">إنجازات ومهام</h2>
+
+      <div class="work" style="margin-top:10px">
+        <div class="shot">
+          <div style="font-weight:800;margin-bottom:10px" data-i18n="h1_t">الدعم الفني</div>
+          <ul class="bullets" style="margin:0">
+            <li data-i18n="h1_b1">حل مشاكل البرامج والأجهزة لضمان استمرارية الإنتاجية.</li>
+            <li data-i18n="h1_b2">إعداد أجهزة المستخدمين وربط الطابعات والملحقات.</li>
+          </ul>
+        </div>
+
+        <div class="shot">
+          <div style="font-weight:800;margin-bottom:10px" data-i18n="h2_t">الصيانة</div>
+          <ul class="bullets" style="margin:0">
+            <li data-i18n="h2_b1">صيانة دورية وطارئة للحواسيب والطابعات.</li>
+            <li data-i18n="h2_b2">تشخيص الأعطال وتبديل القطع عند الحاجة.</li>
+          </ul>
+        </div>
+
+        <div class="shot">
+          <div style="font-weight:800;margin-bottom:10px" data-i18n="h3_t">CCTV & الأنظمة</div>
+          <ul class="bullets" style="margin:0">
+            <li data-i18n="h3_b1">متابعة كاميرات المراقبة والتأكد من عملها باستمرار.</li>
+            <li data-i18n="h3_b2">ضمان استقرار الأنظمة والاتصالات الأساسية.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="card reveal" style="margin-top:20px">
+      <h2 data-i18n="contact_title">تواصل</h2>
+      <p class="muted" data-i18n="contact_sub">متاح للتواصل والتوظيف في مجال IT Support / IT Specialist.</p>
+
+      <div class="cta" role="group" aria-label="Contact">
+        <a class="btn btn--solid" href="https://wa.me/966506036322" target="_blank" rel="noopener">
+          <i class="fa-brands fa-whatsapp"></i> <span data-i18n="btn_whatsapp">واتساب</span>
+        </a>
+        <a class="btn btn--ghost" href="tel:+966506036322">
+          <i class="fa-solid fa-phone"></i> <span data-i18n="btn_call">اتصال</span>
+        </a>
+        <a class="btn btn--ghost" id="mailSafe2">
+          <i class="fa-regular fa-envelope"></i> <span data-i18n="btn_email">بريد</span>
+        </a>
+        <button class="btn btn--ghost" type="button" id="copyEmailBtnContact">
+          <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy_email">نسخ البريد</span>
+        </button>
+        <a class="btn btn--ghost" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener">
+          <i class="fa-brands fa-linkedin"></i> LinkedIn
+        </a>
+        <a class="btn btn--fill" href="CVMK.pdf" target="_blank" rel="noopener">
+          <i class="fa-regular fa-file-pdf"></i> <span data-i18n="btn_viewcv">عرض السيرة</span>
+        </a>
+      </div>
+    </section>
+
+    <footer>© <span id="y"></span> <span data-i18n="footer_name">محمد كريري</span> — <span data-i18n="footer_rights">جميع الحقوق محفوظة</span></footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastText">تم نسخ البريد</span>
   </div>
-</header>
 
-<main class="wrap">
-<section id="about" class="hero">
-  <div>
-    <h1>Mohammed Ismail Kariri</h1>
-    <p class="lead">IT Specialist with experience in technical support, hardware maintenance, and CCTV systems.</p>
-    <button class="btn" onclick="copyEmail()"><i class="fa-regular fa-copy"></i> Copy Email</button>
-    <div id="copyMsg" class="copy-msg">Email copied ✔</div>
-  </div>
-  <img src="me.jpg" alt="Mohammed Kariri">
-</section>
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
 
-<section id="skills" class="card">
-<h2>Skills</h2>
-<ul>
-<li>IT Support</li>
-<li>Hardware Maintenance</li>
-<li>CCTV Monitoring</li>
-<li>Java (OOP)</li>
-<li>HTML & CSS</li>
-</ul>
-</section>
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('themeBtn');
+    const savedTheme = localStorage.getItem('theme');
+    if(savedTheme !== null){
+      savedTheme ? root.setAttribute('data-theme', savedTheme) : root.removeAttribute('data-theme');
+    }
+    themeBtn.setAttribute('aria-pressed', (root.getAttribute('data-theme') === 'dark'));
+    themeBtn.addEventListener('click', ()=>{
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      const next = isDark ? '' : 'dark';
+      if(next) root.setAttribute('data-theme', next); else root.removeAttribute('data-theme');
+      localStorage.setItem('theme', next);
+      themeBtn.setAttribute('aria-pressed', next === 'dark');
+    });
 
-<section id="contact" class="card">
-<h2>Contact</h2>
-<p>
-<span id="email">m.e.k05060@gmail.com</span><br>
-<a href="tel:+966506036322">+966506036322</a><br>
-<a href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank">LinkedIn</a>
-</p>
-</section>
+    const topbar = document.getElementById('topbar');
+    const ham = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    ham.addEventListener('click', ()=>{
+      const open = topbar.classList.toggle('open');
+      ham.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=> {
+      topbar.classList.remove('open'); ham.setAttribute('aria-expanded','false');
+    }));
 
-<footer>© <span id="y"></span> Mohammed Kariri</footer>
-</main>
+    const io = new IntersectionObserver(es=>es.forEach(e=>{
+      if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target)}
+    }),{threshold:.12});
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-<script>
-document.getElementById("y").textContent=new Date().getFullYear();
-function copyEmail(){
-const email=document.getElementById("email").textContent;
-navigator.clipboard.writeText(email).then(()=>{
-const m=document.getElementById("copyMsg");
-m.style.display="block";
-setTimeout(()=>m.style.display="none",2000);
-});
-}
-</script>
+    const sections=[...document.querySelectorAll('section.card, section.hero')];
+    const navItems=[...document.querySelectorAll('.links a')];
+    const spy=new IntersectionObserver((es)=>{
+      es.forEach(e=>{
+        if(e.isIntersecting){
+          const id=e.target.id;
+          navItems.forEach(a=>a.classList.toggle('active', a.getAttribute('href')==='#'+id));
+        }
+      })
+    },{threshold:.55});
+    sections.forEach(s=>spy.observe(s));
+
+    const user = "m.e.k05060", domain = "gmail.com", EMAIL = `${user}@${domain}`;
+    function mountMail(el){
+      if(el){
+        el.href = `mailto:${EMAIL}`;
+        el.target = "_self";
+        el.rel = "";
+        el.title = EMAIL;
+      }
+    }
+    mountMail(document.getElementById('mailSafe'));
+    mountMail(document.getElementById('mailSafe2'));
+
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+    let toastTimer = null;
+
+    function showToast(text, ok=true){
+      toast.querySelector('i').className = ok ? 'fa-solid fa-circle-check' : 'fa-solid fa-triangle-exclamation';
+      toastText.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>toast.classList.remove('show'), 1800);
+    }
+
+    async function copyToClipboard(text){
+      try{
+        if(navigator.clipboard && window.isSecureContext){
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.top='0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      }catch(e){
+        return false;
+      }
+    }
+
+    document.getElementById('copyEmailBtnHero').addEventListener('click', async ()=>{
+      const ok = await copyToClipboard(EMAIL);
+      showToast(ok ? CURRENT.toast_copied : CURRENT.toast_failed, ok);
+    });
+    document.getElementById('copyEmailBtnContact').addEventListener('click', async ()=>{
+      const ok = await copyToClipboard(EMAIL);
+      showToast(ok ? CURRENT.toast_copied : CURRENT.toast_failed, ok);
+    });
+
+    const i18n = {
+      ar: {
+        metaTitle: "محمد كريري — IT Specialist",
+        metaDesc: "بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وتواصل.",
+        brand: "محمد كريري",
+        nav_about: "نبذة",
+        nav_skills: "مهارات",
+        nav_exp: "خبرات",
+        nav_edu: "تعليم",
+        nav_certs: "دورات",
+        nav_high: "إنجازات",
+        nav_contact: "تواصل",
+        theme: "الثيم",
+        hero_hi: "مرحبًا، أنا",
+        hero_name: "محمد إسماعيل كريري",
+        hero_lead: "أخصائي تقنية معلومات بخبرة تقارب سنة في الدعم الفني وصيانة الأنظمة. أقدّم دعمًا شاملاً لمشاكل الموظفين التقنية، وصيانة للأجهزة والطابعات، وإدارة أنظمة المراقبة CCTV، لضمان أقل وقت توقف ورفع الكفاءة التشغيلية.",
+        chip_loc: "الرياض، السعودية",
+        btn_cv: "السيرة الذاتية",
+        btn_viewcv: "عرض السيرة",
+        btn_whatsapp: "واتساب",
+        btn_call: "اتصال",
+        btn_email: "بريد",
+        btn_copy_email: "نسخ البريد",
+        badge: "Computer Science Specialist",
+        skills_title: "المهارات التقنية",
+        svc1_title: "IT Support",
+        svc1_desc: "دعم تقني متعدد المستويات + حل مشاكل المستخدمين لرفع الإنتاجية.",
+        svc2_title: "Hardware & Maintenance",
+        svc2_desc: "صيانة دورية وطارئة للحواسيب والطابعات والملحقات.",
+        svc3_title: "CCTV Monitoring",
+        svc3_desc: "مراقبة وإدارة أنظمة الكاميرات لضمان أمن واستقرار الموقع.",
+        soft1: "التواصل الفعّال + العمل ضمن فريق + قيادة وتعاون.",
+        soft2: "حل المشكلات والتفكير التحليلي + سرعة التعلم والتكيّف.",
+        soft3: "إدارة وقت + تحمل ضغط + إنجاز مهام بسرعة ودقة.",
+        exp_title: "الخبرات",
+        job1_title: "أخصائي تقنية معلومات — Bashaer AL-Benaa Contracting Company",
+        job_fulltime: "دوام كامل",
+        job1_b1: "نقطة الاتصال الأساسية لمشاكل الموظفين التقنية (سوفت/هارد) لضمان استمرارية الإنتاجية.",
+        job1_b2: "صيانة أجهزة متعددة (كمبيوتر، طابعات، ملحقات) بشكل دوري وطارئ.",
+        job1_b3: "إدارة ومراقبة أنظمة CCTV لضمان أمن المواقع واستمرارية المراقبة.",
+        job1_b4: "دعم شامل للأنظمة واتصالات الشبكة لاستقرار أدوات العمل.",
+        job2_title: "متدرّب — Tabuk Health Cluster",
+        job_intern: "تدريب",
+        job2_b1: "المساعدة في إصلاح الأعطال واستكشاف مشاكل أجهزة الكمبيوتر والجوالات.",
+        job2_b2: "تحديد أخطاء الأنظمة ومعالجتها لدعم البنية الرقمية للمنشأة.",
+        job2_b3: "التعاون مع فريق تقنية المعلومات لتنفيذ حلول تحسّن جودة الخدمة.",
+        edu_title: "التعليم",
+        edu_degree: "بكالوريوس علوم الحاسب",
+        edu_school: "جامعة تبوك — May 2025",
+        edu_b1: "معترف بها رسميًا من الهيئة السعودية للمهندسين كأخصائي علوم حاسب.",
+        edu_b2: "تركيز: هندسة برمجيات، قواعد بيانات علائقية، واكتشاف أخطاء العتاد.",
+        certs_title: "الدورات والشهادات",
+        c1: "Computer Science Specialist",
+        c2: "Introduction to Android Mobile Application Development",
+        c2s: "مقدمة لتطوير تطبيقات أندرويد",
+        c3: "Build Your Portfolio Website with HTML and CSS",
+        c4: "Search Engine Optimization (SEO)",
+        c4s: "تحسين محركات البحث",
+        c5: "Computer Basics",
+        c5s: "أساسيات الكمبيوتر",
+        c6: "Basics of Design Tools",
+        c6s: "أساسيات أدوات التصميم",
+        c7: "Intermediate Object-Oriented Programming with Java",
+        c7s: "برمجة كائنية التوجه (Java) — مستوى متوسط",
+        c8: "Introduction to Relational Databases (RDBMS)",
+        c8s: "مقدمة لقواعد البيانات العلائقية",
+        c9: "Software Engineering Best Practices for Building High-Quality Programs",
+        c9s: "أفضل الممارسات لبناء برامج عالية الجودة",
+        c10: "Marketing Fundamentals",
+        c10s: "أساسيات التسويق",
+        c11: "Data Entry Skills",
+        c11s: "مهارات إدخال البيانات",
+        high_title: "إنجازات ومهام",
+        h1_t: "الدعم الفني",
+        h1_b1: "حل مشاكل البرامج والأجهزة لضمان استمرارية الإنتاجية.",
+        h1_b2: "إعداد أجهزة المستخدمين وربط الطابعات والملحقات.",
+        h2_t: "الصيانة",
+        h2_b1: "صيانة دورية وطارئة للحواسيب والطابعات.",
+        h2_b2: "تشخيص الأعطال وتبديل القطع عند الحاجة.",
+        h3_t: "CCTV & الأنظمة",
+        h3_b1: "متابعة كاميرات المراقبة والتأكد من عملها باستمرار.",
+        h3_b2: "ضمان استقرار الأنظمة والاتصالات الأساسية.",
+        contact_title: "تواصل",
+        contact_sub: "متاح للتواصل والتوظيف في مجال IT Support / IT Specialist.",
+        footer_name: "محمد كريري",
+        footer_rights: "جميع الحقوق محفوظة",
+        toast_copied: "تم نسخ البريد",
+        toast_failed: "تعذر النسخ"
+      },
+      en: {
+        metaTitle: "Mohammed Kariri — IT Specialist",
+        metaDesc: "Mohammed Kariri — IT Specialist (IT Support / Hardware / CCTV). Experience, skills, certifications, and contact.",
+        brand: "Mohammed Kariri",
+        nav_about: "About",
+        nav_skills: "Skills",
+        nav_exp: "Experience",
+        nav_edu: "Education",
+        nav_certs: "Certifications",
+        nav_high: "Highlights",
+        nav_contact: "Contact",
+        theme: "Theme",
+        hero_hi: "Hi, I'm",
+        hero_name: "Mohammed Ismail Kariri",
+        hero_lead: "An IT Specialist with nearly one year of experience in technical support and system maintenance. Skilled in resolving end-user issues, maintaining hardware and printers, and managing CCTV surveillance to minimize downtime and keep operations running smoothly.",
+        chip_loc: "Riyadh, Saudi Arabia",
+        btn_cv: "Download CV",
+        btn_viewcv: "View CV",
+        btn_whatsapp: "WhatsApp",
+        btn_call: "Call",
+        btn_email: "Email",
+        btn_copy_email: "Copy Email",
+        badge: "Computer Science Specialist",
+        skills_title: "Technical Skills",
+        svc1_title: "IT Support",
+        svc1_desc: "Multi-level technical support and end-user troubleshooting to keep productivity high.",
+        svc2_title: "Hardware & Maintenance",
+        svc2_desc: "Routine and emergency maintenance for PCs, printers, and peripherals.",
+        svc3_title: "CCTV Monitoring",
+        svc3_desc: "Monitor and manage CCTV systems to support site security and oversight.",
+        soft1: "Strong communication, teamwork, and collaboration.",
+        soft2: "Problem-solving mindset with fast learning and adaptability.",
+        soft3: "Time management, reliability, and working well under pressure.",
+        exp_title: "Experience",
+        job1_title: "IT Specialist — Bashaer AL-Benaa Contracting Company",
+        job_fulltime: "Full-time",
+        job1_b1: "Primary point of contact for employee technical issues (software & hardware) to maintain productivity.",
+        job1_b2: "Performed routine and emergency maintenance for computers, printers, and peripherals.",
+        job1_b3: "Managed and monitored CCTV systems to ensure continuous site security.",
+        job1_b4: "Provided end-to-end support for systems and network stability.",
+        job2_title: "Trainee — Tabuk Health Cluster",
+        job_intern: "Internship",
+        job2_b1: "Assisted in troubleshooting and repairing computer hardware and mobile devices.",
+        job2_b2: "Identified and resolved system errors to support digital infrastructure.",
+        job2_b3: "Worked with the IT team to implement solutions that improved service delivery.",
+        edu_title: "Education",
+        edu_degree: "B.Sc. in Computer Science",
+        edu_school: "University of Tabuk — May 2025",
+        edu_b1: "Officially recognized by the Saudi Council of Engineers (Computer Science Specialist).",
+        edu_b2: "Focus: software engineering, relational databases, and hardware troubleshooting fundamentals.",
+        certs_title: "Certifications & Training",
+        c1: "Computer Science Specialist",
+        c2: "Introduction to Android Mobile Application Development",
+        c2s: "",
+        c3: "Build Your Portfolio Website with HTML and CSS",
+        c4: "Search Engine Optimization (SEO)",
+        c4s: "",
+        c5: "Computer Basics",
+        c5s: "",
+        c6: "Basics of Design Tools",
+        c6s: "",
+        c7: "Intermediate Object-Oriented Programming with Java",
+        c7s: "",
+        c8: "Introduction to Relational Databases (RDBMS)",
+        c8s: "",
+        c9: "Software Engineering Best Practices for Building High-Quality Programs",
+        c9s: "",
+        c10: "Marketing Fundamentals",
+        c10s: "",
+        c11: "Data Entry Skills",
+        c11s: "",
+        high_title: "Highlights",
+        h1_t: "Technical Support",
+        h1_b1: "Resolved software and hardware issues to minimize downtime and maintain productivity.",
+        h1_b2: "Set up user devices and configured printers and peripherals.",
+        h2_t: "Maintenance",
+        h2_b1: "Handled routine and emergency maintenance for PCs and printers.",
+        h2_b2: "Diagnosed issues and replaced parts when needed.",
+        h3_t: "CCTV & Systems",
+        h3_b1: "Monitored CCTV systems and ensured continuous operation.",
+        h3_b2: "Supported system and connectivity stability.",
+        contact_title: "Contact",
+        contact_sub: "Open to IT Support / IT Specialist opportunities.",
+        footer_name: "Mohammed Kariri",
+        footer_rights: "All rights reserved",
+        toast_copied: "Email copied",
+        toast_failed: "Copy failed"
+      }
+    };
+
+    let CURRENT = i18n.ar;
+
+    const langBtn = document.getElementById('langBtn');
+    const langLabel = document.getElementById('langLabel');
+
+    function setMeta(title, desc){
+      document.title = title;
+      const md = document.querySelector('meta[name="description"]');
+      if(md) md.setAttribute('content', desc);
+    }
+
+    function applyLang(lang){
+      const dict = i18n[lang];
+      if(!dict) return;
+      CURRENT = dict;
+
+      if(lang === "en"){
+        document.documentElement.setAttribute("lang","en");
+        document.documentElement.setAttribute("dir","ltr");
+        langLabel.textContent = "العربية";
+        langBtn.setAttribute("aria-pressed","true");
+      }else{
+        document.documentElement.setAttribute("lang","ar");
+        document.documentElement.setAttribute("dir","rtl");
+        langLabel.textContent = "English";
+        langBtn.setAttribute("aria-pressed","false");
+      }
+
+      setMeta(dict.metaTitle, dict.metaDesc);
+
+      document.querySelectorAll("[data-i18n]").forEach(el=>{
+        const key = el.getAttribute("data-i18n");
+        const val = dict[key];
+        if(val === undefined) return;
+        el.textContent = val;
+      });
+
+      localStorage.setItem("lang", lang);
+    }
+
+    const savedLang = localStorage.getItem("lang") || "ar";
+    applyLang(savedLang);
+
+    langBtn.addEventListener("click", ()=>{
+      const current = localStorage.getItem("lang") || "ar";
+      const next = current === "ar" ? "en" : "ar";
+      applyLang(next);
+    });
+
+    (()=> {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const c = document.getElementById('bgCanvas'); if(!c || reduce) return;
+      const x = c.getContext('2d');
+      let DPR=1, W=0, H=0, t=0, parts=[];
+      function cols(){
+        const cs = getComputedStyle(document.documentElement);
+        return [cs.getPropertyValue('--p1').trim(), cs.getPropertyValue('--p2').trim(), cs.getPropertyValue('--p3').trim()];
+      }
+      let [C1,C2,C3]=cols();
+      function rs(){
+        DPR=Math.min(devicePixelRatio||1,2);
+        W=c.width=Math.floor(innerWidth*DPR);
+        H=c.height=Math.floor(innerHeight*DPR);
+        c.style.width=innerWidth+'px'; c.style.height=innerHeight+'px';
+        make();
+      }
+      function make(){
+        const n=Math.max(28,Math.round((innerWidth*innerHeight)/16000));
+        parts=Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,r:(Math.random()*1.2+0.6)*DPR,
+          dx:(Math.random()-.5)*(0.35+Math.random()*0.25)*DPR, dy:(Math.random()-.5)*(0.35+Math.random()*0.25)*DPR,
+          col:[C1,C2,C3][Math.floor(Math.random()*3)]}));
+      }
+      function glow(p){
+        const g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*10);
+        g.addColorStop(0,p.col); g.addColorStop(1,'transparent');
+        x.fillStyle=g; x.beginPath(); x.arc(p.x,p.y,p.r*10,0,Math.PI*2); x.fill();
+      }
+      function waves(){
+        t+=0.0025; x.save(); x.globalAlpha=.22;
+        for(let i=0;i<3;i++){
+          const y=(H/4)*(i+1)+Math.sin(t*120+i)*8*DPR;
+          x.beginPath();
+          for(let xx=0;xx<=W;xx+=24*DPR){
+            const amp=10*DPR+i*4*DPR; const yy=y+Math.sin(xx*0.01+t*140+i)*amp;
+            (xx===0)?x.moveTo(xx,yy):x.lineTo(xx,yy);
+          }
+          x.lineWidth=1.2*DPR; x.strokeStyle=i%2?C2+'cc':C1+'cc'; x.stroke();
+        }
+        x.restore();
+      }
+      function step(){
+        x.clearRect(0,0,W,H);
+        for(const p of parts){
+          p.x+=p.dx; p.y+=p.dy;
+          if(p.x<-30*DPR) p.x=W+30*DPR; if(p.x>W+30*DPR) p.x=-30*DPR;
+          if(p.y<-30*DPR) p.y=H+30*DPR; if(p.y>H+30*DPR) p.y=-30*DPR;
+          glow(p);
+        }
+        waves(); requestAnimationFrame(step);
+      }
+      new MutationObserver(()=>{[C1,C2,C3]=cols()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+      rs(); step(); addEventListener('resize',rs);
+    })();
+  </script>
 </body>
 </html>
