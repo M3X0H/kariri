@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>محمد كريري — IT Specialist</title>
-  <meta name="description" content="بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وتواصل.">
+  <title>محمد كريري — أخصائي تقنية معلومات</title>
+  <meta name="description" content="بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وأثر العمل.">
   <link rel="icon" href="data:," />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,20 +40,18 @@
     }
     a{color:inherit; text-decoration:none}
 
-    /* Canvas */
     #bgCanvas{position:fixed; inset:0; z-index:-1; width:100%; height:100%; background:transparent; pointer-events:none}
 
-    /* Navbar */
     header.top{position:sticky;top:0;z-index:10;background:rgba(10,14,24,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr)}
     :root:not([data-theme="dark"]) header.top{background:rgba(255,255,255,.85)}
     .nav{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:10px 16px}
     .brand{display:flex;align-items:center;gap:10px;font-weight:800}
     .brand .bubble{width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--p1),var(--p2));box-shadow:0 0 0 6px rgba(34,211,238,.18)}
+
     .links{display:flex;gap:8px;margin-inline-start:auto}
     .links a{padding:8px 12px;border-radius:10px;color:var(--muted)}
     .links a.active,.links a:hover{background:rgba(167,139,250,.18);color:var(--linkh)}
 
-    /* Buttons */
     .hamburger{display:none; margin-inline-start:6px; border:1px solid var(--bdr); background:var(--bg2); color:var(--ink);
       padding:8px 10px; border-radius:10px; cursor:pointer}
     .theme-btn,.lang-btn{border:1px solid var(--bdr); background:var(--bg2); color:var(--ink);
@@ -67,10 +65,8 @@
       .hamburger{display:inline-flex}
     }
 
-    /* Layout */
     .wrap{max-width:1100px;margin:0 auto;padding:24px 16px 80px}
 
-    /* Hero */
     .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;margin-top:24px;background:var(--bg2);border:1px solid var(--bdr);border-radius:20px;padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
     .hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:
       radial-gradient(600px 200px at 100% 0%, rgba(167,139,250,.18), transparent 60%),
@@ -80,7 +76,7 @@
     p.lead{margin:0 0 14px;color:var(--muted);font-size:18px}
 
     .cta{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;font-weight:800;border:1px solid transparent;transition:.15s ease; cursor:pointer}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;font-weight:800;border:1px solid transparent;transition:.15s ease}
     .btn--fill{background:linear-gradient(135deg,var(--p3),#ffd36f);color:#2a1a00;box-shadow:0 8px 18px rgba(255,200,87,.25)}
     .btn--fill:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(255,200,87,.32)}
     .btn--solid{background:linear-gradient(135deg,var(--p1),#7de3f4);color:#05313a;box-shadow:0 8px 18px rgba(34,211,238,.16)}
@@ -93,7 +89,6 @@
     .avatar img{width:100%;height:100%;object-fit:cover;display:block}
     .badge{position:absolute;bottom:10px;inset-inline-start:10px;background:#ffffffd9;color:#0f172a;border:1px solid var(--bdr);padding:6px 10px;border-radius:10px;font-weight:700;font-size:14px}
 
-    /* Sections */
     .card{background:var(--bg2);border:1px solid var(--bdr);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
     .card h2{margin:0 0 10px;font-size:22px}
     .muted{color:var(--muted)}
@@ -101,33 +96,31 @@
     .chip{padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px;color:var(--ink);background:rgba(255,255,255,.06);border:1px solid var(--bdr)}
     :root:not([data-theme="dark"]) .chip{background:#f1f5f9}
 
-    /* Services */
     .services{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     .svc{padding:14px;border:1px solid var(--bdr);border-radius:14px;background:var(--bg2)}
     .svc h3{margin:4px 0 6px;font-size:16px}
     .svc p{margin:0;color:var(--muted);font-size:14px}
 
-    /* Grid blocks */
     .cv{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
     .cv .item{padding:14px;border:1px solid var(--bdr);border-radius:14px;background:var(--bg2)}
     .cv .item h3{margin:0 0 6px;font-size:16px}
     .cv .item p{margin:0;color:var(--muted);font-size:14px}
-    .bullets{margin:10px 0 0; padding:0 18px 0 0}
-    .bullets li{margin:6px 0;color:var(--muted)}
 
-    /* Experience */
     .timeline{display:grid;gap:12px;margin-top:10px}
     .job{padding:14px;border:1px solid var(--bdr);border-radius:14px;background:var(--bg2)}
     .job h3{margin:0 0 6px;font-size:16px}
     .meta{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:13px}
     .tag{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--bdr);background:rgba(255,255,255,.06)}
     :root:not([data-theme="dark"]) .tag{background:#f1f5f9}
+    .bullets{margin:10px 0 0; padding:0 18px 0 0}
+    .bullets li{margin:6px 0;color:var(--muted)}
+    .impact-box{margin-top:10px; padding:14px; border:1px solid var(--bdr); border-radius:14px; background:rgba(255,255,255,.03)}
+    :root:not([data-theme="dark"]) .impact-box{background:#f8fafc}
 
-    /* Highlights */
     .work{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     .shot{border:1px solid var(--bdr);border-radius:14px;background:var(--bg2);padding:14px}
+    .cap{font-weight:800;font-size:14px;margin-bottom:10px}
 
-    /* Reveal */
     .reveal{opacity:0;transform:translateY(10px);transition:opacity .55s ease, transform .55s ease}
     .reveal.in{opacity:1;transform:none}
 
@@ -136,20 +129,6 @@
     @media (max-width:640px){.work{grid-template-columns:1fr} h1.title{font-size:30px}}
     @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none}}
 
-    /* Toast */
-    .toast{
-      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-      background:rgba(15,20,34,.92); color:#fff; border:1px solid rgba(255,255,255,.12);
-      padding:10px 12px; border-radius:12px; box-shadow:var(--shadow);
-      display:flex; align-items:center; gap:10px;
-      opacity:0; pointer-events:none; transition:opacity .18s ease, transform .18s ease;
-      z-index:50;
-    }
-    :root:not([data-theme="dark"]) .toast{background:rgba(16,24,40,.92)}
-    .toast.show{opacity:1; transform:translateX(-50%) translateY(-2px)}
-    .toast i{opacity:.9}
-
-    /* LTR tweaks */
     html[dir="ltr"] .links{margin-inline-start:auto; margin-inline-end:0;}
     html[dir="ltr"] .badge{inset-inline-start:auto; inset-inline-end:10px;}
     html[dir="ltr"] .bullets{padding:0 0 0 18px;}
@@ -163,13 +142,14 @@
     <div class="nav">
       <div class="brand"><span class="bubble"></span> <span data-i18n="brand">محمد كريري</span></div>
 
-      <button id="hamburger" class="hamburger" aria-expanded="false" aria-controls="navLinks" title="القائمة">
+      <button id="hamburger" class="hamburger" aria-expanded="false" aria-controls="navLinks" title="Menu">
         <i class="fa-solid fa-bars"></i>
       </button>
 
       <nav id="navLinks" class="links" role="navigation">
         <a href="#about" class="active" data-i18n="nav_about">نبذة</a>
         <a href="#skills" data-i18n="nav_skills">مهارات</a>
+        <a href="#impact" data-i18n="nav_impact">الأثر</a>
         <a href="#experience" data-i18n="nav_exp">خبرات</a>
         <a href="#education" data-i18n="nav_edu">تعليم</a>
         <a href="#certs" data-i18n="nav_certs">دورات</a>
@@ -201,8 +181,8 @@
           لضمان أقل وقت توقف ورفع الكفاءة التشغيلية.
         </p>
 
-        <div class="chips">
-          <span class="chip" data-i18n="chip_loc"><i class="fa-solid fa-location-dot"></i> الرياض، السعودية</span>
+        <div class="chips" aria-label="Quick info">
+          <span class="chip"><i class="fa-solid fa-location-dot"></i> <span data-i18n="chip_loc">الرياض، السعودية</span></span>
           <span class="chip"><i class="fa-solid fa-headset"></i> IT Support</span>
           <span class="chip"><i class="fa-solid fa-screwdriver-wrench"></i> Hardware</span>
           <span class="chip"><i class="fa-solid fa-video"></i> CCTV</span>
@@ -218,12 +198,9 @@
           <a class="btn btn--ghost" href="tel:+966506036322">
             <i class="fa-solid fa-phone"></i> <span data-i18n="btn_call">اتصال</span>
           </a>
-          <a class="btn btn--ghost" id="mailSafe">
+          <a class="btn btn--ghost" href="mailto:m.e.k05060@gmail.com">
             <i class="fa-regular fa-envelope"></i> <span data-i18n="btn_email">بريد</span>
           </a>
-          <button class="btn btn--ghost" type="button" id="copyEmailBtnHero">
-            <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy_email">نسخ البريد</span>
-          </button>
           <a class="btn btn--ghost" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener">
             <i class="fa-brands fa-linkedin"></i> LinkedIn
           </a>
@@ -256,17 +233,39 @@
 
       <div class="chips" style="margin-top:12px">
         <span class="chip">RDBMS</span>
-        <span class="chip">Data Entry</span>
+        <span class="chip">AnyDesk</span>
+        <span class="chip">Networking Basics</span>
         <span class="chip">Java (OOP)</span>
         <span class="chip">HTML</span>
         <span class="chip">CSS</span>
-        <span class="chip">Android (Intro)</span>
       </div>
 
       <ul class="bullets">
         <li data-i18n="soft1">التواصل الفعّال + العمل ضمن فريق + قيادة وتعاون.</li>
         <li data-i18n="soft2">حل المشكلات والتفكير التحليلي + سرعة التعلم والتكيّف.</li>
         <li data-i18n="soft3">إدارة وقت + تحمل ضغط + إنجاز مهام بسرعة ودقة.</li>
+      </ul>
+    </section>
+
+    <!-- ✅ Impact section added -->
+    <section id="impact" class="card reveal" style="margin-top:20px">
+      <h2 data-i18n="impact_title">الأثر والمسؤوليات</h2>
+
+      <div class="impact-box">
+        <p class="muted" style="margin:0" data-i18n="impact_para">
+          توليت دور أخصائي تقنية معلومات يخدم أربع شركات تابعة لمالك واحد، حيث أصبح الاعتماد عليّ أساسيًا في تقديم الدعم الفني اليومي.
+          قدمت دعمًا حضوريًا وعن بُعد لموظفين داخل وخارج الرياض باستخدام AnyDesk.
+          شمل عملي حل مختلف المشاكل التقنية المتعلقة بالإنترنت، الشبكات، الأجهزة، الطابعات والأنظمة، مع الالتزام بسرعة الاستجابة والتعاون.
+          بالإضافة إلى ذلك، ساهمت في تقديم اقتراحات تطويرية للإدارة وحل مشاكل سابقة ومتكررة داخل قسم تقنية المعلومات لتحسين آلية العمل ورفع الاستقرار.
+        </p>
+      </div>
+
+      <ul class="bullets" style="margin-top:10px">
+        <li data-i18n="impact_b1">دعم تقني شامل لأربع شركات تحت إدارة واحدة.</li>
+        <li data-i18n="impact_b2">دعم عن بُعد لموظفين خارج الرياض باستخدام AnyDesk.</li>
+        <li data-i18n="impact_b3">حل مشاكل الإنترنت والشبكات والأجهزة والطابعات والأنظمة.</li>
+        <li data-i18n="impact_b4">سرعة استجابة عالية وتعاون فعّال مع الموظفين.</li>
+        <li data-i18n="impact_b5">اقتراحات تطويرية للإدارة وتحسين آلية عمل قسم IT.</li>
       </ul>
     </section>
 
@@ -311,7 +310,7 @@
           <p data-i18n="edu_school">جامعة تبوك — May 2025</p>
           <ul class="bullets">
             <li data-i18n="edu_b1">معترف بها رسميًا من الهيئة السعودية للمهندسين كأخصائي علوم حاسب.</li>
-            <li data-i18n="edu_b2">تركيز: هندسة برمجيات، قواعد بيانات علائقية، واكتشاف أخطاء العتاد.</li>
+            <li data-i18n="edu_b2">التركيز: هندسة البرمجيات، قواعد البيانات العلائقية (RDBMS)، ومفاهيم الشبكات والدعم الفني.</li>
           </ul>
         </div>
       </div>
@@ -340,7 +339,7 @@
 
       <div class="work" style="margin-top:10px">
         <div class="shot">
-          <div style="font-weight:800;margin-bottom:10px" data-i18n="h1_t">الدعم الفني</div>
+          <div class="cap" data-i18n="h1_t">الدعم الفني</div>
           <ul class="bullets" style="margin:0">
             <li data-i18n="h1_b1">حل مشاكل البرامج والأجهزة لضمان استمرارية الإنتاجية.</li>
             <li data-i18n="h1_b2">إعداد أجهزة المستخدمين وربط الطابعات والملحقات.</li>
@@ -348,7 +347,7 @@
         </div>
 
         <div class="shot">
-          <div style="font-weight:800;margin-bottom:10px" data-i18n="h2_t">الصيانة</div>
+          <div class="cap" data-i18n="h2_t">الصيانة</div>
           <ul class="bullets" style="margin:0">
             <li data-i18n="h2_b1">صيانة دورية وطارئة للحواسيب والطابعات.</li>
             <li data-i18n="h2_b2">تشخيص الأعطال وتبديل القطع عند الحاجة.</li>
@@ -356,7 +355,7 @@
         </div>
 
         <div class="shot">
-          <div style="font-weight:800;margin-bottom:10px" data-i18n="h3_t">CCTV & الأنظمة</div>
+          <div class="cap" data-i18n="h3_t">CCTV & الأنظمة</div>
           <ul class="bullets" style="margin:0">
             <li data-i18n="h3_b1">متابعة كاميرات المراقبة والتأكد من عملها باستمرار.</li>
             <li data-i18n="h3_b2">ضمان استقرار الأنظمة والاتصالات الأساسية.</li>
@@ -367,8 +366,7 @@
 
     <section id="contact" class="card reveal" style="margin-top:20px">
       <h2 data-i18n="contact_title">تواصل</h2>
-      <p class="muted" data-i18n="contact_sub">متاح للتواصل والتوظيف في مجال IT Support / IT Specialist.</p>
-
+      <p class="muted" style="margin-top:-4px" data-i18n="contact_sub">متاح للتواصل والتوظيف في مجال IT Support / IT Specialist.</p>
       <div class="cta" role="group" aria-label="Contact">
         <a class="btn btn--solid" href="https://wa.me/966506036322" target="_blank" rel="noopener">
           <i class="fa-brands fa-whatsapp"></i> <span data-i18n="btn_whatsapp">واتساب</span>
@@ -376,12 +374,9 @@
         <a class="btn btn--ghost" href="tel:+966506036322">
           <i class="fa-solid fa-phone"></i> <span data-i18n="btn_call">اتصال</span>
         </a>
-        <a class="btn btn--ghost" id="mailSafe2">
+        <a class="btn btn--ghost" href="mailto:m.e.k05060@gmail.com">
           <i class="fa-regular fa-envelope"></i> <span data-i18n="btn_email">بريد</span>
         </a>
-        <button class="btn btn--ghost" type="button" id="copyEmailBtnContact">
-          <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy_email">نسخ البريد</span>
-        </button>
         <a class="btn btn--ghost" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener">
           <i class="fa-brands fa-linkedin"></i> LinkedIn
         </a>
@@ -393,11 +388,6 @@
 
     <footer>© <span id="y"></span> <span data-i18n="footer_name">محمد كريري</span> — <span data-i18n="footer_rights">جميع الحقوق محفوظة</span></footer>
   </main>
-
-  <div id="toast" class="toast" role="status" aria-live="polite">
-    <i class="fa-solid fa-circle-check"></i>
-    <span id="toastText">تم نسخ البريد</span>
-  </div>
 
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
@@ -445,65 +435,14 @@
     },{threshold:.55});
     sections.forEach(s=>spy.observe(s));
 
-    const user = "m.e.k05060", domain = "gmail.com", EMAIL = `${user}@${domain}`;
-    function mountMail(el){
-      if(el){
-        el.href = `mailto:${EMAIL}`;
-        el.target = "_self";
-        el.rel = "";
-        el.title = EMAIL;
-      }
-    }
-    mountMail(document.getElementById('mailSafe'));
-    mountMail(document.getElementById('mailSafe2'));
-
-    const toast = document.getElementById('toast');
-    const toastText = document.getElementById('toastText');
-    let toastTimer = null;
-
-    function showToast(text, ok=true){
-      toast.querySelector('i').className = ok ? 'fa-solid fa-circle-check' : 'fa-solid fa-triangle-exclamation';
-      toastText.textContent = text;
-      toast.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(()=>toast.classList.remove('show'), 1800);
-    }
-
-    async function copyToClipboard(text){
-      try{
-        if(navigator.clipboard && window.isSecureContext){
-          await navigator.clipboard.writeText(text);
-          return true;
-        }
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.top='0';
-        document.body.appendChild(ta);
-        ta.focus(); ta.select();
-        const ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        return ok;
-      }catch(e){
-        return false;
-      }
-    }
-
-    document.getElementById('copyEmailBtnHero').addEventListener('click', async ()=>{
-      const ok = await copyToClipboard(EMAIL);
-      showToast(ok ? CURRENT.toast_copied : CURRENT.toast_failed, ok);
-    });
-    document.getElementById('copyEmailBtnContact').addEventListener('click', async ()=>{
-      const ok = await copyToClipboard(EMAIL);
-      showToast(ok ? CURRENT.toast_copied : CURRENT.toast_failed, ok);
-    });
-
     const i18n = {
       ar: {
-        metaTitle: "محمد كريري — IT Specialist",
-        metaDesc: "بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وتواصل.",
+        metaTitle: "محمد كريري — أخصائي تقنية معلومات",
+        metaDesc: "بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وأثر العمل.",
         brand: "محمد كريري",
         nav_about: "نبذة",
         nav_skills: "مهارات",
+        nav_impact: "الأثر",
         nav_exp: "خبرات",
         nav_edu: "تعليم",
         nav_certs: "دورات",
@@ -519,8 +458,8 @@
         btn_whatsapp: "واتساب",
         btn_call: "اتصال",
         btn_email: "بريد",
-        btn_copy_email: "نسخ البريد",
         badge: "Computer Science Specialist",
+
         skills_title: "المهارات التقنية",
         svc1_title: "IT Support",
         svc1_desc: "دعم تقني متعدد المستويات + حل مشاكل المستخدمين لرفع الإنتاجية.",
@@ -531,6 +470,15 @@
         soft1: "التواصل الفعّال + العمل ضمن فريق + قيادة وتعاون.",
         soft2: "حل المشكلات والتفكير التحليلي + سرعة التعلم والتكيّف.",
         soft3: "إدارة وقت + تحمل ضغط + إنجاز مهام بسرعة ودقة.",
+
+        impact_title: "الأثر والمسؤوليات",
+        impact_para: "توليت دور أخصائي تقنية معلومات يخدم أربع شركات تابعة لمالك واحد، حيث أصبح الاعتماد عليّ أساسيًا في تقديم الدعم الفني اليومي. قدمت دعمًا حضوريًا وعن بُعد لموظفين داخل وخارج الرياض باستخدام AnyDesk. شمل عملي حل مختلف المشاكل التقنية المتعلقة بالإنترنت، الشبكات، الأجهزة، الطابعات والأنظمة، مع الالتزام بسرعة الاستجابة والتعاون. بالإضافة إلى ذلك، ساهمت في تقديم اقتراحات تطويرية للإدارة وحل مشاكل سابقة ومتكررة داخل قسم تقنية المعلومات لتحسين آلية العمل ورفع الاستقرار.",
+        impact_b1: "دعم تقني شامل لأربع شركات تحت إدارة واحدة.",
+        impact_b2: "دعم عن بُعد لموظفين خارج الرياض باستخدام AnyDesk.",
+        impact_b3: "حل مشاكل الإنترنت والشبكات والأجهزة والطابعات والأنظمة.",
+        impact_b4: "سرعة استجابة عالية وتعاون فعّال مع الموظفين.",
+        impact_b5: "اقتراحات تطويرية للإدارة وتحسين آلية عمل قسم IT.",
+
         exp_title: "الخبرات",
         job1_title: "أخصائي تقنية معلومات — Bashaer AL-Benaa Contracting Company",
         job_fulltime: "دوام كامل",
@@ -543,11 +491,13 @@
         job2_b1: "المساعدة في إصلاح الأعطال واستكشاف مشاكل أجهزة الكمبيوتر والجوالات.",
         job2_b2: "تحديد أخطاء الأنظمة ومعالجتها لدعم البنية الرقمية للمنشأة.",
         job2_b3: "التعاون مع فريق تقنية المعلومات لتنفيذ حلول تحسّن جودة الخدمة.",
+
         edu_title: "التعليم",
         edu_degree: "بكالوريوس علوم الحاسب",
         edu_school: "جامعة تبوك — May 2025",
         edu_b1: "معترف بها رسميًا من الهيئة السعودية للمهندسين كأخصائي علوم حاسب.",
-        edu_b2: "تركيز: هندسة برمجيات، قواعد بيانات علائقية، واكتشاف أخطاء العتاد.",
+        edu_b2: "التركيز: هندسة البرمجيات، قواعد البيانات العلائقية (RDBMS)، ومفاهيم الشبكات والدعم الفني.",
+
         certs_title: "الدورات والشهادات",
         c1: "Computer Science Specialist",
         c2: "Introduction to Android Mobile Application Development",
@@ -569,6 +519,7 @@
         c10s: "أساسيات التسويق",
         c11: "Data Entry Skills",
         c11s: "مهارات إدخال البيانات",
+
         high_title: "إنجازات ومهام",
         h1_t: "الدعم الفني",
         h1_b1: "حل مشاكل البرامج والأجهزة لضمان استمرارية الإنتاجية.",
@@ -579,19 +530,20 @@
         h3_t: "CCTV & الأنظمة",
         h3_b1: "متابعة كاميرات المراقبة والتأكد من عملها باستمرار.",
         h3_b2: "ضمان استقرار الأنظمة والاتصالات الأساسية.",
+
         contact_title: "تواصل",
         contact_sub: "متاح للتواصل والتوظيف في مجال IT Support / IT Specialist.",
         footer_name: "محمد كريري",
-        footer_rights: "جميع الحقوق محفوظة",
-        toast_copied: "تم نسخ البريد",
-        toast_failed: "تعذر النسخ"
+        footer_rights: "جميع الحقوق محفوظة"
       },
+
       en: {
         metaTitle: "Mohammed Kariri — IT Specialist",
-        metaDesc: "Mohammed Kariri — IT Specialist (IT Support / Hardware / CCTV). Experience, skills, certifications, and contact.",
+        metaDesc: "Mohammed Kariri — IT Specialist (IT Support / Hardware / CCTV). Experience, skills, certifications, and impact.",
         brand: "Mohammed Kariri",
         nav_about: "About",
         nav_skills: "Skills",
+        nav_impact: "Impact",
         nav_exp: "Experience",
         nav_edu: "Education",
         nav_certs: "Certifications",
@@ -607,11 +559,11 @@
         btn_whatsapp: "WhatsApp",
         btn_call: "Call",
         btn_email: "Email",
-        btn_copy_email: "Copy Email",
         badge: "Computer Science Specialist",
+
         skills_title: "Technical Skills",
         svc1_title: "IT Support",
-        svc1_desc: "Multi-level technical support and end-user troubleshooting to keep productivity high.",
+        svc1_desc: "Multi-level technical support and end-user troubleshooting to maintain productivity.",
         svc2_title: "Hardware & Maintenance",
         svc2_desc: "Routine and emergency maintenance for PCs, printers, and peripherals.",
         svc3_title: "CCTV Monitoring",
@@ -619,6 +571,15 @@
         soft1: "Strong communication, teamwork, and collaboration.",
         soft2: "Problem-solving mindset with fast learning and adaptability.",
         soft3: "Time management, reliability, and working well under pressure.",
+
+        impact_title: "Impact & Responsibilities",
+        impact_para: "Served as an IT Specialist supporting four companies under a single ownership, becoming a key point of reliance for daily IT operations. Provided on-site and remote support to employees inside and outside Riyadh using AnyDesk. Responsibilities included resolving internet, networking, hardware, printer, and system-related issues with a strong focus on fast response and collaboration. Also contributed by providing improvement suggestions to management and resolving recurring IT department issues to improve workflows, system stability, and overall efficiency.",
+        impact_b1: "Delivered IT support for four companies under one owner.",
+        impact_b2: "Provided remote support for employees outside Riyadh using AnyDesk.",
+        impact_b3: "Troubleshot internet, networking, hardware, printers, and system issues.",
+        impact_b4: "Known for fast response time and strong collaboration.",
+        impact_b5: "Suggested improvements to management and enhanced IT workflows.",
+
         exp_title: "Experience",
         job1_title: "IT Specialist — Bashaer AL-Benaa Contracting Company",
         job_fulltime: "Full-time",
@@ -631,11 +592,13 @@
         job2_b1: "Assisted in troubleshooting and repairing computer hardware and mobile devices.",
         job2_b2: "Identified and resolved system errors to support digital infrastructure.",
         job2_b3: "Worked with the IT team to implement solutions that improved service delivery.",
+
         edu_title: "Education",
         edu_degree: "B.Sc. in Computer Science",
         edu_school: "University of Tabuk — May 2025",
         edu_b1: "Officially recognized by the Saudi Council of Engineers (Computer Science Specialist).",
-        edu_b2: "Focus: software engineering, relational databases, and hardware troubleshooting fundamentals.",
+        edu_b2: "Focus: software engineering, relational databases (RDBMS), networking fundamentals, and IT support.",
+
         certs_title: "Certifications & Training",
         c1: "Computer Science Specialist",
         c2: "Introduction to Android Mobile Application Development",
@@ -657,6 +620,7 @@
         c10s: "",
         c11: "Data Entry Skills",
         c11s: "",
+
         high_title: "Highlights",
         h1_t: "Technical Support",
         h1_b1: "Resolved software and hardware issues to minimize downtime and maintain productivity.",
@@ -667,16 +631,13 @@
         h3_t: "CCTV & Systems",
         h3_b1: "Monitored CCTV systems and ensured continuous operation.",
         h3_b2: "Supported system and connectivity stability.",
+
         contact_title: "Contact",
         contact_sub: "Open to IT Support / IT Specialist opportunities.",
         footer_name: "Mohammed Kariri",
-        footer_rights: "All rights reserved",
-        toast_copied: "Email copied",
-        toast_failed: "Copy failed"
+        footer_rights: "All rights reserved"
       }
     };
-
-    let CURRENT = i18n.ar;
 
     const langBtn = document.getElementById('langBtn');
     const langLabel = document.getElementById('langLabel');
@@ -690,7 +651,6 @@
     function applyLang(lang){
       const dict = i18n[lang];
       if(!dict) return;
-      CURRENT = dict;
 
       if(lang === "en"){
         document.documentElement.setAttribute("lang","en");
@@ -725,6 +685,7 @@
       applyLang(next);
     });
 
+    // Animated background (Particles + Waves)
     (()=> {
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const c = document.getElementById('bgCanvas'); if(!c || reduce) return;
