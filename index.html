@@ -3,78 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>محمد كريري — IT Specialist</title>
-  <meta name="description" content="Mohammed Kariri — IT Specialist (IT Support, Hardware Maintenance, CCTV).">
+  <title>Mohammed Kariri — IT Specialist</title>
+  <meta name="description" content="Mohammed Kariri — IT Specialist (IT Support, Hardware, CCTV).">
+  <link rel="icon" href="data:," />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
 <style>
-:root[data-theme="dark"]{
---bg:#0b0f1a;--card:#0f1422;--text:#eef2ff;--muted:#a9b6d3;--border:#1f2a3b;
+:root{
+--bg1:#0b0f1a;--bg2:#0f1422;--ink:#eef2ff;--muted:#a9b6d3;--bdr:#1f2a3b;
 --p1:#22d3ee;--p2:#7c5cff;--p3:#ffc857;
+--shadow:0 16px 36px rgba(0,0,0,.35)
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Cairo,sans-serif;color:var(--text);background:linear-gradient(#0a0f19,var(--bg))}
+html{scroll-behavior:smooth}
+body{
+margin:0;font-family:Cairo,sans-serif;color:var(--ink);
+background:linear-gradient(#0a0f19,var(--bg1))
+}
 a{text-decoration:none;color:inherit}
-.container{max-width:1100px;margin:auto;padding:20px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;margin-top:20px}
-h1,h2,h3{margin-top:0}
-.badges span{display:inline-block;margin:4px;padding:6px 12px;border:1px solid var(--border);border-radius:999px;font-size:13px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;
-background:linear-gradient(135deg,var(--p3),#ffd36f);color:#2a1a00;font-weight:700;margin:6px 4px;border:none;cursor:pointer}
-.btn.alt{background:linear-gradient(135deg,var(--p1),#7de3f4);color:#05313a}
-.list li{margin:6px 0}
-.copy-msg{font-size:13px;color:var(--muted);margin-top:6px;display:none}
+#bgCanvas{position:fixed;inset:0;z-index:-1}
+header{position:sticky;top:0;background:rgba(10,14,24,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr)}
+.nav{max-width:1100px;margin:auto;display:flex;align-items:center;gap:10px;padding:10px}
+.links{display:flex;gap:8px;margin-inline-start:auto}
+.links a{padding:8px 12px;border-radius:10px;color:var(--muted)}
+.links a:hover,.links a.active{background:rgba(124,92,255,.2)}
+.btn,.icon-btn{
+background:var(--bg2);border:1px solid var(--bdr);color:var(--ink);
+padding:8px 12px;border-radius:10px;cursor:pointer;display:inline-flex;gap:6px;align-items:center
+}
+.wrap{max-width:1100px;margin:auto;padding:24px}
+.hero{
+display:grid;grid-template-columns:1.1fr .9fr;gap:20px;
+background:var(--bg2);border:1px solid var(--bdr);
+border-radius:20px;padding:20px;box-shadow:var(--shadow)
+}
+.hero img{width:100%;border-radius:18px}
+h1{margin:0 0 8px}
+.lead{color:var(--muted)}
+.card{
+background:var(--bg2);border:1px solid var(--bdr);
+border-radius:18px;padding:18px;margin-top:20px;box-shadow:var(--shadow)
+}
+.copy-msg{font-size:13px;color:var(--muted);display:none}
 footer{text-align:center;color:var(--muted);margin:30px 0}
 </style>
 </head>
 
 <body>
-<div class="container">
+<canvas id="bgCanvas"></canvas>
 
-<div class="card">
-  <h1>محمد إسماعيل كريري</h1>
-  <p>IT Specialist بخبرة في الدعم الفني، صيانة الأنظمة، وإدارة CCTV.</p>
-  <div class="badges">
-    <span>IT Support</span>
-    <span>Hardware Maintenance</span>
-    <span>CCTV</span>
-    <span>Computer Science</span>
+<header>
+  <div class="nav">
+    <strong>Mohammed Kariri</strong>
+
+    <nav class="links">
+      <a href="#about">About</a>
+      <a href="#skills">Skills</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <button id="langBtn" class="icon-btn"><i class="fa-solid fa-language"></i></button>
   </div>
-  <a class="btn" href="CVMK.pdf" download><i class="fa-regular fa-file-lines"></i> CV</a>
-  <a class="btn alt" href="https://wa.me/966506036322" target="_blank"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
-</div>
+</header>
 
-<div class="card">
+<main class="wrap">
+<section id="about" class="hero">
+  <div>
+    <h1>Mohammed Ismail Kariri</h1>
+    <p class="lead">IT Specialist with experience in technical support, hardware maintenance, and CCTV systems.</p>
+    <button class="btn" onclick="copyEmail()"><i class="fa-regular fa-copy"></i> Copy Email</button>
+    <div id="copyMsg" class="copy-msg">Email copied ✔</div>
+  </div>
+  <img src="me.jpg" alt="Mohammed Kariri">
+</section>
+
+<section id="skills" class="card">
+<h2>Skills</h2>
+<ul>
+<li>IT Support</li>
+<li>Hardware Maintenance</li>
+<li>CCTV Monitoring</li>
+<li>Java (OOP)</li>
+<li>HTML & CSS</li>
+</ul>
+</section>
+
+<section id="contact" class="card">
 <h2>Contact</h2>
 <p>
-📧 <span id="email">m.e.k05060@gmail.com</span><br>
-📞 <a href="tel:+966506036322">+966506036322</a><br>
-🔗 <a href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank">LinkedIn</a>
+<span id="email">m.e.k05060@gmail.com</span><br>
+<a href="tel:+966506036322">+966506036322</a><br>
+<a href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank">LinkedIn</a>
 </p>
-
-<button class="btn" onclick="copyEmail()">
-  <i class="fa-regular fa-copy"></i> Copy Email
-</button>
-<div id="copyMsg" class="copy-msg">Email copied ✔</div>
-</div>
+</section>
 
 <footer>© <span id="y"></span> Mohammed Kariri</footer>
-
-</div>
+</main>
 
 <script>
-document.getElementById("y").textContent = new Date().getFullYear();
-
+document.getElementById("y").textContent=new Date().getFullYear();
 function copyEmail(){
-  const email = document.getElementById("email").textContent;
-  navigator.clipboard.writeText(email).then(()=>{
-    const msg = document.getElementById("copyMsg");
-    msg.style.display = "block";
-    setTimeout(()=>{ msg.style.display="none"; },2000);
-  });
+const email=document.getElementById("email").textContent;
+navigator.clipboard.writeText(email).then(()=>{
+const m=document.getElementById("copyMsg");
+m.style.display="block";
+setTimeout(()=>m.style.display="none",2000);
+});
 }
 </script>
 </body>
