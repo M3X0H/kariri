@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>محمد كريري — أخصائي تقنية معلومات</title>
-  <meta name="description" content="بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وأثر العمل.">
+  <meta name="description" content="بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وإنجازات.">
   <link rel="icon" href="data:," />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -78,12 +78,9 @@
     .cta{display:flex;gap:10px;flex-wrap:wrap}
     .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;font-weight:800;border:1px solid transparent;transition:.15s ease}
     .btn--fill{background:linear-gradient(135deg,var(--p3),#ffd36f);color:#2a1a00;box-shadow:0 8px 18px rgba(255,200,87,.25)}
-    .btn--fill:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(255,200,87,.32)}
     .btn--solid{background:linear-gradient(135deg,var(--p1),#7de3f4);color:#05313a;box-shadow:0 8px 18px rgba(34,211,238,.16)}
-    .btn--solid:hover{transform:translateY(-2px)}
-    .btn--ghost{border-color:var(--bdr);color:var(--ink);background:var(--bg2)}
+    .btn--ghost{border:1px solid var(--bdr);color:var(--ink);background:var(--bg2)}
     .btn--ghost:hover{background:rgba(255,255,255,.06)}
-    :root:not([data-theme="dark"]) .btn--ghost:hover{background:rgba(0,0,0,.04)}
 
     .avatar{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--bdr)}
     .avatar img{width:100%;height:100%;object-fit:cover;display:block}
@@ -114,8 +111,10 @@
     :root:not([data-theme="dark"]) .tag{background:#f1f5f9}
     .bullets{margin:10px 0 0; padding:0 18px 0 0}
     .bullets li{margin:6px 0;color:var(--muted)}
-    .impact-box{margin-top:10px; padding:14px; border:1px solid var(--bdr); border-radius:14px; background:rgba(255,255,255,.03)}
-    :root:not([data-theme="dark"]) .impact-box{background:#f8fafc}
+    .impact{margin-top:12px;padding:14px;border:1px dashed rgba(167,139,250,.55);border-radius:14px;background:rgba(167,139,250,.08)}
+    :root:not([data-theme="dark"]) .impact{background:rgba(167,139,250,.12)}
+    .impact h4{margin:0 0 8px;font-size:16px}
+    .impact p{margin:0;color:var(--muted);line-height:1.9}
 
     .work{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     .shot{border:1px solid var(--bdr);border-radius:14px;background:var(--bg2);padding:14px}
@@ -149,7 +148,6 @@
       <nav id="navLinks" class="links" role="navigation">
         <a href="#about" class="active" data-i18n="nav_about">نبذة</a>
         <a href="#skills" data-i18n="nav_skills">مهارات</a>
-        <a href="#impact" data-i18n="nav_impact">الأثر</a>
         <a href="#experience" data-i18n="nav_exp">خبرات</a>
         <a href="#education" data-i18n="nav_edu">تعليم</a>
         <a href="#certs" data-i18n="nav_certs">دورات</a>
@@ -232,40 +230,17 @@
       </div>
 
       <div class="chips" style="margin-top:12px">
-        <span class="chip">RDBMS</span>
         <span class="chip">AnyDesk</span>
         <span class="chip">Networking Basics</span>
-        <span class="chip">Java (OOP)</span>
-        <span class="chip">HTML</span>
-        <span class="chip">CSS</span>
+        <span class="chip">Printers</span>
+        <span class="chip">Hardware</span>
+        <span class="chip">RDBMS</span>
       </div>
 
       <ul class="bullets">
         <li data-i18n="soft1">التواصل الفعّال + العمل ضمن فريق + قيادة وتعاون.</li>
         <li data-i18n="soft2">حل المشكلات والتفكير التحليلي + سرعة التعلم والتكيّف.</li>
         <li data-i18n="soft3">إدارة وقت + تحمل ضغط + إنجاز مهام بسرعة ودقة.</li>
-      </ul>
-    </section>
-
-    <!-- ✅ Impact section added -->
-    <section id="impact" class="card reveal" style="margin-top:20px">
-      <h2 data-i18n="impact_title">الأثر والمسؤوليات</h2>
-
-      <div class="impact-box">
-        <p class="muted" style="margin:0" data-i18n="impact_para">
-          توليت دور أخصائي تقنية معلومات يخدم أربع شركات تابعة لمالك واحد، حيث أصبح الاعتماد عليّ أساسيًا في تقديم الدعم الفني اليومي.
-          قدمت دعمًا حضوريًا وعن بُعد لموظفين داخل وخارج الرياض باستخدام AnyDesk.
-          شمل عملي حل مختلف المشاكل التقنية المتعلقة بالإنترنت، الشبكات، الأجهزة، الطابعات والأنظمة، مع الالتزام بسرعة الاستجابة والتعاون.
-          بالإضافة إلى ذلك، ساهمت في تقديم اقتراحات تطويرية للإدارة وحل مشاكل سابقة ومتكررة داخل قسم تقنية المعلومات لتحسين آلية العمل ورفع الاستقرار.
-        </p>
-      </div>
-
-      <ul class="bullets" style="margin-top:10px">
-        <li data-i18n="impact_b1">دعم تقني شامل لأربع شركات تحت إدارة واحدة.</li>
-        <li data-i18n="impact_b2">دعم عن بُعد لموظفين خارج الرياض باستخدام AnyDesk.</li>
-        <li data-i18n="impact_b3">حل مشاكل الإنترنت والشبكات والأجهزة والطابعات والأنظمة.</li>
-        <li data-i18n="impact_b4">سرعة استجابة عالية وتعاون فعّال مع الموظفين.</li>
-        <li data-i18n="impact_b5">اقتراحات تطويرية للإدارة وتحسين آلية عمل قسم IT.</li>
       </ul>
     </section>
 
@@ -285,6 +260,23 @@
             <li data-i18n="job1_b3">إدارة ومراقبة أنظمة CCTV لضمان أمن المواقع واستمرارية المراقبة.</li>
             <li data-i18n="job1_b4">دعم شامل للأنظمة واتصالات الشبكة لاستقرار أدوات العمل.</li>
           </ul>
+
+          <!-- ✅ Impact moved inside this job -->
+          <div class="impact">
+            <h4><i class="fa-solid fa-bolt"></i> <span data-i18n="impact_h">الأثر والمسؤوليات</span></h4>
+            <p data-i18n="impact_p">
+              خدمت أربع شركات تابعة لمالك واحد، وكنت نقطة الاعتماد الأساسية للدعم اليومي. دعمت موظفين داخل وخارج الرياض عن بُعد باستخدام AnyDesk،
+              وحلّيت مشاكل الإنترنت والشبكات والأجهزة والطابعات والأنظمة بسرعة وتعاون. كذلك قدمت اقتراحات تطويرية للإدارة وعالجت مشاكل سابقة ومتكررة
+              لتحسين آلية العمل ورفع استقرار الأنظمة.
+            </p>
+            <ul class="bullets">
+              <li data-i18n="impact_b1">دعم تقني شامل لأربع شركات تحت إدارة واحدة.</li>
+              <li data-i18n="impact_b2">دعم عن بُعد لموظفين خارج الرياض باستخدام AnyDesk.</li>
+              <li data-i18n="impact_b3">حل مشاكل الإنترنت والشبكات والأجهزة والطابعات والأنظمة.</li>
+              <li data-i18n="impact_b4">سرعة استجابة عالية وتعاون فعّال مع الموظفين.</li>
+              <li data-i18n="impact_b5">اقتراحات تطويرية للإدارة وتحسين آلية عمل قسم IT.</li>
+            </ul>
+          </div>
         </div>
 
         <div class="job">
@@ -318,7 +310,6 @@
 
     <section id="certs" class="card reveal" style="margin-top:20px">
       <h2 data-i18n="certs_title">الدورات والشهادات</h2>
-
       <div class="cv" style="margin-top:10px">
         <div class="item"><h3><i class="fa-solid fa-certificate"></i> <span data-i18n="c1">Computer Science Specialist</span></h3><p>Saudi Council of Engineers — 2025</p></div>
         <div class="item"><h3><i class="fa-solid fa-mobile-screen"></i> <span data-i18n="c2">Introduction to Android Mobile Application Development</span></h3><p data-i18n="c2s">مقدمة لتطوير تطبيقات أندرويد</p></div>
@@ -345,7 +336,6 @@
             <li data-i18n="h1_b2">إعداد أجهزة المستخدمين وربط الطابعات والملحقات.</li>
           </ul>
         </div>
-
         <div class="shot">
           <div class="cap" data-i18n="h2_t">الصيانة</div>
           <ul class="bullets" style="margin:0">
@@ -353,7 +343,6 @@
             <li data-i18n="h2_b2">تشخيص الأعطال وتبديل القطع عند الحاجة.</li>
           </ul>
         </div>
-
         <div class="shot">
           <div class="cap" data-i18n="h3_t">CCTV & الأنظمة</div>
           <ul class="bullets" style="margin:0">
@@ -438,11 +427,10 @@
     const i18n = {
       ar: {
         metaTitle: "محمد كريري — أخصائي تقنية معلومات",
-        metaDesc: "بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وأثر العمل.",
+        metaDesc: "بورتفوليو محمد كريري — أخصائي تقنية معلومات (IT Support / Hardware / CCTV). خبرات، مهارات، دورات، وإنجازات.",
         brand: "محمد كريري",
         nav_about: "نبذة",
         nav_skills: "مهارات",
-        nav_impact: "الأثر",
         nav_exp: "خبرات",
         nav_edu: "تعليم",
         nav_certs: "دورات",
@@ -471,14 +459,6 @@
         soft2: "حل المشكلات والتفكير التحليلي + سرعة التعلم والتكيّف.",
         soft3: "إدارة وقت + تحمل ضغط + إنجاز مهام بسرعة ودقة.",
 
-        impact_title: "الأثر والمسؤوليات",
-        impact_para: "توليت دور أخصائي تقنية معلومات يخدم أربع شركات تابعة لمالك واحد، حيث أصبح الاعتماد عليّ أساسيًا في تقديم الدعم الفني اليومي. قدمت دعمًا حضوريًا وعن بُعد لموظفين داخل وخارج الرياض باستخدام AnyDesk. شمل عملي حل مختلف المشاكل التقنية المتعلقة بالإنترنت، الشبكات، الأجهزة، الطابعات والأنظمة، مع الالتزام بسرعة الاستجابة والتعاون. بالإضافة إلى ذلك، ساهمت في تقديم اقتراحات تطويرية للإدارة وحل مشاكل سابقة ومتكررة داخل قسم تقنية المعلومات لتحسين آلية العمل ورفع الاستقرار.",
-        impact_b1: "دعم تقني شامل لأربع شركات تحت إدارة واحدة.",
-        impact_b2: "دعم عن بُعد لموظفين خارج الرياض باستخدام AnyDesk.",
-        impact_b3: "حل مشاكل الإنترنت والشبكات والأجهزة والطابعات والأنظمة.",
-        impact_b4: "سرعة استجابة عالية وتعاون فعّال مع الموظفين.",
-        impact_b5: "اقتراحات تطويرية للإدارة وتحسين آلية عمل قسم IT.",
-
         exp_title: "الخبرات",
         job1_title: "أخصائي تقنية معلومات — Bashaer AL-Benaa Contracting Company",
         job_fulltime: "دوام كامل",
@@ -486,6 +466,15 @@
         job1_b2: "صيانة أجهزة متعددة (كمبيوتر، طابعات، ملحقات) بشكل دوري وطارئ.",
         job1_b3: "إدارة ومراقبة أنظمة CCTV لضمان أمن المواقع واستمرارية المراقبة.",
         job1_b4: "دعم شامل للأنظمة واتصالات الشبكة لاستقرار أدوات العمل.",
+
+        impact_h: "الأثر والمسؤوليات",
+        impact_p: "خدمت أربع شركات تابعة لمالك واحد، وكنت نقطة الاعتماد الأساسية للدعم اليومي. دعمت موظفين داخل وخارج الرياض عن بُعد باستخدام AnyDesk، وحلّيت مشاكل الإنترنت والشبكات والأجهزة والطابعات والأنظمة بسرعة وتعاون. كذلك قدمت اقتراحات تطويرية للإدارة وعالجت مشاكل سابقة ومتكررة لتحسين آلية العمل ورفع استقرار الأنظمة.",
+        impact_b1: "دعم تقني شامل لأربع شركات تحت إدارة واحدة.",
+        impact_b2: "دعم عن بُعد لموظفين خارج الرياض باستخدام AnyDesk.",
+        impact_b3: "حل مشاكل الإنترنت والشبكات والأجهزة والطابعات والأنظمة.",
+        impact_b4: "سرعة استجابة عالية وتعاون فعّال مع الموظفين.",
+        impact_b5: "اقتراحات تطويرية للإدارة وتحسين آلية عمل قسم IT.",
+
         job2_title: "متدرّب — Tabuk Health Cluster",
         job_intern: "تدريب",
         job2_b1: "المساعدة في إصلاح الأعطال واستكشاف مشاكل أجهزة الكمبيوتر والجوالات.",
@@ -539,11 +528,10 @@
 
       en: {
         metaTitle: "Mohammed Kariri — IT Specialist",
-        metaDesc: "Mohammed Kariri — IT Specialist (IT Support / Hardware / CCTV). Experience, skills, certifications, and impact.",
+        metaDesc: "Mohammed Kariri — IT Specialist (IT Support / Hardware / CCTV). Experience, skills, certifications, and highlights.",
         brand: "Mohammed Kariri",
         nav_about: "About",
         nav_skills: "Skills",
-        nav_impact: "Impact",
         nav_exp: "Experience",
         nav_edu: "Education",
         nav_certs: "Certifications",
@@ -572,14 +560,6 @@
         soft2: "Problem-solving mindset with fast learning and adaptability.",
         soft3: "Time management, reliability, and working well under pressure.",
 
-        impact_title: "Impact & Responsibilities",
-        impact_para: "Served as an IT Specialist supporting four companies under a single ownership, becoming a key point of reliance for daily IT operations. Provided on-site and remote support to employees inside and outside Riyadh using AnyDesk. Responsibilities included resolving internet, networking, hardware, printer, and system-related issues with a strong focus on fast response and collaboration. Also contributed by providing improvement suggestions to management and resolving recurring IT department issues to improve workflows, system stability, and overall efficiency.",
-        impact_b1: "Delivered IT support for four companies under one owner.",
-        impact_b2: "Provided remote support for employees outside Riyadh using AnyDesk.",
-        impact_b3: "Troubleshot internet, networking, hardware, printers, and system issues.",
-        impact_b4: "Known for fast response time and strong collaboration.",
-        impact_b5: "Suggested improvements to management and enhanced IT workflows.",
-
         exp_title: "Experience",
         job1_title: "IT Specialist — Bashaer AL-Benaa Contracting Company",
         job_fulltime: "Full-time",
@@ -587,6 +567,15 @@
         job1_b2: "Performed routine and emergency maintenance for computers, printers, and peripherals.",
         job1_b3: "Managed and monitored CCTV systems to ensure continuous site security.",
         job1_b4: "Provided end-to-end support for systems and network stability.",
+
+        impact_h: "Impact & Responsibilities",
+        impact_p: "Supported four companies under a single ownership and became a key point of reliance for day-to-day IT operations. Provided remote support to employees inside and outside Riyadh using AnyDesk, troubleshooting internet, networking, hardware, printers, and system issues with fast response and collaboration. Also provided improvement suggestions to management and resolved recurring IT department issues to improve workflows and system stability.",
+        impact_b1: "Delivered IT support for four companies under one owner.",
+        impact_b2: "Provided remote support for employees outside Riyadh using AnyDesk.",
+        impact_b3: "Troubleshot internet, networking, hardware, printers, and system issues.",
+        impact_b4: "Known for fast response time and strong collaboration.",
+        impact_b5: "Suggested improvements to management and enhanced IT workflows.",
+
         job2_title: "Trainee — Tabuk Health Cluster",
         job_intern: "Internship",
         job2_b1: "Assisted in troubleshooting and repairing computer hardware and mobile devices.",
