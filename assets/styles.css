@@ -899,12 +899,74 @@ html:not(.js) .strip__run { animation: run 42s linear infinite; }
 .js [data-in="scale"]:not([data-in-stagger]),
 .js [data-in="scale"][data-in-stagger] > * { scale: 0.94; }
 
+/* Screen-absolute horizontal. `start`/`end` above follow the writing
+   direction; these two deliberately do not, so a section can be composed
+   against the reading flow and still land the same way in both languages.
+   The travel is an order of magnitude longer than --in-x — this is the
+   gesture you notice, not the polite 24px nudge. */
+:root { --in-far: clamp(40px, 9vw, 170px); }
+
+.js [data-in="left"]:not([data-in-stagger]),
+.js [data-in="left"][data-in-stagger] > * { translate: calc(var(--in-far) * -1) 0; }
+
+.js [data-in="right"]:not([data-in-stagger]),
+.js [data-in="right"][data-in-stagger] > * { translate: var(--in-far) 0; }
+
+/* Alternating: odd children arrive from the left, even from the right.
+   Used where a list has a spine down the middle — the career rail, the
+   capability rows — so the page reads as two converging columns. */
+.js [data-in="alt"] > *:nth-child(odd) { translate: calc(var(--in-far) * -1) 0; }
+.js [data-in="alt"] > *:nth-child(even) { translate: var(--in-far) 0; }
+
+/* Clip reveal: the line uncovers itself rather than moving. */
+.js [data-in="clip"]:not([data-in-stagger]),
+.js [data-in="clip"][data-in-stagger] > * {
+  clip-path: inset(0 100% 0 0);
+  translate: 0 14px;
+}
+.js[dir="rtl"] [data-in="clip"]:not([data-in-stagger]),
+.js[dir="rtl"] [data-in="clip"][data-in-stagger] > * { clip-path: inset(0 0 0 100%); }
+
+/* Blur-to-sharp: arrives out of focus and resolves. */
+.js [data-in="blur"]:not([data-in-stagger]),
+.js [data-in="blur"][data-in-stagger] > * {
+  filter: blur(14px);
+  scale: 1.04;
+}
+
+/* Subtle rotation off a corner — never more than a couple of degrees,
+   or the baseline grid stops reading as a grid. */
+.js [data-in="rot"]:not([data-in-stagger]),
+.js [data-in="rot"][data-in-stagger] > * {
+  rotate: -2.4deg;
+  translate: 0 40px;
+  transform-origin: 0 100%;
+}
+.js[dir="rtl"] [data-in="rot"]:not([data-in-stagger]),
+.js[dir="rtl"] [data-in="rot"][data-in-stagger] > * {
+  rotate: 2.4deg;
+  transform-origin: 100% 100%;
+}
+
+.js [data-in="zoom"]:not([data-in-stagger]),
+.js [data-in="zoom"][data-in-stagger] > * { scale: 0.82; filter: blur(5px); }
+
 .js [data-in].is-in:not([data-in-stagger]),
-.js [data-in-stagger] > .is-in {
+.js [data-in-stagger] > .is-in,
+.js [data-in="alt"] > .is-in {
   opacity: 1;
   translate: 0 0;
   scale: 1;
-  transition: opacity 0.8s var(--out), translate 1s var(--out), scale 1s var(--out);
+  rotate: 0deg;
+  filter: blur(0);
+  clip-path: inset(0 0 0 0);
+  transition:
+    opacity 0.8s var(--out),
+    translate 1.1s var(--out),
+    scale 1.1s var(--out),
+    rotate 1.1s var(--out),
+    filter 0.9s var(--ease),
+    clip-path 1.1s var(--out);
   transition-delay: var(--d, 0ms);
 }
 
@@ -928,8 +990,59 @@ html:not(.js) .strip__run { animation: run 42s linear infinite; }
   transition-delay: var(--d, 0ms);
 }
 
+/* A capability row runs full-bleed, so sliding the row itself would drag
+   its border and background in from off-screen. The row holds still and
+   its contents carry the alternation instead — which also keeps the rule
+   under each row pinned while the type arrives. */
+.js [data-in="alt"] > .cap { translate: none; }
+.js [data-in="alt"] > .cap:nth-child(odd) > * { translate: calc(var(--in-far) * -1) 0; }
+.js [data-in="alt"] > .cap:nth-child(even) > * { translate: var(--in-far) 0; }
+.js [data-in="alt"] > .cap.is-in > * {
+  translate: 0 0;
+  transition: translate 1.1s var(--out);
+  transition-delay: var(--d, 0ms);
+}
+
+/* The career rail is the spine the entries converge on. It is a child of
+   the alternating list, so it has to be exempted by name or it would
+   swing in from the side along with them. */
+.js [data-in="alt"] > .career__rail {
+  translate: none;
+  opacity: 1;
+}
+
+/* Magnetic controls -------------------------------------------------- */
+/* JS writes --mx/--my from the pointer's offset inside the element. The
+   pull is on `translate`, leaving `transform` free for anything
+   scroll-linked on the same node. Fine pointers only — a thumb has no
+   hover state to lead with. */
+.magnetic {
+  translate: var(--mx, 0px) var(--my, 0px);
+  transition: translate 0.45s var(--out);
+}
+.magnetic.is-pulled { transition: translate 0.12s linear; }
+
+/* Sticky work ---------------------------------------------------------
+   The visual column pins while its description scrolls past it, so the
+   section holds the viewport instead of passing through it. Sticky needs
+   a scrollable ancestor that is not overflow:hidden — the root uses
+   `overflow-x: clip` precisely so this keeps working. */
+.proj__v {
+  position: sticky;
+  inset-block-start: calc(var(--rail-h) + var(--gut));
+}
+
 /* Scroll-linked ------------------------------------------------------ */
 [data-par] { transform: translate3d(0, var(--py, 0px), 0); will-change: transform; }
+
+/* The ambient field drifts on its own as well as with scroll. The engine
+   owns the gradient centres (--ax/--ay/--bx/--by); this owns the layer's
+   transform, so the two compose instead of overwriting each other. */
+.paper__aura { animation: drift 26s var(--ease) infinite alternate; }
+@keyframes drift {
+  from { transform: translate3d(-3%, -2%, 0) scale(1.04); }
+  to   { transform: translate3d(4%, 3%, 0) scale(1.16); }
+}
 
 /* The hero leaves in layers: --t is the section's own progress, and each
    layer reads it at its own rate so the block separates into depth
@@ -985,7 +1098,15 @@ html:not(.js) .boot { display: none; }
     transform: none !important;
     translate: none !important;
     scale: none !important;
+    rotate: none !important;
+    filter: none !important;
+    clip-path: none !important;
   }
+
+  /* Sticky pinning is motion too: it holds a block against the scroll.
+     Released here so the work section reads as a plain document. */
+  .proj__v { position: static !important; }
+  .magnetic { translate: none !important; }
 
   /* Neutralised at the source too, so a stale custom property can never
      leave content pushed off-screen or faded out. */

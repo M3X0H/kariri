@@ -23,7 +23,7 @@
   var copy = {
     ar: {
       metaTitle: 'محمد إسماعيل كريري — أخصائي تقنية معلومات',
-      metaDesc: 'محمد إسماعيل كريري — أخصائي تقنية معلومات وأخصائي علوم حاسب معتمد من الهيئة السعودية للمهندسين. دعم فني، أنظمة، شبكات، أجهزة، ومراقبة CCTV في الرياض.',
+      metaDesc: 'أخصائي تقنية معلومات في الرياض، معتمد من الهيئة السعودية للمهندسين كأخصائي علوم حاسب. دعم فني، أنظمة، شبكات، أجهزة، ومراقبة CCTV.',
 
       skip: 'تخطّي إلى المحتوى',
       brand: 'محمد كريري',
@@ -33,6 +33,7 @@
       nav_caps: 'القدرات',
       nav_career: 'المسار',
       nav_work: 'الأعمال',
+      nav_cred: 'الاعتمادات',
       nav_contact: 'تواصل',
       lang_switch: 'التبديل إلى الإنجليزية',
       theme_switch: 'تبديل المظهر',
@@ -41,17 +42,17 @@
       meta_open: 'متاح للعمل',
       hero_first: 'محمد',
       hero_last: 'كريري',
-      hero_say: 'أبقي الأنظمة التي يعمل عليها الناس واقفة على قدميها — دعمًا وصيانةً وشبكاتٍ ومراقبة.',
+      hero_say: 'أُشغّل الأنظمة التي يعتمد عليها يوم العمل — دعمًا وشبكاتٍ وأجهزةً ومراقبة.',
       plate_cap: 'معتمد من الهيئة السعودية للمهندسين',
-      cue: 'اسحب للأسفل',
+      cue: 'مرّر للأسفل',
 
-      say_1: 'أبني الأنظمة',
-      say_2: 'وأصونها',
-      say_3: 'وأبقيها تعمل.',
-      about_1: 'خريج علوم حاسب من جامعة تبوك، ومعتمد رسميًا من الهيئة السعودية للمهندسين. عملي يبدأ حيث تلتقي الأنظمة بالناس: موظف لا يستطيع الطباعة، شبكة تتقطع، كاميرا توقفت عن التسجيل.',
-      about_2: 'كنت نقطة الاعتماد الأساسية للدعم الفني اليومي لأربع شركات تحت إدارة واحدة، حضوريًا في المقر وعن بُعد لموظفين داخل الرياض وخارجها. أميل إلى المشاكل المتكررة، لأنها وحدها التي يمكن إنهاؤها نهائيًا.',
+      say_1: 'أُبقي الأنظمة',
+      say_2: 'تعمل،',
+      say_3: 'والناس تُنجز.',
+      about_1: 'خريج علوم الحاسب من جامعة تبوك، ومعتمد من الهيئة السعودية للمهندسين كأخصائي علوم حاسب. عملي يبدأ حيث تلتقي الأنظمة بالناس: موظف لا يستطيع الطباعة، شبكة تتقطع، كاميرا توقفت عن التسجيل.',
+      about_2: 'أميل إلى المشاكل المتكررة أكثر من العاجلة: العاجل يُغلق تذكرة، والمتكرر يُغلق سببه. هكذا ينتقل الدعم من ردّ فعل إلى إجراء ثابت.',
       f1_k: 'التعليم',
-      f1_v: 'بكالوريوس علوم حاسب — جامعة تبوك، 2025',
+      f1_v: 'بكالوريوس علوم الحاسب — جامعة تبوك، 2025',
       f2_k: 'الاعتماد',
       f2_v: 'أخصائي علوم حاسب — الهيئة السعودية للمهندسين، 2025',
       f3_k: 'الموقع',
@@ -73,44 +74,43 @@
       j1_role: 'أخصائي تقنية معلومات',
       j1_org: 'شركة بشائر البناء للمقاولات — الرياض',
       j1_kind: 'دوام كامل',
-      j1_b1: 'نقطة الاتصال الأساسية لمشاكل الموظفين التقنية لضمان استمرارية العمل.',
+      j1_b1: 'نقطة الاتصال الأولى لأي عطل تقني يوقف موظفًا عن عمله.',
       j1_b2: 'صيانة دورية وطارئة للحواسيب والطابعات والملحقات.',
       j1_b3: 'إدارة ومراقبة أنظمة CCTV لضمان أمن المواقع.',
       j1_b4: 'دعم شامل للأنظمة واتصالات الشبكة.',
       more: 'الأثر والمسؤوليات',
-      j1_impact: 'عملت كأخصائي تقنية معلومات داخل مقر الشركة، وكنت نقطة الاعتماد الأساسية للدعم الفني اليومي لأربع شركات تابعة لمالك واحد. قدّمت دعمًا حضوريًا داخل الشركة، إضافةً إلى دعم عن بُعد لموظفين داخل وخارج الرياض باستخدام AnyDesk. شمل عملي معالجة مشاكل الإنترنت والشبكات والأجهزة والطابعات والأنظمة بسرعة استجابة عالية وتعاون مباشر مع الموظفين. كما ساهمت في تقديم اقتراحات تطويرية للإدارة وحل مشاكل سابقة ومتكررة داخل قسم تقنية المعلومات، مما ساعد على تحسين آلية العمل ورفع استقرار الأنظمة.',
-      j1_i1: 'دعم حضوري + دعم عن بُعد داخل الرياض وخارجها (AnyDesk).',
-      j1_i2: 'خدمة أربع شركات تحت إدارة واحدة.',
-      j1_i3: 'حل مشاكل الشبكات والإنترنت والأجهزة والطابعات والأنظمة.',
-      j1_i4: 'سرعة استجابة عالية وتعاون فعّال مع الموظفين.',
-      j1_i5: 'اقتراحات تطويرية وتحسين إجراءات قسم تقنية المعلومات.',
+      j1_impact: 'مكتب تقنية معلومات واحد يخدم أربع شركات تحت إدارة واحدة. هذا يعني ترتيب الأولويات بين أربعة أماكن عمل في اليوم نفسه، وتحويل كل عطل يتكرر إلى إجراء ثابت بدل معالجته من جديد في كل مرة.',
+      j1_i1: 'دعم عن بُعد عبر AnyDesk لموظفين داخل الرياض وخارجها.',
+      j1_i2: 'الإنترنت والشبكات والأجهزة والطابعات والأنظمة من نقطة واحدة.',
+      j1_i3: 'اقتراحات تطويرية للإدارة، وإنهاء مشاكل متكررة في قسم تقنية المعلومات.',
+      j1_i4: 'استجابة سريعة وتعاون مباشر مع الموظفين.',
       edu_deg: 'بكالوريوس علوم الحاسب',
       edu_org: 'جامعة تبوك',
       edu_kind: 'تعليم',
       edu_b1: 'معترف بها رسميًا من الهيئة السعودية للمهندسين كأخصائي علوم حاسب.',
-      edu_b2: 'التركيز: هندسة البرمجيات، قواعد البيانات العلائقية، ومفاهيم الشبكات والدعم الفني.',
-      j2_role: 'متدرّب — تقنية المعلومات',
+      edu_b2: 'التركيز: هندسة البرمجيات، وقواعد البيانات العلائقية، وأساسيات الشبكات والدعم الفني.',
+      j2_role: 'متدرّب تقنية معلومات',
       j2_org: 'تجمع تبوك الصحي',
       j2_kind: 'تدريب',
-      j2_b1: 'المساعدة في إصلاح الأعطال واستكشاف مشاكل أجهزة الحاسب والجوالات.',
-      j2_b2: 'تحديد أخطاء الأنظمة ومعالجتها لدعم البنية الرقمية للمنشأة.',
-      j2_b3: 'التعاون مع فريق تقنية المعلومات لتنفيذ حلول تحسّن جودة الخدمة.',
+      j2_b1: 'المساعدة في إصلاح أعطال الحواسيب والأجهزة المحمولة واستكشافها.',
+      j2_b2: 'تحديد أخطاء الأنظمة ومعالجتها دعمًا للبنية الرقمية للمنشأة.',
+      j2_b3: 'العمل مع فريق تقنية المعلومات على حلول ترفع جودة الخدمة.',
 
       work_tag: 'أعمال مختارة',
       p1_t: 'هذا الموقع',
-      p1_d: 'موقع ثابت بلا إطار عمل وبلا اعتماديات خارجية. يدعم العربية والإنجليزية مع قلب كامل لاتجاه الصفحة، ووضعًا فاتحًا وداكنًا، ومجسّمًا ثلاثي الأبعاد مرسومًا بحسابات إسقاط يدوية على canvas. مبني ليعمل بلوحة المفاتيح ويحترم تقليل الحركة.',
+      p1_d: 'موقع ثابت بلا إطار عمل وبلا اعتماديات. عربي وإنجليزي بقلب كامل لاتجاه الصفحة، ووضع فاتح وداكن، ومجسّم ثلاثي الأبعاد مرسوم بحسابات إسقاط مكتوبة يدويًا على canvas. يعمل بالكامل من لوحة المفاتيح، ويحترم تقليل الحركة.',
       p_stack: 'التقنيات',
       p_focus: 'التركيز',
       p_code: 'الكود المصدري',
       p_live: 'أنت تتصفّحه الآن',
-      soon: 'مشاريع أخرى قيد العمل. ما أنشره أولًا بأول يظهر على GitHub.',
+      soon: 'مشاريع أخرى قيد التطوير. أنشرها على GitHub أولًا بأول.',
 
       cred_tag: 'الاعتمادات',
       cred_o: 'الهيئة السعودية للمهندسين — 2025',
 
       end_1: 'لنبنِ شيئًا',
       end_2: 'يستحق التشغيل.',
-      end_say: 'متاح لفرص عمل في الدعم الفني وتقنية المعلومات. واتساب أسرع طريقة للوصول إليّ، وأرد عادةً في نفس اليوم.',
+      end_say: 'متاح لفرص في الدعم الفني وتقنية المعلومات. واتساب أسرع وسيلة للوصول إليّ — وأرد عادةً في نفس اليوم.',
       way_cv: 'السيرة الذاتية',
       way_call: 'اتصال مباشر',
       portrait_alt: 'محمد إسماعيل كريري — أخصائي تقنية معلومات',
@@ -119,7 +119,7 @@
 
     en: {
       metaTitle: 'Mohammed Ismail Kariri — IT Specialist',
-      metaDesc: 'Mohammed Ismail Kariri — IT Specialist and Computer Science Specialist recognized by the Saudi Council of Engineers. IT support, systems, networking, hardware, and CCTV in Riyadh.',
+      metaDesc: 'IT Specialist in Riyadh, recognized by the Saudi Council of Engineers as a Computer Science Specialist. IT support, systems, networking, hardware, and CCTV.',
 
       skip: 'Skip to content',
       brand: 'Mohammed Kariri',
@@ -129,6 +129,7 @@
       nav_caps: 'Capabilities',
       nav_career: 'Career',
       nav_work: 'Work',
+      nav_cred: 'Credentials',
       nav_contact: 'Contact',
       lang_switch: 'Switch to Arabic',
       theme_switch: 'Switch theme',
@@ -137,18 +138,18 @@
       meta_open: 'Open to work',
       hero_first: 'MOHAMMED',
       hero_last: 'KARIRI',
-      hero_say: 'I keep the systems people work on standing — support, maintenance, networks, and surveillance.',
+      hero_say: 'I keep the systems a workday depends on running — support, networks, hardware, and surveillance.',
       plate_cap: 'Recognized by the Saudi Council of Engineers',
       cue: 'Scroll',
 
-      say_1: 'I build systems,',
-      say_2: 'maintain them,',
-      say_3: 'and keep them running.',
-      about_1: 'Computer Science graduate from the University of Tabuk, officially recognized by the Saudi Council of Engineers. My work starts where systems meet people: someone who cannot print, a connection that keeps dropping, a camera that stopped recording.',
-      about_2: 'I was the day-to-day point of contact for IT support across four companies under one ownership — on site at the office and remotely for employees inside and outside Riyadh. I gravitate toward recurring problems, because those are the only ones you can end for good.',
+      say_1: 'I keep systems',
+      say_2: 'running,',
+      say_3: 'and people working.',
+      about_1: 'Computer Science graduate from the University of Tabuk, recognized by the Saudi Council of Engineers as a Computer Science Specialist. My work starts where systems meet people: someone who cannot print, a connection that keeps dropping, a camera that stopped recording.',
+      about_2: 'I gravitate toward recurring problems more than urgent ones: urgent closes a ticket, recurring closes the reason for it. That is how support turns from reaction into procedure.',
       f1_k: 'Education',
       f1_v: 'B.Sc. Computer Science — University of Tabuk, 2025',
-      f2_k: 'Accreditation',
+      f2_k: 'Recognition',
       f2_v: 'Computer Science Specialist — Saudi Council of Engineers, 2025',
       f3_k: 'Location',
       f3_v: 'Riyadh, Saudi Arabia',
@@ -169,45 +170,44 @@
       j1_role: 'IT Specialist',
       j1_org: 'Bashaer Al-Benaa Contracting Company — Riyadh',
       j1_kind: 'Full-time',
-      j1_b1: 'Primary point of contact for staff technical issues, keeping work uninterrupted.',
+      j1_b1: 'First point of contact for any technical fault that stopped someone working.',
       j1_b2: 'Routine and emergency maintenance for computers, printers, and peripherals.',
       j1_b3: 'Managed and monitored CCTV systems to keep sites secure.',
       j1_b4: 'End-to-end support for systems and network connectivity.',
       more: 'Impact & responsibilities',
-      j1_impact: 'Worked on site as an IT Specialist and became the primary point of contact for daily IT support across four companies under one ownership. Provided in-office support at the workplace, in addition to remote support for employees inside and outside Riyadh using AnyDesk. Handled internet connectivity, networking, hardware, printer, and system-related issues with fast response and strong collaboration. Also contributed by proposing improvement suggestions to management and resolving recurring IT department issues to improve workflows and system stability.',
-      j1_i1: 'On-site support plus remote support inside and outside Riyadh (AnyDesk).',
-      j1_i2: 'Supported four companies under one owner.',
-      j1_i3: 'Troubleshot networking, internet, hardware, printer, and system issues.',
-      j1_i4: 'Fast response and effective collaboration with staff.',
-      j1_i5: 'Proposed improvements and refined IT department procedures.',
-      edu_deg: 'B.Sc. in Computer Science',
+      j1_impact: 'One IT desk serving four companies under a single ownership. That meant triaging four workplaces on the same day, and turning every fault that came back into a fixed procedure instead of solving it from scratch each time.',
+      j1_i1: 'Remote support over AnyDesk for staff inside and outside Riyadh.',
+      j1_i2: 'Internet, networking, hardware, printers, and systems from one point of contact.',
+      j1_i3: 'Improvement proposals to management, and recurring IT department issues closed for good.',
+      j1_i4: 'Fast response and direct collaboration with staff.',
+      edu_deg: 'B.Sc. Computer Science',
       edu_org: 'University of Tabuk',
       edu_kind: 'Education',
       edu_b1: 'Officially recognized by the Saudi Council of Engineers as a Computer Science Specialist.',
       edu_b2: 'Focus: software engineering, relational databases, networking fundamentals, and IT support.',
-      j2_role: 'Trainee — Information Technology',
+      j2_role: 'IT Trainee',
       j2_org: 'Tabuk Health Cluster',
       j2_kind: 'Internship',
-      j2_b1: 'Assisted in troubleshooting and repairing computer hardware and mobile devices.',
-      j2_b2: 'Identified and resolved system errors to support digital infrastructure.',
-      j2_b3: 'Worked with the IT team to implement solutions that improved service delivery.',
+      j2_b1: 'Assisted in repairing and troubleshooting computer hardware and mobile devices.',
+      j2_b2: 'Identified and resolved system errors, supporting the facility\'s digital infrastructure.',
+      j2_b3: 'Worked with the IT team on solutions that raised service quality.',
 
       work_tag: 'Selected work',
       p1_t: 'This site',
-      p1_d: 'A static site with no framework and no external dependencies. It carries Arabic and English with a full page-direction flip, light and dark themes, and a three-dimensional lattice drawn from hand-written projection maths on canvas. Built to work from the keyboard and to respect reduced motion.',
+      p1_d: 'A static site with no framework and no dependencies. Arabic and English with a full page-direction flip, light and dark themes, and a three-dimensional lattice drawn from hand-written projection maths on canvas. Fully keyboard-operable, and it respects reduced motion.',
       p_stack: 'Stack',
       p_focus: 'Focus',
       p_code: 'Source code',
       p_live: 'You are looking at it',
-      soon: 'More projects are in progress. Whatever I publish first appears on GitHub.',
+      soon: 'More projects in development. I publish them on GitHub as they land.',
 
       cred_tag: 'Credentials',
       cred_o: 'Saudi Council of Engineers — 2025',
 
       end_1: 'Let’s build something',
       end_2: 'worth running.',
-      end_say: 'Open to IT support and IT specialist roles. WhatsApp is the fastest way to reach me, and I usually reply the same day.',
-      way_cv: 'Curriculum Vitae',
+      end_say: 'Open to IT support and IT specialist roles. WhatsApp is the fastest way to reach me — I usually reply the same day.',
+      way_cv: 'CV',
       way_call: 'Direct call',
       portrait_alt: 'Mohammed Ismail Kariri — IT Specialist',
       foot_name: 'Mohammed Ismail Kariri'
@@ -356,7 +356,34 @@
      than as one block.
      ──────────────────────────────────────────────────────────── */
   var reveal = (function () {
-    var all = [].slice.call(document.querySelectorAll('.reveal, [data-in]'));
+    /* A unit is whatever actually receives `is-in`. For most elements
+       that is the element itself. For a `data-in-each` container it is
+       each child, given its own observer — so a long list arrives item
+       by item as you reach it, rather than all at once the moment the
+       container's top edge clears. */
+    var all = [];
+
+    [].forEach.call(document.querySelectorAll('.reveal, [data-in]'), function (host) {
+      if (!host.hasAttribute('data-in-each')) {
+        if (all.indexOf(host) < 0) all.push(host);
+        return;
+      }
+
+      // The stylesheet hangs every child's start state off
+      // `[data-in-stagger] > *`, so the attribute has to be present even
+      // when the offset is zero, or the children never start hidden.
+      if (!host.hasAttribute('data-in-stagger')) host.setAttribute('data-in-stagger', '0');
+      var step = parseFloat(host.getAttribute('data-in-stagger')) || 0;
+
+      [].forEach.call(host.children, function (child, i) {
+        // Modulo rather than the running index: with one observer per
+        // child the sequence already comes from the scroll itself, and a
+        // cumulative delay would leave the eleventh row waiting half a
+        // second after it is plainly on screen.
+        if (step > 0) child.style.setProperty('--d', ((i % 4) * step) + 'ms');
+        if (all.indexOf(child) < 0) all.push(child);
+      });
+    });
 
     function show(el) {
       if (el.classList.contains('is-in')) return;
@@ -388,13 +415,62 @@
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
-        show(e.target);
+        show(e.target.revealFor || e.target);
         io.unobserve(e.target);
       });
     }, { threshold: 0, rootMargin: '0px 0px -24px 0px' });
 
-    all.forEach(function (el) { io.observe(el); });
+    /* A .mask__in waits at translateY(105%), which parks it completely
+       outside its own mask's overflow box. The observer clips a target
+       against its ancestors, so that element reports zero intersection
+       for good and would never be told to rise. Watch the mask — which
+       never moves — and reveal the line it holds. */
+    all.forEach(function (el) {
+      var watch = el;
+      if (el.classList.contains('mask__in') && el.parentNode) {
+        watch = el.parentNode;
+        watch.revealFor = el;
+      }
+      io.observe(watch);
+    });
     return { showAll: showAll };
+  })();
+
+  /* ── magnetic ────────────────────────────────────────────────
+     Controls lean toward the pointer while it is over them, and spring
+     back when it leaves. The pull is written to --mx/--my and applied
+     with `translate`, which leaves `transform` free for the hover indent
+     already on these rows. Fine pointers only: a thumb has no hover
+     state to lead with.
+     ──────────────────────────────────────────────────────────── */
+  (function () {
+    if (mLessMotion.matches || !mFinePointer.matches) return;
+
+    var cap = function (v, a, b) { return v < a ? a : v > b ? b : v; };
+    var pull = [].slice.call(document.querySelectorAll('.way, .lnk, .ctl, .hero__cue'));
+
+    pull.forEach(function (el) {
+      el.classList.add('magnetic');
+
+      el.addEventListener('pointermove', function (e) {
+        var r = el.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        // Capped hard: a full-width contact row tracking the pointer
+        // one-to-one would drag itself out from under the cursor that is
+        // steering it.
+        el.style.setProperty('--mx',
+          cap(((e.clientX - r.left) / r.width - 0.5) * 26, -13, 13).toFixed(1) + 'px');
+        el.style.setProperty('--my',
+          cap(((e.clientY - r.top) / r.height - 0.5) * 14, -7, 7).toFixed(1) + 'px');
+        el.classList.add('is-pulled');
+      }, { passive: true });
+
+      el.addEventListener('pointerleave', function () {
+        el.classList.remove('is-pulled');
+        el.style.setProperty('--mx', '0px');
+        el.style.setProperty('--my', '0px');
+      }, { passive: true });
+    });
   })();
 
   /* ── in-page navigation ──────────────────────────────────────
