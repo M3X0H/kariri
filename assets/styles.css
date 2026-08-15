@@ -990,6 +990,19 @@ html:not(.js) .strip__run { animation: run 42s linear infinite; }
   transition-delay: var(--d, 0ms);
 }
 
+/* Horizontal travel has to be contained by the block that owns it. A
+   child waiting 115px to the side still counts toward the document's
+   scroll width, and in RTL the origin is the right edge — so an
+   uncontained offset pushes the whole page out of frame and crops the
+   masthead and the hero name. `clip` rather than `hidden`: it contains
+   the overflow without creating a scroll container, which is what would
+   break the sticky work column and in-page anchors. */
+.js .about,
+.js .caps,
+.js .career,
+.js .ways,
+.js .proj { overflow-x: clip; }
+
 /* A capability row runs full-bleed, so sliding the row itself would drag
    its border and background in from off-screen. The row holds still and
    its contents carry the alternation instead — which also keeps the rule
