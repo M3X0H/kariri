@@ -70,6 +70,9 @@
   --r-xl: 28px;
 
   --measure: 1140px;
+  /* The floating bar sits slightly wider than the content column. */
+  --gutter: var(--s6);
+  --nav-gutter: var(--s6);
   --nav-h: 62px;
   --ease: cubic-bezier(0.22, 0.68, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -119,6 +122,11 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* `clip` on the root, never `overflow-x: hidden` on <body>: hidden makes
+     the body a scroll container, which is what silently breaks in-page
+     anchor jumps and position: sticky. clip contains stray overflow
+     without creating a scroll container at all. */
+  overflow-x: clip;
 }
 
 body {
@@ -128,16 +136,24 @@ body {
   line-height: 1.75;
   color: var(--ink);
   background-color: var(--bg);
-  /* One static ambient layer: a faint technical grid. */
+  -webkit-font-smoothing: antialiased;
+  /* Themes cross-fade instead of snapping. */
+  transition: background-color 0.45s var(--ease), color 0.45s var(--ease);
+}
+
+/* One static ambient layer: a faint technical grid, on its own fixed
+   plane. As a `background-attachment: fixed` image it repainted the
+   whole page on every scroll frame — and iOS ignores it outright. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
   background-image:
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 56px 56px, 56px 56px;
-  background-attachment: fixed;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  /* Themes cross-fade instead of snapping. */
-  transition: background-color 0.45s var(--ease), color 0.45s var(--ease);
 }
 
 h1, h2, h3, h4 {
@@ -152,6 +168,12 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 img { max-width: 100%; height: auto; display: block; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; }
+
+/* Kills the 300ms double-tap delay and the grey flash on Android. */
+a, button, summary, label {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
 
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -191,10 +213,14 @@ button { font: inherit; color: inherit; }
 
 .icon--solid { fill: currentColor; stroke: none; }
 
+/* Physical left/right on purpose: env() insets are physical, so pairing
+   them with logical padding would put the notch gap on the wrong side
+   in RTL. max() keeps the normal gutter when there is no notch. */
 .shell {
   max-width: var(--measure);
   margin-inline: auto;
-  padding-inline: var(--s6);
+  padding-left: max(var(--gutter), env(safe-area-inset-left));
+  padding-right: max(var(--gutter), env(safe-area-inset-right));
 }
 
 .skip-link {
@@ -221,13 +247,18 @@ button { font: inherit; color: inherit; }
   inset-block-start: 0;
   inset-inline: 0;
   z-index: 100;
-  padding: var(--s3) var(--s6);
+  padding-block: var(--s3);
+  padding-left: max(var(--nav-gutter), env(safe-area-inset-left));
+  padding-right: max(var(--nav-gutter), env(safe-area-inset-right));
   transition: padding 0.35s var(--ease);
 }
 
 .nav-shell.is-scrolled { padding-block: var(--s2); }
 
 .nav-bar {
+  /* Anchors the mobile menu sheet to the bar itself, not to the shell,
+     so the sheet lines up with the bar's edges at every width. */
+  position: relative;
   max-width: var(--measure);
   margin-inline: auto;
   min-height: var(--nav-h);
@@ -1247,19 +1278,51 @@ button { font: inherit; color: inherit; }
   background: color-mix(in srgb, var(--surface) 55%, transparent);
 }
 
+/* Native <details>, so the extra training folds away without JavaScript
+   and stays keyboard-operable. */
 .more-certs__label {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  /* A one-line summary is only ~19px tall — too small to tap. */
+  min-height: 44px;
+  margin-block: calc(var(--s3) * -1);
   font-family: var(--mono);
   font-size: var(--t-2xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-3);
+  cursor: pointer;
+  list-style: none;
+  transition: color 0.25s var(--ease);
 }
+
+.more-certs__label::-webkit-details-marker { display: none; }
+.more-certs__label:hover { color: var(--accent); }
+
+.more-certs__count {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  color: var(--accent);
+}
+
+.more-certs__label .icon {
+  width: 15px;
+  height: 15px;
+  transform: rotate(90deg);
+  transition: transform 0.3s var(--ease-out);
+}
+
+.more-certs[open] .more-certs__label .icon { transform: rotate(-90deg); }
 
 .more-certs__list {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s2);
   margin-block-start: var(--s4);
+  animation: unfold 0.4s var(--ease-out);
 }
 
 .more-certs__list li {
@@ -1347,6 +1410,7 @@ button { font: inherit; color: inherit; }
   align-items: center;
   justify-content: space-between;
   padding-block: var(--s8);
+  padding-block-end: calc(var(--s8) + env(safe-area-inset-bottom));
   font-size: var(--t-sm);
   color: var(--ink-3);
 }
@@ -1355,7 +1419,7 @@ button { font: inherit; color: inherit; }
 
 .to-top {
   position: fixed;
-  inset-block-end: var(--s6);
+  inset-block-end: calc(var(--s6) + env(safe-area-inset-bottom));
   inset-inline-end: var(--s6);
   z-index: 90;
   width: 46px;
@@ -1412,30 +1476,43 @@ button { font: inherit; color: inherit; }
    15. Motion
    ------------------------------------------------------------- */
 
-/* Entrance: staggered by --step, released when the page is ready. */
+/* Entrance and reveal both move elements with the independent `translate`
+   property rather than `transform`. Using transform here meant the reveal
+   rule won on specificity and flattened every component's own transform:
+   the skill-card tilt never ran, the card hover lifts were dead, and the
+   hero scroll hint lost its translateX(-50%) centring. `translate`
+   composes with transform instead of replacing it. */
 .js .intro {
   opacity: 0;
-  transform: translateY(18px);
+  translate: 0 18px;
 }
 
 .js.is-ready .intro {
   opacity: 1;
-  transform: none;
-  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+  translate: none;
+  transition: opacity 0.7s var(--ease-out), translate 0.7s var(--ease-out);
   transition-delay: calc(var(--step, 0) * 90ms);
+}
+
+/* The node field is step 0 of the entrance: the ground the rest lands on. */
+.js .hero__canvas { opacity: 0; }
+
+.js.is-ready .hero__canvas {
+  opacity: 1;
+  transition: opacity 1s var(--ease-out);
 }
 
 /* Scroll reveal: blur-to-focus, kept subtle. */
 .js .reveal {
   opacity: 0;
-  transform: translateY(22px);
+  translate: 0 22px;
   filter: blur(6px);
-  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out),
+  transition: opacity 0.7s var(--ease-out), translate 0.7s var(--ease-out),
     filter 0.7s var(--ease-out);
   transition-delay: var(--d, 0s);
 }
 
-.js .reveal.is-in { opacity: 1; transform: none; filter: none; }
+.js .reveal.is-in { opacity: 1; translate: none; filter: none; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -1449,11 +1526,33 @@ button { font: inherit; color: inherit; }
   .js .reveal,
   .js .intro {
     opacity: 1 !important;
+    translate: none !important;
     transform: none !important;
     filter: none !important;
   }
 
+  /* Nothing should latch onto the pointer when motion is unwelcome. */
   .cursor { display: none; }
+  .skill { transform: none !important; }
+}
+
+/* Touch devices latch :hover after a tap and hold it until you tap
+   elsewhere, so the lift, glow and tilt affordances are dropped there. */
+@media (hover: none) {
+  .fact:hover,
+  .trait:hover,
+  .hcard:hover,
+  .cert-card:hover,
+  .tl__card:hover { transform: none; box-shadow: none; }
+
+  .skill:hover { box-shadow: none; }
+  .skill:hover .skill__icon,
+  .hcard:hover .hcard__icon { transform: none; box-shadow: none; }
+  .brand:hover .brand__mark { transform: none; box-shadow: none; }
+  .portrait:hover .portrait__img { transform: none; }
+  .spotlight:hover::before { opacity: 0; }
+  .btn:hover { --lift: 0px; }
+  .ulink:hover span::after { transform: scaleX(0); }
 }
 
 /* -------------------------------------------------------------
@@ -1483,7 +1582,7 @@ button { font: inherit; color: inherit; }
 }
 
 @media (max-width: 860px) {
-  .nav-shell { padding-inline: var(--s4); }
+  :root { --nav-gutter: var(--s4); }
   .nav-toggle { display: inline-flex; }
 
   .nav-bar {
@@ -1510,6 +1609,11 @@ button { font: inherit; color: inherit; }
     box-shadow: var(--shadow-2);
     margin-inline-start: 0;
     animation: sheet 0.3s var(--ease-out);
+    /* Short landscape phones: the sheet scrolls itself rather than
+       running off-screen, and never chains that scroll to the page. */
+    max-height: calc(100svh - var(--nav-h) - var(--s10));
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   @keyframes sheet {
@@ -1536,7 +1640,7 @@ button { font: inherit; color: inherit; }
 }
 
 @media (max-width: 720px) {
-  .shell { padding-inline: var(--s5); }
+  :root { --gutter: var(--s5); }
   .facts { grid-template-columns: minmax(0, 1fr); }
 
   .tl { grid-template-columns: 1fr; gap: var(--s3); }
@@ -1552,8 +1656,7 @@ button { font: inherit; color: inherit; }
 }
 
 @media (max-width: 520px) {
-  .shell { padding-inline: var(--s4); }
-  .nav-shell { padding-inline: var(--s3); }
+  :root { --gutter: var(--s4); --nav-gutter: var(--s3); }
 
   .hero__cta { flex-direction: column; align-items: stretch; }
   .hero__cta .btn { justify-content: center; }
@@ -1586,7 +1689,8 @@ button { font: inherit; color: inherit; }
   .hero__scroll, .hero__cta, .cta__row, .case__links, .soon { display: none !important; }
 
   .hero { min-height: auto; padding-block: 0; }
-  .js .reveal, .js .intro { opacity: 1 !important; transform: none !important; filter: none !important; }
+  body::before { display: none; }
+  .js .reveal, .js .intro { opacity: 1 !important; translate: none !important; transform: none !important; filter: none !important; }
   .tl__more[open] .tl__more-body, .tl__more-body { animation: none; }
   .section { padding-block-start: var(--s10); page-break-inside: avoid; }
   .skill, .tl, .cert-card, .hcard, .case { break-inside: avoid; }

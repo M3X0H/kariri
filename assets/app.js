@@ -33,6 +33,7 @@
       skip: 'تخطّي إلى المحتوى',
       brand: 'محمد كريري',
       nav_menu: 'القائمة',
+      nav_primary: 'التنقل الرئيسي',
       nav_about: 'نبذة',
       nav_skills: 'المهارات',
       nav_projects: 'المشاريع',
@@ -150,6 +151,7 @@
       skip: 'Skip to content',
       brand: 'Mohammed Kariri',
       nav_menu: 'Menu',
+      nav_primary: 'Primary navigation',
       nav_about: 'About',
       nav_skills: 'Skills',
       nav_projects: 'Projects',
@@ -165,7 +167,7 @@
       hero_role_1: 'IT Specialist',
       hero_role_2: 'Computer Science Specialist',
       hero_lead: 'Computer Science graduate from the University of Tabuk, officially recognized by the Saudi Council of Engineers. I keep the systems people work on running: employee support, hardware and printer maintenance, networking, and CCTV.',
-      cta_talk: "Let's talk",
+      cta_talk: 'Let’s talk',
       btn_cv: 'Download CV',
       btn_viewcv: 'View CV',
       btn_email: 'Email',
@@ -324,6 +326,11 @@
       if (v !== undefined) el.setAttribute('aria-label', v);
     });
 
+    document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+      var v = dict[el.getAttribute('data-i18n-alt')];
+      if (v !== undefined) el.setAttribute('alt', v);
+    });
+
     store.set('lang', lang);
     movePill();
   }
@@ -379,9 +386,77 @@
 
   navToggle.addEventListener('click', function () { setMenu(nav.hidden); });
 
-  nav.addEventListener('click', function (e) {
-    if (compact.matches && e.target.closest('.nav__link')) setMenu(false);
+  /* -----------------------------------------------------------
+     In-page navigation
+
+     Every same-page link is driven from here instead of being left to
+     the browser's fragment jump. That fixes two real problems and
+     prevents a third:
+
+       · The floating bar covered the top of whatever you jumped to.
+       · Closing the mobile menu in the click handler removed the link's
+         own ancestor mid-click, which can cancel the jump — the symptom
+         being a link that changes the URL but never moves the page, so
+         it "only works in a new tab".
+       · Modified clicks (⌘/Ctrl/middle) still open a new tab, and Back,
+         Forward, refresh and pasted deep links all land in one place.
+     ----------------------------------------------------------- */
+  function targetFor(hash) {
+    if (!hash || hash.charAt(0) !== '#' || hash.length < 2) return null;
+    return document.getElementById(hash.slice(1));
+  }
+
+  var lastHash = '';
+  var lastAt = 0;
+
+  function goTo(el, smooth) {
+    lastHash = '#' + el.id;
+    lastAt = Date.now();
+
+    // scroll-margin-block-start on the section is the single source of
+    // truth for the bar's clearance, so it is read rather than re-guessed.
+    var margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+    var top = Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - margin));
+    window.scrollTo({ top: top, behavior: smooth && !reduceMotion.matches ? 'smooth' : 'auto' });
+
+    // Send the keyboard where the eye just went, without a second jump.
+    if (el.tabIndex < 0) el.setAttribute('tabindex', '-1');
+    el.focus({ preventScroll: true });
+  }
+
+  // One hash change can raise both popstate and hashchange, and a click
+  // that already moved the page may be followed by either. Collapse them,
+  // or the page visibly jumps to the same place twice.
+  function syncToHash(smooth) {
+    if (location.hash === lastHash && Date.now() - lastAt < 500) return;
+    var el = targetFor(location.hash);
+    if (el) goTo(el, smooth);
+  }
+
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+    var link = e.target.closest ? e.target.closest('a[href]') : null;
+    if (!link || link.hasAttribute('download') || link.target === '_blank') return;
+
+    var hash = link.getAttribute('href');
+    var el = targetFor(hash);
+    if (!el) return;
+
+    e.preventDefault();
+    if (compact.matches && !nav.hidden) setMenu(false);
+    goTo(el, true);
+    if (location.hash !== hash) history.pushState(null, '', hash);
   });
+
+  // Back and Forward: pushState entries carry the hash, so honour it.
+  // Entries without one keep the browser's own restored position.
+  window.addEventListener('popstate', function () { syncToHash(false); });
+
+  // Someone editing the hash in the address bar never routes through
+  // the click handler above.
+  window.addEventListener('hashchange', function () { syncToHash(true); });
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && compact.matches && !nav.hidden) {
@@ -771,4 +846,24 @@
     window.requestAnimationFrame(release);
   });
   setTimeout(release, 400);
+
+  /* A pasted deep link or a refresh at #contact: the browser has already
+     jumped, but it jumped before the web font swapped in, so the landing
+     is off by however much the text reflowed. Re-apply it — and stop the
+     moment the visitor takes over the scroll themselves. */
+  (function () {
+    var el = targetFor(location.hash);
+    if (!el) return;
+
+    var owned = false;
+    function handOver() { owned = true; }
+    window.addEventListener('wheel', handOver, { passive: true, once: true });
+    window.addEventListener('touchstart', handOver, { passive: true, once: true });
+    window.addEventListener('keydown', handOver, { once: true });
+
+    function settle() { if (!owned) goTo(el, false); }
+
+    window.requestAnimationFrame(settle);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(settle);
+  })();
 })();

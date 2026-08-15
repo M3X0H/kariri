@@ -16,23 +16,27 @@
   <meta property="og:title" content="محمد إسماعيل كريري — أخصائي تقنية معلومات">
   <meta property="og:description" content="أخصائي تقنية معلومات وأخصائي علوم حاسب معتمد. دعم فني، صيانة أجهزة، شبكات، وأنظمة مراقبة.">
   <meta property="og:url" content="https://m3x0h.github.io/kariri/">
-  <meta property="og:image" content="https://m3x0h.github.io/kariri/me.jpg">
-  <meta property="og:image:width" content="1062">
-  <meta property="og:image:height" content="1280">
-  <meta property="og:image:alt" content="Mohammed Ismail Kariri">
+  <!-- 1.91:1 share card. The portrait alone is 1062x1280, and LinkedIn,
+       WhatsApp and X all centre-crop a tall image to a letterbox. -->
+  <meta property="og:image" content="https://m3x0h.github.io/kariri/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:alt" content="Mohammed Ismail Kariri — IT Specialist, Computer Science">
   <meta property="og:locale" content="ar_SA">
   <meta property="og:locale:alternate" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="محمد إسماعيل كريري — أخصائي تقنية معلومات">
   <meta name="twitter:description" content="أخصائي تقنية معلومات وأخصائي علوم حاسب معتمد. دعم فني، صيانة أجهزة، شبكات، وأنظمة مراقبة.">
-  <meta name="twitter:image" content="https://m3x0h.github.io/kariri/me.jpg">
+  <meta name="twitter:image" content="https://m3x0h.github.io/kariri/og.jpg">
+  <meta name="twitter:image:alt" content="Mohammed Ismail Kariri — IT Specialist, Computer Science">
 
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23060910'/%3E%3Cpath d='M6 23V9h3l3.4 6.2L15.8 9h3v14h-3v-8.3l-2.6 4.8h-1.6L9 14.7V23z' fill='%2338bdf8'/%3E%3Ccircle cx='24' cy='11' r='2.2' fill='%2338bdf8'/%3E%3C/svg%3E">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="image" href="me.jpg" fetchpriority="high">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/styles.css">
 
   <script type="application/ld+json">
@@ -77,6 +81,13 @@
         var stored = localStorage.getItem('theme');
         if (stored === '') stored = 'light';
         if (stored === 'dark' || stored === 'light') root.setAttribute('data-theme', stored);
+
+        // Pin the writing direction too, so a returning English visitor
+        // never sees the Arabic RTL layout flash before app.js swaps it.
+        if (localStorage.getItem('lang') === 'en') {
+          root.setAttribute('lang', 'en');
+          root.setAttribute('dir', 'ltr');
+        }
       } catch (e) { /* storage blocked — fall back to the OS preference */ }
 
       root.classList.add('js');
@@ -125,7 +136,7 @@
   </svg>
 
   <header class="nav-shell" id="navShell">
-    <div class="nav-bar" id="navBar">
+    <div class="nav-bar intro" id="navBar" style="--step:1">
       <a class="brand" href="#top">
         <span class="brand__mark" aria-hidden="true">
           <svg class="icon" aria-hidden="true"><use href="#i-network"></use></svg>
@@ -133,7 +144,7 @@
         <span class="brand__name" data-i18n="brand">محمد كريري</span>
       </a>
 
-      <nav class="nav" id="nav" data-i18n-label="nav_menu" aria-label="التنقل الرئيسي">
+      <nav class="nav" id="nav" data-i18n-label="nav_primary" aria-label="التنقل الرئيسي">
         <span class="nav__pill" id="navPill" aria-hidden="true"></span>
         <a class="nav__link" href="#about" data-i18n="nav_about">نبذة</a>
         <a class="nav__link" href="#skills" data-i18n="nav_skills">المهارات</a>
@@ -194,7 +205,7 @@
               <span data-i18n="cta_talk">لنتحدث</span>
               <svg class="icon btn__arrow" aria-hidden="true"><use href="#i-arrow"></use></svg>
             </a>
-            <a class="btn btn--ghost" href="CVMK.pdf" target="_blank" rel="noopener" download>
+            <a class="btn btn--ghost" href="CVMK.pdf" download>
               <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>
               <span data-i18n="btn_cv">تحميل السيرة الذاتية</span>
             </a>
@@ -210,7 +221,8 @@
         <figure class="portrait intro" style="--step:2">
           <div class="portrait__frame">
             <img class="portrait__img" src="me.jpg" width="1062" height="1280"
-                 alt="محمد إسماعيل كريري" fetchpriority="high" decoding="async">
+                 alt="محمد إسماعيل كريري" data-i18n-alt="hero_name"
+                 fetchpriority="high" decoding="async">
           </div>
           <figcaption class="portrait__tag">
             <svg class="icon" aria-hidden="true"><use href="#i-award"></use></svg>
@@ -569,8 +581,14 @@
           </article>
         </div>
 
-        <div class="more-certs reveal">
-          <p class="more-certs__label" data-i18n="certs_more">دورات إضافية</p>
+        <details class="more-certs reveal">
+          <summary class="more-certs__label">
+            <span data-i18n="certs_more">دورات إضافية</span>
+            <span class="more-certs__count">
+              <span class="mono ltr">6</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+            </span>
+          </summary>
           <ul class="more-certs__list">
             <li lang="en">Programming Fundamentals</li>
             <li lang="en">Search Engine Optimization (SEO)</li>
@@ -579,7 +597,7 @@
             <li lang="en">Basics of Design Tools</li>
             <li lang="en">Data Entry Skills</li>
           </ul>
-        </div>
+        </details>
       </section>
 
       <!-- ============================ CONTACT ============================ -->
