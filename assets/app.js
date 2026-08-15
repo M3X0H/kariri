@@ -664,33 +664,48 @@
 
     cursor.classList.add('is-on');
 
-    // Every layout read and style write happens here, once per frame.
+    // Scratch buffer for the magnet pass, reused so the loop allocates nothing.
+    var magnetRects = [];
+
+    // One frame = one read phase, then one write phase. Interleaving them
+    // forces a synchronous layout on every element touched.
     function tick() {
       raf = 0;
 
       cx += (px - cx) * 0.18;
       cy += (py - cy) * 0.18;
+
+      var targetRect = null, tiltRect = null, i, m;
+
+      // ---- read phase: every layout query, no style writes ----
+      if (moved) {
+        if (target) targetRect = target.getBoundingClientRect();
+        if (tilted) tiltRect = tilted.getBoundingClientRect();
+        for (i = 0; i < magnets.length; i++) {
+          magnetRects[i] = magnets[i].getBoundingClientRect();
+        }
+      }
+
+      // ---- write phase: no layout queries past this point ----
       cursor.style.transform = 'translate3d(' + cx.toFixed(1) + 'px,' + cy.toFixed(1) + 'px,0)';
 
       if (moved) {
         moved = false;
 
-        if (target) {
-          var r = target.getBoundingClientRect();
-          target.style.setProperty('--mx', (px - r.left) + 'px');
-          target.style.setProperty('--my', (py - r.top) + 'px');
+        if (targetRect) {
+          target.style.setProperty('--mx', (px - targetRect.left) + 'px');
+          target.style.setProperty('--my', (py - targetRect.top) + 'px');
         }
 
-        if (tilted) {
-          var t = tilted.getBoundingClientRect();
-          tilted.style.setProperty('--rx', (((py - t.top) / t.height - 0.5) * -3).toFixed(2) + 'deg');
-          tilted.style.setProperty('--ry', (((px - t.left) / t.width - 0.5) * 3).toFixed(2) + 'deg');
+        if (tiltRect) {
+          tilted.style.setProperty('--rx', (((py - tiltRect.top) / tiltRect.height - 0.5) * -3).toFixed(2) + 'deg');
+          tilted.style.setProperty('--ry', (((px - tiltRect.left) / tiltRect.width - 0.5) * 3).toFixed(2) + 'deg');
         }
 
-        for (var i = 0; i < magnets.length; i++) {
-          var m = magnets[i];
-          var mr = m.getBoundingClientRect();
-          if (!mr.width) continue;
+        for (i = 0; i < magnets.length; i++) {
+          var mr = magnetRects[i];
+          if (!mr || !mr.width) continue;
+          m = magnets[i];
           var dx = px - (mr.left + mr.width / 2);
           var dy = py - (mr.top + mr.height / 2);
           if (Math.abs(dx) < mr.width && Math.abs(dy) < mr.height * 2) {
