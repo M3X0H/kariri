@@ -71,6 +71,13 @@
         var s = localStorage.getItem('theme');
         if (s === '') s = 'light';
         if (s === 'dark' || s === 'light') r.setAttribute('data-theme', s);
+
+        // Pin the writing direction too, so a returning English visitor
+        // never sees the Arabic RTL layout flash before app.js swaps it.
+        if (localStorage.getItem('lang') === 'en') {
+          r.setAttribute('lang', 'en');
+          r.setAttribute('dir', 'ltr');
+        }
       } catch (e) {}
       r.classList.add('js');
       setTimeout(function () {
@@ -178,7 +185,8 @@
 
       <figure class="plate" id="plate">
         <div class="plate__depth">
-          <img src="me.jpg" width="1062" height="1280" alt="محمد إسماعيل كريري"
+          <img src="me.jpg" width="1062" height="1280"
+               alt="محمد إسماعيل كريري" data-i18n-alt="portrait_alt"
                fetchpriority="high" decoding="async">
         </div>
         <figcaption class="mono" data-i18n="plate_cap">معتمد من الهيئة السعودية للمهندسين</figcaption>
@@ -459,7 +467,7 @@
           <span class="way__v mono ltr" translate="no">M3X0H</span>
           <svg class="ico arw" aria-hidden="true"><use href="#i-arrow"></use></svg>
         </a></li>
-        <li class="reveal"><a class="way way--cv" href="CVMK.pdf" target="_blank" rel="noopener">
+        <li class="reveal"><a class="way way--cv" href="CVMK.pdf" download>
           <svg class="ico" aria-hidden="true"><use href="#i-file"></use></svg>
           <span class="way__l" data-i18n="way_cv">السيرة الذاتية</span>
           <span class="way__v mono ltr">PDF</span>

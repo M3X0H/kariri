@@ -113,6 +113,7 @@
       end_say: 'متاح لفرص عمل في الدعم الفني وتقنية المعلومات. واتساب أسرع طريقة للوصول إليّ، وأرد عادةً في نفس اليوم.',
       way_cv: 'السيرة الذاتية',
       way_call: 'اتصال مباشر',
+      portrait_alt: 'محمد إسماعيل كريري — أخصائي تقنية معلومات',
       foot_name: 'محمد إسماعيل كريري'
     },
 
@@ -208,6 +209,7 @@
       end_say: 'Open to IT support and IT specialist roles. WhatsApp is the fastest way to reach me, and I usually reply the same day.',
       way_cv: 'Curriculum Vitae',
       way_call: 'Direct call',
+      portrait_alt: 'Mohammed Ismail Kariri — IT Specialist',
       foot_name: 'Mohammed Ismail Kariri'
     }
   };
@@ -270,6 +272,11 @@
         if (v !== undefined) el.setAttribute('aria-label', v);
       });
 
+      document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+        var v = dict[el.getAttribute('data-i18n-alt')];
+        if (v !== undefined) el.setAttribute('alt', v);
+      });
+
       store.set('lang', code);
       listeners.forEach(function (fn) { fn(code); });
     }
@@ -304,10 +311,6 @@
 
     menuBtn.addEventListener('click', function () { setMenu(sheet.hidden); });
 
-    sheet.addEventListener('click', function (e) {
-      if (e.target.closest('a')) setMenu(false);
-    });
-
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && !sheet.hidden) { setMenu(false); menuBtn.focus(); }
     });
@@ -337,8 +340,13 @@
       mark(order[idx]);
     }
 
-    return { update: update, close: function () { setMenu(false); } };
+    return {
+      update: update,
+      close: function () { setMenu(false); },
+      isOpen: function () { return !sheet.hidden; }
+    };
   })();
+
 
   /* ── reveal ──────────────────────────────────────────────── */
   var reveal = (function () {
@@ -367,6 +375,82 @@
 
     all.forEach(function (el) { io.observe(el); });
     return { showAll: showAll };
+  })();
+
+  /* ── in-page navigation ──────────────────────────────────────
+     Same-page links are driven here rather than left to the browser's
+     fragment jump. Three reasons:
+
+       · The fixed rail would otherwise cover the top of the target.
+       · Closing the sheet inside the link's own click handler removes
+         that link's ancestor mid-click, which can cancel the jump. The
+         symptom is a link that changes the URL but never moves the
+         page — i.e. one that "only works in a new tab".
+       · Modified clicks (⌘/Ctrl/middle) must still open a new tab, and
+         first load, refresh, Back, Forward and pasted deep links all
+         need to land in the same place.
+     ──────────────────────────────────────────────────────────── */
+  (function () {
+    var lastHash = '', lastAt = 0;
+
+    function targetFor(hash) {
+      if (!hash || hash.charAt(0) !== '#' || hash.length < 2) return null;
+      return document.getElementById(hash.slice(1));
+    }
+
+    function goTo(el, smooth) {
+      lastHash = '#' + el.id;
+      lastAt = Date.now();
+
+      // scroll-margin-block-start on the section is the single source of
+      // truth for the rail's clearance, so it is read, not re-guessed.
+      var margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+      var top = Math.max(0, Math.round(el.getBoundingClientRect().top + scrollY - margin));
+      scrollTo({ top: top, behavior: smooth && !mLessMotion.matches ? 'smooth' : 'auto' });
+
+      // Send the keyboard where the eye just went, without a second jump.
+      if (el.tabIndex < 0) el.setAttribute('tabindex', '-1');
+      el.focus({ preventScroll: true });
+    }
+
+    // One hash change can raise both popstate and hashchange; collapse
+    // them or the page visibly jumps to the same place twice.
+    function syncToHash(smooth) {
+      if (location.hash === lastHash && Date.now() - lastAt < 500) return;
+      var el = targetFor(location.hash);
+      if (el) goTo(el, smooth);
+    }
+
+    document.addEventListener('click', function (e) {
+      if (e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+      var link = e.target.closest ? e.target.closest('a[href]') : null;
+      if (!link || link.target === '_blank') return;
+
+      var href = link.getAttribute('href') || '';
+      if (href.charAt(0) !== '#') return;
+
+      var el = targetFor(href);
+      if (!el) return;
+
+      // Scroll first, then close the sheet — never the other way round.
+      e.preventDefault();
+      goTo(el, true);
+      if (nav.isOpen()) nav.close();
+
+      if (location.hash !== href) history.pushState(null, '', href);
+      reveal.showAll();
+    });
+
+    addEventListener('popstate', function () { nav.close(); syncToHash(false); });
+    addEventListener('hashchange', function () { nav.close(); syncToHash(false); });
+
+    // A deep link on first load lands after layout, not before it.
+    if (targetFor(location.hash)) {
+      reveal.showAll();
+      requestAnimationFrame(function () { syncToHash(false); });
+    }
   })();
 
   /* ── lattice ─────────────────────────────────────────────────
@@ -665,13 +749,7 @@
   considerLattice();
   mountPointer();
 
-  // Deep links must never land on hidden content: if the page opens at a
-  // hash, everything is shown at once rather than waiting to be scrolled past.
-  if (location.hash && document.querySelector(location.hash)) reveal.showAll();
-  addEventListener('hashchange', function () {
-    nav.close();
-    if (document.querySelector(location.hash || '#top')) reveal.showAll();
-  });
+  // Deep-link handling lives in the in-page navigation module above.
 
   function release() { root.classList.add('is-ready'); }
   requestAnimationFrame(function () { requestAnimationFrame(release); });
