@@ -539,8 +539,18 @@
 
       ctx.clearRect(0, 0, w, h);
 
-      var cx = w / 2, cy = h / 2;
-      var radius = Math.min(w, h) * (mCompact.matches ? 0.44 : 0.40);
+      // Sit opposite the name rather than behind it: the name hugs the
+      // inline-end edge, so the object anchors the opposite side and the
+      // two balance instead of colliding. Narrow screens stack, so it
+      // recentres there.
+      var rtl = root.getAttribute('dir') !== 'ltr';
+      var narrow = mCompact.matches;
+      var cx = narrow ? w * 0.42 : w * (rtl ? 0.30 : 0.70);
+      // On narrow screens everything stacks, so the object rides up behind
+      // the name instead of cutting through the portrait and body copy.
+      var cy = narrow ? h * 0.30 : h * 0.5;
+      var radius = Math.min(w, h) * (narrow ? 0.34 : 0.36);
+      var fade = narrow ? 0.55 : 1;
       var focal = 2.6;
 
       var ay = yaw + spin, ax = pitch + scrollK * 0.6;
@@ -563,7 +573,7 @@
       for (var e = 0; e < edges.length; e++) {
         var a = proj[edges[e][0]], b = proj[edges[e][1]];
         var depth = 1 - (a.d + b.d) / 2;
-        ctx.strokeStyle = 'rgba(' + inkRGB + ',' + (0.06 + depth * 0.30).toFixed(3) + ')';
+        ctx.strokeStyle = 'rgba(' + inkRGB + ',' + ((0.07 + depth * 0.34) * fade).toFixed(3) + ')';
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
@@ -574,10 +584,10 @@
         var q = proj[n];
         var front = 1 - q.d;
         ctx.fillStyle = n % 17 === 0
-          ? 'rgba(' + accentRGB + ',' + (0.25 + front * 0.65).toFixed(3) + ')'
-          : 'rgba(' + inkRGB + ',' + (0.10 + front * 0.42).toFixed(3) + ')';
+          ? 'rgba(' + accentRGB + ',' + ((0.30 + front * 0.65) * fade).toFixed(3) + ')'
+          : 'rgba(' + inkRGB + ',' + ((0.12 + front * 0.45) * fade).toFixed(3) + ')';
         ctx.beginPath();
-        ctx.arc(q.x, q.y, (n % 17 === 0 ? 2.1 : 1.35) * q.k, 0, Math.PI * 2);
+        ctx.arc(q.x, q.y, (n % 17 === 0 ? 2.3 : 1.4) * q.k, 0, Math.PI * 2);
         ctx.fill();
       }
 
