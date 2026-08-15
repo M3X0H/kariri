@@ -221,15 +221,16 @@
     var meta = document.querySelector('meta[name="theme-color"]');
     var listeners = [];
 
+    // Dark is the identity and the default; light is the opt-in.
     function current() {
-      return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      return root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
     }
 
     function paint() {
       var dark = current() === 'dark';
       ico.setAttribute('href', dark ? '#i-sun' : '#i-moon');
       btn.setAttribute('aria-pressed', String(dark));
-      if (meta) meta.setAttribute('content', dark ? '#0b0b0a' : '#efeee9');
+      if (meta) meta.setAttribute('content', dark ? '#07080d' : '#efeee9');
     }
 
     btn.addEventListener('click', function () {
@@ -348,30 +349,49 @@
   })();
 
 
-  /* ── reveal ──────────────────────────────────────────────── */
+  /* ── reveal ──────────────────────────────────────────────────
+     One observer for the whole page. `.reveal` is a plain rise;
+     `data-in` adds a direction, and `data-in-stagger` hands the
+     animation to the children so a list arrives as a list rather
+     than as one block.
+     ──────────────────────────────────────────────────────────── */
   var reveal = (function () {
-    var all = [].slice.call(document.querySelectorAll('.reveal'));
+    var all = [].slice.call(document.querySelectorAll('.reveal, [data-in]'));
 
-    function showAll() {
-      all.forEach(function (el) { el.classList.add('is-in'); });
+    function show(el) {
+      if (el.classList.contains('is-in')) return;
+
+      var stagger = parseFloat(el.getAttribute('data-in-stagger'));
+      if (stagger > 0) {
+        [].forEach.call(el.children, function (child, i) {
+          child.style.setProperty('--d', (i * stagger) + 'ms');
+          child.classList.add('is-in');
+        });
+      }
+
+      var delay = parseFloat(el.getAttribute('data-in-delay'));
+      if (delay > 0) el.style.setProperty('--d', delay + 'ms');
+      el.classList.add('is-in');
     }
 
-    if (!('IntersectionObserver' in window)) {
+    function showAll() { all.forEach(show); }
+
+    if (!('IntersectionObserver' in window) || mLessMotion.matches) {
       showAll();
       return { showAll: showAll };
     }
 
-    var seen = new WeakSet();
+    /* threshold 0 with only a shallow bottom inset. Anything deeper
+       leaves a band at the foot of the viewport where an element is on
+       screen but has not been told to reveal — which a jump straight to
+       an anchor lands in, and never recovers from. */
     var io = new IntersectionObserver(function (entries) {
-      entries.filter(function (e) { return e.isIntersecting; })
-        .forEach(function (e, i) {
-          if (seen.has(e.target)) return;
-          seen.add(e.target);
-          e.target.style.setProperty('--d', (i * 70) + 'ms');
-          e.target.classList.add('is-in');
-          io.unobserve(e.target);
-        });
-    }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        show(e.target);
+        io.unobserve(e.target);
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -24px 0px' });
 
     all.forEach(function (el) { io.observe(el); });
     return { showAll: showAll };
@@ -470,14 +490,19 @@
 
     var dpr = 1, w = 0, h = 0;
     var pts = [], edges = [];
-    var raf = 0, running = false, onScreen = true;
+    var onScreen = true;
     var yaw = 0, pitch = 0, tYaw = 0, tPitch = 0, spin = 0, scrollK = 0;
-    var inkRGB = '14,14,13', accentRGB = '27,62,245';
+    var inkRGB = '238,241,247', accentRGB = '56,189,248', accent2RGB = '129,140,248';
+
+    // Reused scratch for the edge batching in step(); never reallocated.
+    var BUCKETS = 6, bucket = [];
+    for (var q0 = 0; q0 < BUCKETS; q0++) bucket.push([]);
 
     function readInk() {
       var cs = getComputedStyle(root);
       inkRGB = toRGB(cs.getPropertyValue('--ink')) || inkRGB;
       accentRGB = toRGB(cs.getPropertyValue('--accent')) || accentRGB;
+      accent2RGB = toRGB(cs.getPropertyValue('--accent-2')) || accent2RGB;
     }
 
     function toRGB(hex) {
@@ -521,7 +546,11 @@
       var r = canvas.getBoundingClientRect();
       if (r.width < 2 || r.height < 2) return false;
 
-      dpr = Math.min(devicePixelRatio || 1, 2);
+      /* Capped at 1.5 rather than 2. The lattice is hairlines and small
+         discs over most of the viewport, so the backing store dominates
+         its cost — and 2x quadruples the pixels for a difference you
+         cannot see on strokes this thin. */
+      dpr = Math.min(devicePixelRatio || 1, 1.5);
       w = Math.round(r.width);
       h = Math.round(r.height);
       canvas.width = Math.round(w * dpr);
@@ -531,9 +560,13 @@
       return true;
     }
 
-    function frame() {
-      raf = 0;
-      spin += 0.0016;
+    /* Stepped by the engine's frame rather than owning a loop, so the
+       page has exactly one rAF. dt keeps the drift rate honest on a
+       slow frame, and the scroll rate spins the object as you move. */
+    function step(dt, rate) {
+      if (!onScreen || !w || !h) return;
+
+      spin += dt * 0.0001 + (rate || 0) * 0.0006;
       yaw += (tYaw - yaw) * 0.05;
       pitch += (tPitch - pitch) * 0.05;
 
@@ -569,40 +602,46 @@
         proj[i] = { x: cx + x1 * radius * k, y: cy + y2 * radius * k, d: (z2 + 1) / 2, k: k };
       }
 
+      /* Every edge wants its own depth alpha, but at 150 nodes that is
+         ~400 strokeStyle changes and ~400 stroke() calls a frame.
+         Bucketing the alphas collapses it to one path per bucket, which
+         is indistinguishable on screen and far cheaper. */
       ctx.lineWidth = 1;
+      for (var q = 0; q < BUCKETS; q++) bucket[q].length = 0;
+
       for (var e = 0; e < edges.length; e++) {
         var a = proj[edges[e][0]], b = proj[edges[e][1]];
         var depth = 1 - (a.d + b.d) / 2;
-        ctx.strokeStyle = 'rgba(' + inkRGB + ',' + ((0.07 + depth * 0.34) * fade).toFixed(3) + ')';
+        var slot = Math.min(BUCKETS - 1, Math.floor(depth * BUCKETS));
+        bucket[slot].push(a.x, a.y, b.x, b.y);
+      }
+
+      for (var g = 0; g < BUCKETS; g++) {
+        var seg = bucket[g];
+        if (!seg.length) continue;
+        var alpha = (0.07 + ((g + 0.5) / BUCKETS) * 0.34) * fade;
+        ctx.strokeStyle = 'rgba(' + inkRGB + ',' + alpha.toFixed(3) + ')';
         ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
+        for (var s = 0; s < seg.length; s += 4) {
+          ctx.moveTo(seg[s], seg[s + 1]);
+          ctx.lineTo(seg[s + 2], seg[s + 3]);
+        }
         ctx.stroke();
       }
 
       for (var n = 0; n < proj.length; n++) {
         var q = proj[n];
         var front = 1 - q.d;
-        ctx.fillStyle = n % 17 === 0
+        var lit = n % 17 === 0, alt = n % 11 === 0;
+        ctx.fillStyle = lit
           ? 'rgba(' + accentRGB + ',' + ((0.30 + front * 0.65) * fade).toFixed(3) + ')'
-          : 'rgba(' + inkRGB + ',' + ((0.12 + front * 0.45) * fade).toFixed(3) + ')';
+          : alt
+            ? 'rgba(' + accent2RGB + ',' + ((0.20 + front * 0.55) * fade).toFixed(3) + ')'
+            : 'rgba(' + inkRGB + ',' + ((0.12 + front * 0.45) * fade).toFixed(3) + ')';
         ctx.beginPath();
-        ctx.arc(q.x, q.y, (n % 17 === 0 ? 2.3 : 1.4) * q.k, 0, Math.PI * 2);
+        ctx.arc(q.x, q.y, (lit ? 2.3 : 1.4) * q.k, 0, Math.PI * 2);
         ctx.fill();
       }
-
-      if (running) raf = requestAnimationFrame(frame);
-    }
-
-    function start() {
-      if (running || !onScreen || document.hidden) return;
-      running = true;
-      if (!raf) raf = requestAnimationFrame(frame);
-    }
-
-    function stop() {
-      running = false;
-      if (raf) { cancelAnimationFrame(raf); raf = 0; }
     }
 
     function onPointer(e) {
@@ -611,29 +650,23 @@
       tPitch = ((e.clientY / innerHeight) - 0.5) * -0.7;
     }
 
-    function onScroll() {
-      var r = host.getBoundingClientRect();
-      scrollK = Math.max(-1, Math.min(1, -r.top / Math.max(1, r.height)));
-    }
-
     var resizeTimer;
     function onResize() {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(resize, 160);
     }
 
-    function onVisibility() { document.hidden ? stop() : start(); }
-
     addEventListener('pointermove', onPointer, { passive: true });
-    addEventListener('scroll', onScroll, { passive: true });
     addEventListener('resize', onResize);
-    document.addEventListener('visibilitychange', onVisibility);
 
+    // The hero is the only place this is drawn, so once it is off screen
+    // there is nothing to paint — the engine keeps running for the rest
+    // of the page, this simply stops contributing to the frame.
     var io = null;
     if ('IntersectionObserver' in window) {
       io = new IntersectionObserver(function (en) {
         onScreen = en[0].isIntersecting;
-        onScreen ? start() : stop();
+        if (!onScreen) ctx.clearRect(0, 0, w, h);
       }, { threshold: 0 });
       io.observe(host);
     }
@@ -648,20 +681,19 @@
 
     theme.onChange(readInk);
     readInk();
-    onScroll();
 
     // Retry until the element actually has a box, for engines that run
     // deferred scripts before first layout.
     if (!resize()) requestAnimationFrame(function () { resize(); });
-    start();
 
     return {
+      step: step,
+      // The hero's own scroll progress, handed over by the engine so the
+      // object tips as the section leaves without a second layout read.
+      setScroll: function (k) { scrollK = k; },
       destroy: function () {
-        stop();
         removeEventListener('pointermove', onPointer);
-        removeEventListener('scroll', onScroll);
         removeEventListener('resize', onResize);
-        document.removeEventListener('visibilitychange', onVisibility);
         if (io) io.disconnect();
         if (ro) ro.disconnect();
         ctx.clearRect(0, 0, w, h);
@@ -732,18 +764,237 @@
     document.addEventListener('pointerenter', function () { dot.classList.add('is-on'); });
   }
 
-  /* ── scroll driver ───────────────────────────────────────── */
-  (function () {
-    var ticking = false;
-    function run() { ticking = false; nav.update(scrollY); }
-    addEventListener('scroll', function () {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(run);
-    }, { passive: true });
-    addEventListener('resize', run);
-    run();
+  /* ── engine ──────────────────────────────────────────────────
+     The only scroll listener and the only continuous rAF on the page.
+     Each frame it reads layout once, then writes custom properties
+     that the stylesheet turns into movement:
+
+       --p     reading position on the rail
+       --t     a tracked section's own progress (drives the hero exit)
+       --f     the career rail's fill
+       --py    parallax offset, per element
+       --cy    the project wireframe's drift inside its frame
+       --bandx the marquee's offset
+       --ah/--as/--al  ambient hue, eased toward the live section
+
+     The lattice is stepped from here too, so pointer and scroll input
+     cost one listener each rather than one per effect.
+     ──────────────────────────────────────────────────────────── */
+  var engine = (function () {
+    var read = document.getElementById('read');
+    var aura = document.getElementById('aura');
+    var tracks = [].slice.call(document.querySelectorAll('[data-track]'));
+    var parallax = [].slice.call(document.querySelectorAll('[data-par]'));
+    var auraSecs = [].slice.call(document.querySelectorAll('[data-aura]'));
+    // The <ol>, not the <section> — #career is the section's nav anchor,
+    // and two elements sharing that id would silently hand this the
+    // wrong one, so the list carries its own.
+    var career = document.getElementById('careerTrack');
+    var stops = [].slice.call(document.querySelectorAll('.stop'));
+    var frame = document.querySelector('.proj__frame');
+    var strip = document.getElementById('strip');
+
+    var liveStop = null, activeSec = null;
+    var lastY = scrollY, rate = 0;
+    var stripX = 0, stripSpan = 0;
+    var dirty = true, running = false, last = 0;
+
+    var hue = { h: 199, s: 90, l: 55 };
+    var hueTo = { h: 199, s: 90, l: 55 };
+    var wrote = '';
+
+    var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
+    var lerp = function (a, b, t) { return a + (b - a) * t; };
+
+    function measure() {
+      // The strip's markup is duplicated, so half of it is one clean loop.
+      if (strip) stripSpan = strip.scrollWidth / 2;
+    }
+
+    function mark() { dirty = true; }
+
+    function pass() {
+      var y = scrollY, vh = innerHeight;
+      var max = root.scrollHeight - vh;
+
+      nav.update(y);
+      if (read) read.style.setProperty('--p', max > 0 ? (y / max).toFixed(4) : 0);
+
+      for (var t = 0; t < tracks.length; t++) {
+        var el = tracks[t], r = el.getBoundingClientRect();
+        if (el.getAttribute('data-track') === 'hero') {
+          // How far the hero has scrolled past the top edge.
+          var tv = clamp(-r.top / Math.max(1, r.height), 0, 1);
+          el.style.setProperty('--t', tv.toFixed(4));
+          if (lattice) lattice.setScroll(tv);
+        } else {
+          // Fills from the moment the block reaches mid-viewport until
+          // its end passes the same line.
+          el.style.setProperty('--f',
+            clamp((vh * 0.55 - r.top) / Math.max(1, r.height), 0, 1).toFixed(4));
+        }
+      }
+
+      for (var p = 0; p < parallax.length; p++) {
+        var pe = parallax[p], pr = pe.getBoundingClientRect();
+        if (pr.bottom < -200 || pr.top > vh + 200) continue;
+        var f = parseFloat(pe.getAttribute('data-par')) || 0;
+        var mid = (pr.top + pr.height / 2) - vh / 2;
+        // Clamped, so a long page can never push an element out of reach.
+        pe.style.setProperty('--py', clamp(mid * f, -80, 80).toFixed(1) + 'px');
+      }
+
+      if (frame) {
+        var fr = frame.getBoundingClientRect();
+        if (fr.bottom > -200 && fr.top < vh + 200) {
+          var through = clamp((vh - fr.top) / (vh + fr.height), 0, 1);
+          frame.style.setProperty('--cy', ((through - 0.5) * -40).toFixed(1) + 'px');
+        }
+      }
+
+      // The ambient hue follows whichever data-aura section is nearest
+      // the top of the viewport.
+      var near = null, best = Infinity;
+      for (var s = 0; s < auraSecs.length; s++) {
+        var sr = auraSecs[s].getBoundingClientRect();
+        var d = Math.abs(sr.top - vh * 0.3);
+        if (sr.top <= vh * 0.6 && d < best) { best = d; near = auraSecs[s]; }
+      }
+      if (!near) near = auraSecs[0];
+      if (near && near !== activeSec) {
+        activeSec = near;
+        var raw = (near.getAttribute('data-aura') || '199 90% 55%').split(/\s+/);
+        hueTo = { h: parseFloat(raw[0]) || 199, s: parseFloat(raw[1]) || 90, l: parseFloat(raw[2]) || 55 };
+      }
+
+      if (career && stops.length) {
+        var cr = career.getBoundingClientRect();
+        var tracking = cr.top < vh * 0.7 && cr.bottom > vh * 0.3;
+        career.classList.toggle('is-tracking', tracking);
+
+        if (tracking) {
+          var pick = null, closest = Infinity;
+          for (var k = 0; k < stops.length; k++) {
+            var kr = stops[k].getBoundingClientRect();
+            var gap = Math.abs((kr.top + kr.height / 2) - vh * 0.45);
+            if (gap < closest) { closest = gap; pick = stops[k]; }
+          }
+          if (pick !== liveStop) {
+            stops.forEach(function (st) { st.classList.toggle('is-live', st === pick); });
+            liveStop = pick;
+          }
+        }
+      }
+
+      // Written on the layer itself, not on :root — these change every
+      // scrolled frame and only .paper__aura reads them.
+      if (aura) {
+        var g = max > 0 ? y / max : 0;
+        aura.style.setProperty('--ax', (76 - g * 26).toFixed(1) + '%');
+        aura.style.setProperty('--ay', (14 + g * 44).toFixed(1) + '%');
+        aura.style.setProperty('--bx', (14 + g * 30).toFixed(1) + '%');
+        aura.style.setProperty('--by', (74 - g * 40).toFixed(1) + '%');
+      }
+    }
+
+    function tick(now) {
+      if (!running) return;
+      var dt = Math.min(now - last, 50) || 16;
+      last = now;
+
+      var y = scrollY;
+      rate = lerp(rate, y - lastY, 0.16);
+      lastY = y;
+
+      if (dirty) { dirty = false; pass(); }
+
+      if (!mLessMotion.matches) {
+        var k = clamp(dt * 0.0018, 0, 0.08);
+        var dh = ((hueTo.h - hue.h + 540) % 360) - 180;   // shortest way round
+        hue.h = (hue.h + dh * k + 360) % 360;
+        hue.s = lerp(hue.s, hueTo.s, k);
+        hue.l = lerp(hue.l, hueTo.l, k);
+
+        var stamp = hue.h.toFixed(1) + hue.s.toFixed(1) + hue.l.toFixed(1);
+        if (stamp !== wrote) {
+          wrote = stamp;
+          root.style.setProperty('--ah', hue.h.toFixed(1));
+          root.style.setProperty('--as', hue.s.toFixed(1) + '%');
+          root.style.setProperty('--al', hue.l.toFixed(1) + '%');
+          root.style.setProperty('--bh', ((hue.h + 62) % 360).toFixed(1));
+        }
+
+        // The strip answers to scroll: faster when you move, reversing
+        // when you do. The base drift keeps it alive when you are still.
+        if (strip && stripSpan > 0) {
+          stripX -= (dt * 0.02) + rate * 0.5;
+          if (stripX <= -stripSpan) stripX += stripSpan;
+          if (stripX > 0) stripX -= stripSpan;
+          strip.style.setProperty('--bandx', stripX.toFixed(1) + 'px');
+        }
+      }
+
+      if (lattice) lattice.step(dt, rate);
+      requestAnimationFrame(tick);
+    }
+
+    function start() {
+      if (running) return;
+      running = true;
+      last = performance.now();
+      requestAnimationFrame(tick);
+    }
+
+    addEventListener('scroll', mark, { passive: true });
+    addEventListener('resize', function () { measure(); mark(); });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) running = false;
+      else { mark(); start(); }
+    });
+
+    return { mark: mark, start: start, measure: measure, pass: pass };
   })();
+
+  /* ── count-in ────────────────────────────────────────────────
+     Runs to 100 over about a second, then wipes. `clear` is idempotent
+     and also fires on a hard timer, so nothing about the page's state
+     can leave a visitor stuck behind the overlay.
+     ──────────────────────────────────────────────────────────── */
+  function countIn(done) {
+    var boot = document.getElementById('boot');
+    var n = document.getElementById('bootN');
+    var bar = document.getElementById('bootBar');
+
+    if (!boot || mLessMotion.matches) {
+      if (boot) boot.classList.add('boot--gone');
+      done();
+      return;
+    }
+
+    var span = 950, started = performance.now(), cleared = false;
+
+    function clear() {
+      if (cleared) return;
+      cleared = true;
+      boot.classList.add('boot--gone');
+      done();
+      setTimeout(function () {
+        if (boot.parentNode) boot.parentNode.removeChild(boot);
+      }, 1000);
+    }
+
+    function tick(now) {
+      var p = Math.min((now - started) / span, 1);
+      var eased = 1 - Math.pow(1 - p, 3);   // slows as it lands
+      n.textContent = String(Math.round(eased * 100)).padStart(3, '0');
+      bar.style.setProperty('--p', eased.toFixed(3));
+      if (p < 1) requestAnimationFrame(tick);
+      else setTimeout(clear, 80);
+    }
+
+    requestAnimationFrame(tick);
+    setTimeout(clear, 2000);   // the backstop
+  }
 
   /* ── boot ────────────────────────────────────────────────── */
   document.getElementById('year').textContent = String(new Date().getFullYear());
@@ -754,14 +1005,21 @@
   });
 
   lang.apply(store.get('lang') === 'en' ? 'en' : 'ar');
-  lang.onChange(function () { nav.update(scrollY); });
+  lang.onChange(function () { engine.measure(); engine.mark(); });
 
   considerLattice();
   mountPointer();
 
-  // Deep-link handling lives in the in-page navigation module above.
+  engine.measure();
+  engine.pass();
+  engine.start();
 
-  function release() { root.classList.add('is-ready'); }
-  requestAnimationFrame(function () { requestAnimationFrame(release); });
-  setTimeout(release, 500);
+  countIn(function () { root.classList.add('is-ready'); });
+
+  // Fonts land after first paint and reflow the copy; re-measure once.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { engine.measure(); engine.mark(); });
+  }
+
+  // Deep-link handling lives in the in-page navigation module above.
 })();

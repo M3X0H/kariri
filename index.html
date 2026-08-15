@@ -8,7 +8,7 @@
   <meta name="description" content="محمد إسماعيل كريري — أخصائي تقنية معلومات وأخصائي علوم حاسب معتمد من الهيئة السعودية للمهندسين. دعم فني، أنظمة، شبكات، أجهزة، ومراقبة CCTV في الرياض.">
   <meta name="author" content="Mohammed Ismail Kariri">
   <link rel="canonical" href="https://m3x0h.github.io/kariri/">
-  <meta name="theme-color" content="#efeee9">
+  <meta name="theme-color" content="#07080d">
 
   <meta property="og:type" content="profile">
   <meta property="og:site_name" content="Mohammed Ismail Kariri">
@@ -29,7 +29,7 @@
   <meta name="twitter:description" content="أخصائي تقنية معلومات وأخصائي علوم حاسب معتمد. دعم فني، أنظمة، شبكات، أجهزة، ومراقبة.">
   <meta name="twitter:image" content="https://m3x0h.github.io/kariri/me.jpg">
 
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23efeee9'/%3E%3Cpath d='M7 24V8h2.6l6.4 11.2L22.4 8H25v16h-2.6V13.2L17 22.6h-2L9.6 13.2V24z' fill='%230e0e0d'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2307080d'/%3E%3Cpath d='M7 24V8h2.6l6.4 11.2L22.4 8H25v16h-2.6V13.2L17 22.6h-2L9.6 13.2V24z' fill='%23eef1f7'/%3E%3C/svg%3E">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,9 +68,9 @@
     (function () {
       var r = document.documentElement;
       try {
+        // Dark is the identity and the default now; light is a choice.
         var s = localStorage.getItem('theme');
-        if (s === '') s = 'light';
-        if (s === 'dark' || s === 'light') r.setAttribute('data-theme', s);
+        if (s === 'light') r.setAttribute('data-theme', 'light');
 
         // Pin the writing direction too, so a returning English visitor
         // never sees the Arabic RTL layout flash before app.js swaps it.
@@ -105,13 +105,25 @@
     </defs>
   </svg>
 
-  <!-- Column rules + paper grain: the page's whole background system. -->
+  <!-- Count-in. Short, and it clears itself on a hard timer no matter
+       what else happens, so a stalled asset cannot strand a visitor. -->
+  <div class="boot" id="boot" aria-hidden="true">
+    <div class="boot__row">
+      <span class="boot__mark" translate="no">MK</span>
+      <span class="boot__n" id="bootN">000</span>
+    </div>
+    <span class="boot__rule"><i id="bootBar"></i></span>
+  </div>
+
+  <!-- Ambient light + column rules + paper grain: the whole background. -->
   <div class="paper" aria-hidden="true">
+    <div class="paper__aura" id="aura"></div>
     <div class="paper__cols"><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="paper__grain"></div>
   </div>
 
   <header class="rail">
+    <span class="rail__read" id="read" aria-hidden="true"></span>
     <a class="rail__mark" href="#top">
       <span class="rail__glyph" aria-hidden="true" translate="no">MK</span>
       <span class="sr-only" data-i18n="brand">محمد كريري</span>
@@ -159,7 +171,10 @@
 
   <main id="main">
     <!-- ═══════════════════ HERO ═══════════════════ -->
-    <section class="hero" id="top">
+    <!-- data-track makes the engine write this section's own scroll
+         progress (0 → 1) into --t, which drives the whole hero exit.
+         data-aura is the ambient hue this section lights the page with. -->
+    <section class="hero" id="top" data-track="hero" data-aura="199 90% 55%">
       <canvas class="hero__lattice" id="lattice" aria-hidden="true"></canvas>
 
       <div class="hero__meta">
@@ -174,7 +189,7 @@
       </h1>
 
       <div class="hero__base">
-        <figure class="plate" id="plate">
+        <figure class="plate" id="plate" data-par="-0.06">
           <div class="plate__depth">
             <img src="me.jpg" width="1062" height="1280"
                  alt="محمد إسماعيل كريري" data-i18n-alt="portrait_alt"
@@ -208,17 +223,17 @@
     </div>
 
     <!-- ═══════════════════ ABOUT ═══════════════════ -->
-    <section class="sec" id="about">
-      <p class="sec__tag mono"><span class="ltr">02</span> — <span data-i18n="nav_about">نبذة</span></p>
+    <section class="sec" id="about" data-aura="261 80% 62%">
+      <p class="sec__tag mono" data-in="start"><span class="ltr">02</span> — <span data-i18n="nav_about">نبذة</span></p>
 
-      <h2 class="say">
+      <h2 class="say" data-par="0.04">
         <span class="mask"><span class="mask__in reveal" data-i18n="say_1">أبني الأنظمة</span></span>
         <span class="mask"><span class="mask__in reveal" data-i18n="say_2">وأصونها</span></span>
         <span class="mask"><span class="mask__in reveal" data-i18n="say_3">وأبقيها تعمل.</span></span>
       </h2>
 
       <div class="about">
-        <p class="about__lede reveal" data-i18n="about_1">
+        <p class="about__lede" data-in="end" data-i18n="about_1">
           خريج علوم حاسب من جامعة تبوك، ومعتمد رسميًا من الهيئة السعودية للمهندسين.
           عملي يبدأ حيث تلتقي الأنظمة بالناس: موظف لا يستطيع الطباعة، شبكة تتقطع، كاميرا توقفت عن التسجيل.
         </p>
@@ -227,14 +242,14 @@
           وعن بُعد لموظفين داخل الرياض وخارجها. أميل إلى المشاكل المتكررة، لأنها وحدها التي يمكن إنهاؤها نهائيًا.
         </p>
 
-        <dl class="facts reveal">
+        <dl class="facts" data-in="up" data-in-stagger="90">
           <div><dt class="mono" data-i18n="f1_k">التعليم</dt><dd data-i18n="f1_v">بكالوريوس علوم حاسب — جامعة تبوك، 2025</dd></div>
           <div><dt class="mono" data-i18n="f2_k">الاعتماد</dt><dd data-i18n="f2_v">أخصائي علوم حاسب — الهيئة السعودية للمهندسين، 2025</dd></div>
           <div><dt class="mono" data-i18n="f3_k">الموقع</dt><dd data-i18n="f3_v">الرياض، السعودية</dd></div>
           <div><dt class="mono" data-i18n="f4_k">اللغات</dt><dd data-i18n="f4_v">العربية · الإنجليزية</dd></div>
         </dl>
 
-        <ul class="traits reveal">
+        <ul class="traits" data-in="scale" data-in-stagger="45">
           <li data-i18n="t1">حل المشكلات</li><li data-i18n="t2">التفكير الإبداعي</li>
           <li data-i18n="t3">التواصل الفعّال</li><li data-i18n="t4">إدارة الوقت</li>
           <li data-i18n="t5">سرعة التعلّم</li><li data-i18n="t6">القيادة</li>
@@ -244,10 +259,10 @@
     </section>
 
     <!-- ═══════════════════ CAPABILITIES ═══════════════════ -->
-    <section class="sec sec--flush" id="capabilities">
-      <p class="sec__tag mono"><span class="ltr">03</span> — <span data-i18n="caps_tag">ماذا أفعل</span></p>
+    <section class="sec sec--flush" id="capabilities" data-aura="189 92% 55%">
+      <p class="sec__tag mono" data-in="end"><span class="ltr">03</span> — <span data-i18n="caps_tag">ماذا أفعل</span></p>
 
-      <ul class="caps">
+      <ul class="caps" data-in="start" data-in-stagger="80">
         <li class="cap">
           <span class="cap__n mono">01</span>
           <h3 class="cap__t" lang="en">IT SUPPORT</h3>
@@ -288,13 +303,16 @@
     </section>
 
     <!-- ═══════════════════ CAREER ═══════════════════ -->
-    <section class="sec" id="career">
-      <p class="sec__tag mono"><span class="ltr">04</span> — <span data-i18n="career_tag">المسار المهني</span></p>
+    <section class="sec" id="career" data-aura="243 82% 64%">
+      <p class="sec__tag mono" data-in="start"><span class="ltr">04</span> — <span data-i18n="career_tag">المسار المهني</span></p>
 
-      <ol class="career">
-        <li class="stop reveal">
-          <p class="stop__y mono ltr">2025</p>
-          <div class="stop__b">
+      <!-- The rail fills as the section passes; --f is written by the
+           engine. Decorative — the list itself carries the meaning. -->
+      <ol class="career" id="careerTrack" data-track="career">
+        <span class="career__rail" aria-hidden="true"><i></i></span>
+        <li class="stop" data-in="up">
+          <p class="stop__y mono ltr" data-in="start">2025</p>
+          <div class="stop__b" data-in="end">
             <h3 class="stop__r" data-i18n="j1_role">أخصائي تقنية معلومات</h3>
             <p class="stop__o" data-i18n="j1_org">شركة بشائر البناء للمقاولات — الرياض</p>
             <p class="stop__m mono ltr">Jun 2025 – Dec 2025 · <span data-i18n="j1_kind">دوام كامل</span></p>
@@ -327,9 +345,9 @@
           </div>
         </li>
 
-        <li class="stop reveal">
-          <p class="stop__y mono ltr">2025</p>
-          <div class="stop__b">
+        <li class="stop" data-in="up">
+          <p class="stop__y mono ltr" data-in="start">2025</p>
+          <div class="stop__b" data-in="end">
             <h3 class="stop__r" data-i18n="edu_deg">بكالوريوس علوم الحاسب</h3>
             <p class="stop__o" data-i18n="edu_org">جامعة تبوك</p>
             <p class="stop__m mono ltr">May 2025 · <span data-i18n="edu_kind">تعليم</span></p>
@@ -340,9 +358,9 @@
           </div>
         </li>
 
-        <li class="stop reveal">
-          <p class="stop__y mono ltr">2024</p>
-          <div class="stop__b">
+        <li class="stop" data-in="up">
+          <p class="stop__y mono ltr" data-in="start">2024</p>
+          <div class="stop__b" data-in="end">
             <h3 class="stop__r" data-i18n="j2_role">متدرّب — تقنية المعلومات</h3>
             <p class="stop__o" data-i18n="j2_org">تجمع تبوك الصحي</p>
             <p class="stop__m mono ltr">Jun 2024 – Aug 2024 · <span data-i18n="j2_kind">تدريب</span></p>
@@ -357,15 +375,15 @@
     </section>
 
     <!-- ═══════════════════ SELECTED WORK ═══════════════════ -->
-    <section class="sec" id="work">
-      <p class="sec__tag mono"><span class="ltr">05</span> — <span data-i18n="work_tag">أعمال مختارة</span></p>
+    <section class="sec" id="work" data-aura="291 76% 62%">
+      <p class="sec__tag mono" data-in="end"><span class="ltr">05</span> — <span data-i18n="work_tag">أعمال مختارة</span></p>
 
-      <article class="proj reveal">
+      <article class="proj">
         <p class="proj__n mono ltr">001</p>
         <h3 class="proj__t" data-i18n="p1_t">هذا الموقع</h3>
         <p class="proj__c mono ltr">PERSONAL SITE · 2026</p>
 
-        <div class="proj__v" aria-hidden="true">
+        <div class="proj__v" data-in="end" aria-hidden="true">
           <div class="proj__frame">
             <span class="proj__row proj__row--lg"></span>
             <span class="proj__row proj__row--md"></span>
@@ -374,7 +392,7 @@
           </div>
         </div>
 
-        <div class="proj__x">
+        <div class="proj__x" data-in="start">
           <p class="proj__d" data-i18n="p1_d">
             موقع ثابت بلا إطار عمل وبلا اعتماديات خارجية. يدعم العربية والإنجليزية مع قلب كامل
             لاتجاه الصفحة، ووضعًا فاتحًا وداكنًا، ومجسّمًا ثلاثي الأبعاد مرسومًا بحسابات إسقاط
@@ -406,16 +424,16 @@
     </section>
 
     <!-- ═══════════════════ CREDENTIALS ═══════════════════ -->
-    <section class="sec" id="credentials">
-      <p class="sec__tag mono"><span class="ltr">06</span> — <span data-i18n="cred_tag">الاعتمادات</span></p>
+    <section class="sec" id="credentials" data-aura="272 74% 62%">
+      <p class="sec__tag mono" data-in="start"><span class="ltr">06</span> — <span data-i18n="cred_tag">الاعتمادات</span></p>
 
-      <div class="cred reveal">
+      <div class="cred" data-in="up">
         <p class="cred__k mono ltr">PRIMARY CREDENTIAL</p>
         <h3 class="cred__t" lang="en">Computer Science Specialist</h3>
         <p class="cred__o" data-i18n="cred_o">الهيئة السعودية للمهندسين — 2025</p>
       </div>
 
-      <ul class="certs reveal">
+      <ul class="certs" data-in="start" data-in-stagger="40">
         <li><span class="mono ltr">01</span><span lang="en">Intermediate Object-Oriented Programming with Java</span></li>
         <li><span class="mono ltr">02</span><span lang="en">Introduction to Relational Databases (RDBMS)</span></li>
         <li><span class="mono ltr">03</span><span lang="en">Introduction to Android Mobile Application Development</span></li>
@@ -431,38 +449,38 @@
     </section>
 
     <!-- ═══════════════════ CONTACT ═══════════════════ -->
-    <section class="sec sec--end" id="contact">
-      <p class="sec__tag mono"><span class="ltr">07</span> — <span data-i18n="nav_contact">تواصل</span></p>
+    <section class="sec sec--end" id="contact" data-aura="196 95% 56%">
+      <p class="sec__tag mono" data-in="end"><span class="ltr">07</span> — <span data-i18n="nav_contact">تواصل</span></p>
 
       <h2 class="say say--end">
         <span class="mask"><span class="mask__in reveal" data-i18n="end_1">لنبنِ شيئًا</span></span>
         <span class="mask"><span class="mask__in reveal" data-i18n="end_2">يستحق التشغيل.</span></span>
       </h2>
 
-      <p class="end__say reveal" data-i18n="end_say">
+      <p class="end__say" data-in="up" data-in-delay="120" data-i18n="end_say">
         متاح لفرص عمل في الدعم الفني وتقنية المعلومات. واتساب أسرع طريقة للوصول إليّ، وأرد عادةً في نفس اليوم.
       </p>
 
-      <ul class="ways">
-        <li class="reveal"><a class="way" href="https://wa.me/966506036322" target="_blank" rel="noopener">
+      <ul class="ways" data-in="up" data-in-stagger="70">
+        <li><a class="way" href="https://wa.me/966506036322" target="_blank" rel="noopener">
           <svg class="ico ico--fill" aria-hidden="true"><use href="#i-whatsapp"></use></svg>
           <span class="way__l" lang="en">WhatsApp</span>
           <span class="way__v mono ltr">+966 50 603 6322</span>
           <svg class="ico arw" aria-hidden="true"><use href="#i-arrow"></use></svg>
         </a></li>
-        <li class="reveal"><a class="way" href="mailto:m.e.k05060@gmail.com">
+        <li><a class="way" href="mailto:m.e.k05060@gmail.com">
           <svg class="ico" aria-hidden="true"><use href="#i-mail"></use></svg>
           <span class="way__l" lang="en">Email</span>
           <span class="way__v mono ltr" translate="no">m.e.k05060@gmail.com</span>
           <svg class="ico arw" aria-hidden="true"><use href="#i-arrow"></use></svg>
         </a></li>
-        <li class="reveal"><a class="way" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener">
+        <li><a class="way" href="https://www.linkedin.com/in/mohammed-kariri-27665b200" target="_blank" rel="noopener">
           <svg class="ico ico--fill" aria-hidden="true"><use href="#i-linkedin"></use></svg>
           <span class="way__l" lang="en">LinkedIn</span>
           <span class="way__v mono ltr" translate="no">mohammed-kariri</span>
           <svg class="ico arw" aria-hidden="true"><use href="#i-arrow"></use></svg>
         </a></li>
-        <li class="reveal"><a class="way" href="https://github.com/M3X0H" target="_blank" rel="noopener">
+        <li><a class="way" href="https://github.com/M3X0H" target="_blank" rel="noopener">
           <svg class="ico ico--fill" aria-hidden="true"><use href="#i-github"></use></svg>
           <span class="way__l" lang="en">GitHub</span>
           <span class="way__v mono ltr" translate="no">M3X0H</span>
@@ -474,7 +492,7 @@
           <span class="way__v mono ltr">PDF</span>
           <svg class="ico arw" aria-hidden="true"><use href="#i-arrow"></use></svg>
         </a></li>
-        <li class="reveal"><a class="way" href="tel:+966506036322">
+        <li><a class="way" href="tel:+966506036322">
           <svg class="ico" aria-hidden="true"><use href="#i-phone"></use></svg>
           <span class="way__l" data-i18n="way_call">اتصال مباشر</span>
           <span class="way__v mono ltr">+966 50 603 6322</span>

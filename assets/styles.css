@@ -7,20 +7,36 @@
 
 /* ── 1. Tokens ─────────────────────────────────────────────── */
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  --paper: #efeee9;
-  --paper-2: #e5e3dc;
-  --ink: #0e0e0d;
-  /* The ink ramp is tuned so even the faintest tier clears AA on paper:
-     ink-2 7.8:1, ink-3 4.7:1. Metadata leans on ink-3 heavily. */
-  --ink-2: #4a4945;
-  --ink-3: #6a6963;
-  --rule: #d2d0c8;
-  --accent: #1b3ef5;
-  --accent-ink: #ffffff;
+  /* Near-black, cooled a few degrees so the accents read as light
+     coming out of the ground rather than paint laid on top of it. */
+  --paper: #07080d;
+  --paper-2: #0e1017;
+  --ink: #eef1f7;
+  /* Same discipline as the light ramp, inverted and re-measured on the
+     new ground: ink-2 8.4:1, ink-3 5.2:1. */
+  --ink-2: #a4aec4;
+  --ink-3: #808ca6;
+  --rule: #1d2230;
 
-  --grain: 0.035;
+  /* The signal spectrum. Cyan leads and carries every state that has to
+     be read; indigo and magenta are accents for gradients and depth,
+     never a third equal voice. */
+  --accent: #38bdf8;
+  --accent-2: #818cf8;
+  --accent-3: #e879f9;
+  --accent-ink: #04121b;
+  --accent-soft: rgba(56, 189, 248, 0.12);
+  --accent-glow: rgba(56, 189, 248, 0.3);
+
+  /* Ambient light. The engine eases these toward each section's
+     data-aura, so the page changes temperature as you read. */
+  --ah: 199; --as: 90%; --al: 55%;
+  --bh: 261; --bs: 80%; --bl: 62%;
+  --aura-a: 0.2;
+
+  --grain: 0.05;
   --safe-side: max(env(safe-area-inset-left), env(safe-area-inset-right));
 
   --sans: "Alexandria", "Tajawal", "Segoe UI", system-ui, sans-serif;
@@ -46,19 +62,29 @@
   --out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-:root[data-theme="dark"] {
-  color-scheme: dark;
+/* Light is the alternate now, not the default — a full, separately
+   tuned palette rather than an inversion. The ink ramp clears AA on
+   paper: ink-2 7.8:1, ink-3 4.7:1. */
+:root[data-theme="light"] {
+  color-scheme: light;
 
-  --paper: #0b0b0a;
-  --paper-2: #141413;
-  --ink: #f1f0eb;
-  /* Same discipline inverted: ink-2 7.7:1, ink-3 4.7:1 on the dark ground. */
-  --ink-2: #a3a29b;
-  --ink-3: #7d7c75;
-  --rule: #262623;
-  --accent: #6e85ff;
-  --accent-ink: #06060a;
-  --grain: 0.05;
+  --paper: #efeee9;
+  --paper-2: #e5e3dc;
+  --ink: #0e0e0d;
+  --ink-2: #4a4945;
+  --ink-3: #6a6963;
+  --rule: #d2d0c8;
+
+  /* The same spectrum, darkened until each step clears AA on paper. */
+  --accent: #1b3ef5;
+  --accent-2: #5b21b6;
+  --accent-3: #a21caf;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(27, 62, 245, 0.08);
+  --accent-glow: rgba(27, 62, 245, 0.18);
+
+  --aura-a: 0.11;
+  --grain: 0.035;
 }
 
 /* ── 2. Base ───────────────────────────────────────────────── */
@@ -172,6 +198,23 @@ a, button, summary, label {
   opacity: var(--grain);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+
+/* Ambient light, under the column rules and the grain. Fixed and
+   pointer-transparent, so it can never affect layout; the engine eases
+   its hue toward the section you are reading and drifts its centres
+   with overall progress. */
+.paper__aura {
+  position: absolute; inset: -15%;
+  background:
+    radial-gradient(38vw 38vw at var(--ax, 76%) var(--ay, 14%),
+      hsl(var(--ah) var(--as) var(--al) / var(--aura-a)), transparent 62%),
+    radial-gradient(46vw 46vw at var(--bx, 14%) var(--by, 74%),
+      hsl(var(--bh) var(--bs) var(--bl) / calc(var(--aura-a) * 0.65)), transparent 64%);
+  filter: blur(40px);
+  opacity: 0;
+  transition: opacity 1.6s var(--ease);
+}
+.is-ready .paper__aura { opacity: 1; }
 
 main, .rail, .foot { position: relative; z-index: 1; }
 
@@ -292,6 +335,7 @@ main, .rail, .foot { position: relative; z-index: 1; }
 .avail i {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
   animation: blip 2.4s ease-out infinite;
 }
 @keyframes blip {
@@ -397,17 +441,29 @@ html[lang="en"] .hero__name {
   background: var(--paper-2);
 }
 
+/* The offset is written by the scroll engine, so the strip answers to
+   scroll velocity and reverses with direction instead of running at a
+   fixed rate. Forced LTR so that offset means the same thing in both
+   writing directions — the content is all Latin anyway. */
 .strip__run {
   display: flex; gap: 1.6rem; width: max-content;
+  direction: ltr;
   font-family: var(--mono); font-size: var(--t-mono);
   letter-spacing: 0.16em; color: var(--ink-2);
-  animation: run 42s linear infinite;
+  transform: translate3d(var(--bandx, 0px), 0, 0);
+  will-change: transform;
 }
 .strip__run span:nth-child(even) { color: var(--accent); }
 
+/* No script: fall back to a plain CSS loop so the strip still lives. */
+html:not(.js) .strip__run { animation: run 42s linear infinite; }
 @keyframes run { to { transform: translateX(-50%); } }
-[dir="rtl"] .strip__run { animation-name: runRtl; }
-@keyframes runRtl { to { transform: translateX(50%); } }
+
+/* Edges fade instead of cutting, so the loop has no visible seam. */
+.strip {
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
 
 /* ── 8. Section shell ──────────────────────────────────────── */
 .sec {
@@ -485,9 +541,12 @@ html[lang="en"] .hero__name {
 }
 
 /* The flood is a scaled pseudo-element, so it costs one transform. */
+/* Tinted toward the accent rather than raw ink: on the dark ground a
+   flat white flood reads as a flashbulb, this reads as light. */
 .cap::before {
   content: ""; position: absolute; inset: 0; z-index: -1;
-  background: var(--ink);
+  background: linear-gradient(100deg, var(--ink),
+    color-mix(in srgb, var(--ink) 84%, var(--accent)));
   transform: scaleY(0); transform-origin: bottom;
   transition: transform 0.5s var(--out);
 }
@@ -517,16 +576,62 @@ html[lang="en"] .hero__name {
 .cap:hover .cap__d { color: var(--paper); }
 
 /* ── 11. Career ────────────────────────────────────────────── */
-.career { display: grid; gap: 0; }
+/* The rail runs down the gutter between the year and the entry. The
+   year column is 4 of 12 fr with one gap taken out, so its far edge is
+   (100% − gut)/3 — computing it from the grid's own numbers is what
+   keeps the line off the year in both writing directions. */
+.career {
+  position: relative;
+  display: grid;
+  gap: 0;
+  --rail-x: calc((100% - var(--gut)) / 3 + var(--gut) / 2);
+}
+
+.career__rail {
+  position: absolute; inset-block: 0;
+  inset-inline-start: var(--rail-x);
+  width: 1px; background: var(--rule);
+  overflow: hidden;
+}
+.career__rail i {
+  display: block; width: 100%; height: 100%;
+  background: linear-gradient(var(--accent), var(--accent-2), var(--accent-3));
+  transform: scaleY(var(--f, 0)); transform-origin: top;
+}
 
 .stop {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
   gap: var(--gut);
   padding-block: var(--gut);
   border-block-start: 1px solid var(--rule);
+  transition: opacity 0.7s var(--ease);
 }
 .stop:last-child { border-block-end: 1px solid var(--rule); }
+
+/* The node on the rail, lit when this stop is the one being read. */
+.stop::before {
+  content: ""; position: absolute; z-index: 1;
+  inset-block-start: calc(var(--gut) + 0.3em);
+  inset-inline-start: calc(var(--rail-x) - 3.5px);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--paper); border: 1px solid var(--rule);
+  transition: background-color 0.45s var(--ease), border-color 0.45s var(--ease),
+    box-shadow 0.45s var(--ease), scale 0.45s var(--out);
+}
+.stop.is-live::before {
+  background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 0 18px var(--accent-glow);
+  scale: 1.25;
+}
+
+/* Passed stops step back so the live one reads as the focus. 0.68 and
+   no lower: this is emphasis, not disclosure, and the muted entries are
+   still body copy someone may be reading — under about 0.65 the ink-2
+   ramp stops clearing AA against the ground. */
+.career.is-tracking .stop { opacity: 0.68; }
+.career.is-tracking .stop.is-live { opacity: 1; }
 
 .stop__y {
   font-size: var(--t-year);
@@ -607,8 +712,15 @@ html[lang="en"] .hero__name {
   background: var(--paper-2);
   overflow: hidden;
 }
+/* The frame holds still and clips; the wireframe inside drifts. That
+   gap is the whole effect, so the overflow above is load-bearing. */
+.proj__frame > * { transform: translate3d(0, var(--cy, 0px), 0); }
+
 .proj__row { display: block; height: 10px; background: var(--ink); opacity: 0.12; }
-.proj__row--lg { height: clamp(22px, 4vw, 42px); background: var(--accent); opacity: 1; width: 62%; }
+.proj__row--lg {
+  height: clamp(22px, 4vw, 42px); width: 62%; opacity: 1;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
 .proj__row--md { width: 88%; }
 .proj__row--sm { width: 44%; }
 .proj__band {
@@ -733,7 +845,25 @@ html[lang="en"] .hero__name {
 .dot.is-on { opacity: 1; }
 .dot.is-wide::after { transform: scale(1); opacity: 0.18; }
 
-/* ── 17. Reveal ────────────────────────────────────────────── */
+/* ── 17. Motion ─────────────────────────────────────────────────
+   Three declarative hooks, all served by one IntersectionObserver and
+   one rAF loop in app.js:
+
+     data-in="up|down|start|end|scale|words"  reveal on entry
+     data-in-stagger="ms"                     children reveal in sequence
+     data-par="0.12"                          parallax offset → --py
+
+   `transform` is reserved for scroll-linked movement, so entrance and
+   reveal move with `translate` — a separate property, which lets an
+   element be both parallaxed and revealed without either erasing the
+   other. The existing .reveal class keeps working as "up".
+   ────────────────────────────────────────────────────────────── */
+
+/* The horizontal offset is capped against the gutter: at a fixed 48px a
+   phone's 20px gutter cannot hold the pre-reveal position on screen, and
+   the waiting element widens the document while invisible. */
+:root { --in-x: clamp(14px, 3.4vw, 48px); }
+
 .js .reveal { opacity: 0; transform: translateY(24px); }
 .js .reveal.is-in {
   opacity: 1; transform: none;
@@ -743,6 +873,105 @@ html[lang="en"] .hero__name {
 .js .mask__in.reveal { opacity: 1; transform: translateY(105%); }
 .js .mask__in.reveal.is-in { transform: none; transition: transform 0.9s var(--out); transition-delay: var(--d, 0s); }
 
+/* Directional reveals ------------------------------------------------ */
+.js [data-in]:not([data-in-stagger]) { opacity: 0; }
+.js [data-in-stagger] > * { opacity: 0; }
+
+.js [data-in="up"]:not([data-in-stagger]),
+.js [data-in="up"][data-in-stagger] > * { translate: 0 32px; }
+
+.js [data-in="down"]:not([data-in-stagger]),
+.js [data-in="down"][data-in-stagger] > * { translate: 0 -26px; }
+
+.js [data-in="start"]:not([data-in-stagger]),
+.js [data-in="start"][data-in-stagger] > * { translate: calc(var(--in-x) * -1) 0; }
+
+.js [data-in="end"]:not([data-in-stagger]),
+.js [data-in="end"][data-in-stagger] > * { translate: var(--in-x) 0; }
+
+/* Inline directions follow the writing direction, not the screen. */
+.js[dir="rtl"] [data-in="start"]:not([data-in-stagger]),
+.js[dir="rtl"] [data-in="start"][data-in-stagger] > * { translate: var(--in-x) 0; }
+
+.js[dir="rtl"] [data-in="end"]:not([data-in-stagger]),
+.js[dir="rtl"] [data-in="end"][data-in-stagger] > * { translate: calc(var(--in-x) * -1) 0; }
+
+.js [data-in="scale"]:not([data-in-stagger]),
+.js [data-in="scale"][data-in-stagger] > * { scale: 0.94; }
+
+.js [data-in].is-in:not([data-in-stagger]),
+.js [data-in-stagger] > .is-in {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+  transition: opacity 0.8s var(--out), translate 1s var(--out), scale 1s var(--out);
+  transition-delay: var(--d, 0ms);
+}
+
+/* A capability row runs full-bleed, so sliding the row itself would hang
+   it past the viewport edge for as long as it waits its turn. The row
+   holds still and its contents carry the direction instead — which also
+   reads better, because the rule under each row stays put. */
+/* Qualified with [data-in="start"] so these outrank the generic
+   `[data-in="start"][data-in-stagger] > *` rules above; without that the
+   row keeps its own offset and the contents add a second one on top. */
+.js [data-in="start"][data-in-stagger] > .cap,
+.js[dir="rtl"] [data-in="start"][data-in-stagger] > .cap { translate: none; }
+
+.js [data-in="start"][data-in-stagger] > .cap > * { translate: calc(var(--in-x) * -1) 0; }
+.js[dir="rtl"] [data-in="start"][data-in-stagger] > .cap > * { translate: var(--in-x) 0; }
+
+.js [data-in="start"][data-in-stagger] > .cap.is-in > *,
+.js[dir="rtl"] [data-in="start"][data-in-stagger] > .cap.is-in > * {
+  translate: 0 0;
+  transition: translate 1s var(--out);
+  transition-delay: var(--d, 0ms);
+}
+
+/* Scroll-linked ------------------------------------------------------ */
+[data-par] { transform: translate3d(0, var(--py, 0px), 0); will-change: transform; }
+
+/* The hero leaves in layers: --t is the section's own progress, and each
+   layer reads it at its own rate so the block separates into depth
+   instead of sliding away as one plane. */
+.hero__name { transform: translate3d(0, calc(var(--t, 0) * -64px), 0); }
+.hero__base { transform: translate3d(0, calc(var(--t, 0) * -26px), 0); }
+.hero__meta { opacity: calc(1 - var(--t, 0) * 1.4); }
+.hero__cue { opacity: calc(1 - var(--t, 0) * 3); }
+.hero__lattice { opacity: calc(1 - var(--t, 0) * 0.75); }
+
+/* The rail's reading position. */
+.rail__read {
+  position: absolute; inset-block-end: -1px; inset-inline-start: 0;
+  height: 2px; width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2) 55%, var(--accent-3));
+  transform: scaleX(var(--p, 0));
+  transform-origin: var(--po, left);
+  will-change: transform;
+}
+[dir="rtl"] .rail__read { --po: right; }
+
+/* Count-in ----------------------------------------------------------- */
+.boot {
+  position: fixed; inset: 0; z-index: 400;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+  background: var(--paper);
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 0.85s var(--out), opacity 0.5s var(--ease);
+}
+.boot--gone { clip-path: inset(0 0 100% 0); opacity: 0; pointer-events: none; }
+html:not(.js) .boot { display: none; }
+
+.boot__row { display: flex; align-items: baseline; gap: 16px; }
+.boot__mark { font-size: clamp(2.4rem, 8vw, 4.5rem); font-weight: 900; letter-spacing: -0.05em; }
+.boot__n { font-family: var(--mono); font-size: var(--t-mono); letter-spacing: 0.18em; color: var(--accent); }
+.boot__rule { display: block; width: min(220px, 44vw); height: 1px; background: var(--rule); overflow: hidden; }
+.boot__rule i {
+  display: block; height: 100%; width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform: scaleX(var(--p, 0)); transform-origin: left;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -750,8 +979,26 @@ html[lang="en"] .hero__name {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .js .reveal, .js .mask__in { opacity: 1 !important; transform: none !important; }
+  .js .reveal, .js .mask__in,
+  .js [data-in], .js [data-in-stagger] > * {
+    opacity: 1 !important;
+    transform: none !important;
+    translate: none !important;
+    scale: none !important;
+  }
+
+  /* Neutralised at the source too, so a stale custom property can never
+     leave content pushed off-screen or faded out. */
+  .hero__name, .hero__base, .hero__meta, .hero__cue, .hero__lattice,
+  [data-par], .strip__run, .proj__frame > * {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .career.is-tracking .stop { opacity: 1; }
   .dot { display: none; }
+  .boot { display: none; }
+  .hero__cue { display: none; }
 }
 
 /* ── 18. Responsive ────────────────────────────────────────── */
@@ -784,8 +1031,18 @@ html[lang="en"] .hero__name {
   .plate { width: clamp(110px, 32vw, 160px); }
 
   .stop { grid-template-columns: minmax(0, 1fr); gap: 10px; }
-  .stop__y { font-size: clamp(2rem, 9vw, 3rem); }
+  .stop__y { font-size: clamp(2rem, 9vw, 3rem); color: var(--accent); }
   .certs { grid-template-columns: minmax(0, 1fr); }
+
+  /* Stacked, there is no gutter for the rail to run down, and dimming
+     the stops would only mute copy the reader is already on. */
+  .career__rail, .stop::before { display: none; }
+  .career.is-tracking .stop { opacity: 1; }
+
+  /* The hero exit is a desktop effect: on a short stacked hero it just
+     dims and shifts what is still being read. */
+  .hero__name, .hero__base { transform: none; }
+  .hero__meta, .hero__cue, .hero__lattice { opacity: 1; }
 }
 
 @media (max-width: 620px) {
@@ -804,13 +1061,27 @@ html[lang="en"] .hero__name {
 
 /* ── 19. Print ─────────────────────────────────────────────── */
 @media print {
-  :root {
+  :root, :root[data-theme="light"] {
     --paper: #fff; --paper-2: #fff; --ink: #000;
-    --ink-2: #333; --ink-3: #555; --rule: #bbb; --accent: #000; --grain: 0;
+    --ink-2: #333; --ink-3: #555; --rule: #bbb;
+    --accent: #000; --accent-2: #000; --accent-3: #000;
+    --accent-soft: transparent; --accent-glow: transparent;
+    --grain: 0; --aura-a: 0;
   }
-  .rail, .sheet, .dot, .hero__lattice, .hero__cue, .strip, .paper { display: none !important; }
+  html, body { background: #fff; color: #000; }
+  .rail, .sheet, .dot, .hero__lattice, .hero__cue, .strip, .paper,
+  .boot, .career__rail { display: none !important; }
+  .stop::before { display: none !important; }
   .hero { min-height: auto; padding-block-start: 0; }
-  .js .reveal, .js .mask__in { opacity: 1 !important; transform: none !important; }
+
+  .js .reveal, .js .mask__in, .js [data-in], .js [data-in-stagger] > * {
+    opacity: 1 !important; transform: none !important;
+    translate: none !important; scale: none !important;
+  }
+  .hero__name, .hero__base, .hero__meta, [data-par], .proj__frame > * {
+    transform: none !important; opacity: 1 !important;
+  }
+  .career.is-tracking .stop { opacity: 1; }
   .sec { padding-block: 1.5rem; page-break-inside: avoid; }
   .cap, .stop, .proj, .way { break-inside: avoid; }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 10px; }
