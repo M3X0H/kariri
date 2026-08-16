@@ -567,7 +567,7 @@
     var dpr = 1, w = 0, h = 0;
     var pts = [], edges = [];
     var onScreen = true;
-    var yaw = 0, pitch = 0, tYaw = 0, tPitch = 0, spin = 0, scrollK = 0;
+    var yaw = 0, pitch = 0, tYaw = 0, tPitch = 0, spin = 0, scrollK = 0, bob = 0;
     var inkRGB = '238,241,247', accentRGB = '56,189,248', accent2RGB = '129,140,248';
 
     // Reused scratch for the edge batching in step(); never reallocated.
@@ -652,12 +652,20 @@
       // inline-end edge, so the object anchors the opposite side and the
       // two balance instead of colliding. Narrow screens stack, so it
       // recentres there.
+      /* A slow, continuous drift, independent of the spin — two sines at
+         unrelated periods so the object never visibly repeats. Small
+         enough to read as the thing hanging in space rather than as an
+         animation playing. */
+      bob += dt * 0.00035;
+      var floatX = Math.sin(bob) * 0.014;
+      var floatY = Math.sin(bob * 0.73 + 1.1) * 0.018;
+
       var rtl = root.getAttribute('dir') !== 'ltr';
       var narrow = mCompact.matches;
-      var cx = narrow ? w * 0.42 : w * (rtl ? 0.30 : 0.70);
+      var cx = (narrow ? w * 0.42 : w * (rtl ? 0.30 : 0.70)) + w * floatX;
       // On narrow screens everything stacks, so the object rides up behind
       // the name instead of cutting through the portrait and body copy.
-      var cy = narrow ? h * 0.30 : h * 0.5;
+      var cy = (narrow ? h * 0.30 : h * 0.5) + h * floatY;
       var radius = Math.min(w, h) * (narrow ? 0.34 : 0.36);
       var fade = narrow ? 0.55 : 1;
       var focal = 2.6;
@@ -799,6 +807,7 @@
     var dot = document.getElementById('dot');
     var plate = document.getElementById('plate');
     var depth = plate ? plate.querySelector('.plate__depth') : null;
+    var tilts = [].slice.call(document.querySelectorAll('[data-tilt]'));
     var px = innerWidth / 2, py = innerHeight / 2, cx = px, cy = py;
     var wide = false, raf = 0, moved = false;
 
@@ -807,8 +816,16 @@
     function tick() {
       raf = 0;
 
-      // read
+      // read — every measurement first, so no write can force a reflow
+      // in the middle of the batch below
       var plateRect = (moved && depth) ? plate.getBoundingClientRect() : null;
+      var tiltRects = null;
+      if (moved && tilts.length) {
+        tiltRects = tilts.map(function (el) {
+          var r = el.getBoundingClientRect();
+          return (r.bottom < -200 || r.top > innerHeight + 200) ? null : r;
+        });
+      }
 
       // write
       cx += (px - cx) * 0.2;
@@ -823,6 +840,27 @@
           var ry = ((px - plateRect.left) / plateRect.width - 0.5) * 14;
           depth.style.setProperty('--px', rx.toFixed(2) + 'deg');
           depth.style.setProperty('--py', ry.toFixed(2) + 'deg');
+        }
+
+        // Shallow: enough to read as a plane in space, not enough to
+        // look like a novelty card. Neutralised once the pointer is
+        // outside the element, so it settles rather than sticking.
+        if (tiltRects) {
+          for (var i = 0; i < tilts.length; i++) {
+            var tr = tiltRects[i];
+            if (!tr) continue;
+            var inside = px >= tr.left && px <= tr.right && py >= tr.top && py <= tr.bottom;
+            var el = tilts[i];
+            if (!inside) {
+              el.style.setProperty('--rx', '0deg');
+              el.style.setProperty('--ry', '0deg');
+              continue;
+            }
+            el.style.setProperty('--rx',
+              (((py - tr.top) / tr.height - 0.5) * -7).toFixed(2) + 'deg');
+            el.style.setProperty('--ry',
+              (((px - tr.left) / tr.width - 0.5) * 7).toFixed(2) + 'deg');
+          }
         }
       }
 
@@ -1072,6 +1110,49 @@
     setTimeout(clear, 2000);   // the backstop
   }
 
+  /* ── letter split ────────────────────────────────────────────
+     Wraps each character of a [data-split] line so the name can arrive
+     letter by letter.
+
+     Latin only, and deliberately so: Arabic is cursive, and every
+     letter's drawn form depends on the letters either side of it. Each
+     glyph in its own inline box breaks those joins — "محمد" comes apart
+     into four isolated shapes. So Arabic keeps the whole-line rise, and
+     `is-split` is only ever set on text with no Arabic in it.
+     ──────────────────────────────────────────────────────────── */
+  function splitLines() {
+    var arabic = /[؀-ۿݐ-ݿﭐ-﻿]/;
+
+    [].forEach.call(document.querySelectorAll('[data-split]'), function (el) {
+      var text = (el.getAttribute('data-text') || el.textContent).trim();
+
+      // Stash the original once, so a language switch can re-split from
+      // clean text rather than from a DOM full of previous spans.
+      if (!el.hasAttribute('data-text')) el.setAttribute('data-text', text);
+
+      if (arabic.test(text)) {
+        el.classList.remove('is-split');
+        el.textContent = text;
+        return;
+      }
+
+      el.textContent = '';
+      el.classList.add('is-split');
+
+      text.split('').forEach(function (chr, i) {
+        if (chr === ' ') {
+          el.appendChild(document.createTextNode(' '));
+          return;
+        }
+        var span = document.createElement('span');
+        span.className = 'ch';
+        span.style.setProperty('--ci', i);
+        span.textContent = chr;
+        el.appendChild(span);
+      });
+    });
+  }
+
   /* ── boot ────────────────────────────────────────────────── */
   document.getElementById('year').textContent = String(new Date().getFullYear());
 
@@ -1081,7 +1162,17 @@
   });
 
   lang.apply(store.get('lang') === 'en' ? 'en' : 'ar');
-  lang.onChange(function () { engine.measure(); engine.mark(); });
+  lang.onChange(function () {
+    // apply() rewrote textContent, so the spans are gone; rebuild them.
+    document.querySelectorAll('[data-split]').forEach(function (el) {
+      el.removeAttribute('data-text');
+    });
+    splitLines();
+    engine.measure();
+    engine.mark();
+  });
+
+  splitLines();
 
   considerLattice();
   mountPointer();
