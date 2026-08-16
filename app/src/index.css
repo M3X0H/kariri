@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════
+   SIGNAL — design tokens
+   A single cool spectrum used as *light*, never as flat fill.
+   Every accent below clears WCAG AA on the void ground.
+   ═══════════════════════════════════════════════════════════════ */
+@theme {
+  --color-void: #050507;
+  --color-graphite: #0b0d12;
+  --color-panel: #101319;
+  --color-panel-2: #171b24;
+
+  --color-ink: #f5f7fa;
+  --color-ink-2: #a7afc0;
+  --color-ink-3: #7e8798;
+
+  --color-cyan: #5ce1e6;
+  --color-blue: #4f7cff;
+  --color-violet: #8b5cf6;
+  --color-magenta: #d946ef;
+
+  --font-display: "Space Grotesk", "Cairo", system-ui, sans-serif;
+  --font-sans: "Cairo", "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --ease-signal: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  :root {
+    --line: rgb(245 247 250 / 0.1);
+    --line-2: rgb(245 247 250 / 0.2);
+    /* The ambient hue, eased per section by the scroll engine so the
+       page changes temperature as the story moves. */
+    --aura: 186;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    /* `clip`, never `overflow-x: hidden` on <body> — hidden makes the
+       body a scroll container and silently breaks anchor jumps. */
+    overflow-x: clip;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  h1, h2, h3, h4 { margin: 0; font-weight: 700; line-height: 1; }
+  p { margin: 0; }
+  ul, ol { margin: 0; padding: 0; list-style: none; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  img { display: block; max-width: 100%; height: auto; }
+
+  a, button, summary, label {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-cyan);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection { background: var(--color-cyan); color: #04121b; }
+
+  /* Arabic is cursive, and its descenders sit well below the Latin
+     baseline — negative tracking, uppercasing and a 0.86 leading all
+     damage it, and the tight leading clips ي and ر inside a mask. */
+  :root[lang="ar"] .display-type {
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.18;
+  }
+
+  :root[lang="ar"] .mask-line { padding-block-end: 0.18em; }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-mono { font-family: var(--font-mono); }
+
+  .display-type {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 0.86;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+
+  :root[lang="ar"] .label { letter-spacing: 0.06em; }
+
+  .ltr { direction: ltr; unicode-bidi: isolate; }
+
+  .rule { border-block-start: 1px solid var(--line); }
+
+  /* Ambient light. One element per section, hue driven by --aura. */
+  .aura {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(60% 55% at 78% 18%, hsl(var(--aura) 85% 60% / 0.16), transparent 62%),
+      radial-gradient(55% 50% at 15% 82%, hsl(calc(var(--aura) + 58) 80% 62% / 0.11), transparent 64%);
+    transition: background 1.2s var(--ease-signal);
+  }
+
+  /* Fine technical grid, fixed so it never repaints on scroll. */
+  .grid-field {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgb(245 247 250 / 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(245 247 250 / 0.028) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(120% 90% at 50% 30%, #000 35%, transparent 78%);
+    -webkit-mask-image: radial-gradient(120% 90% at 50% 30%, #000 35%, transparent 78%);
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .glass {
+    background: rgb(16 19 25 / 0.62);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    border: 1px solid var(--line);
+  }
+
+  /* A line of type that rises out of a clipping mask. */
+  .mask-line { display: block; overflow: hidden; padding-block-end: 0.08em; }
+
+  /* The career entry that currently owns the middle of the screen. */
+  .is-live .border-cyan { box-shadow: 0 0 0 7px rgb(92 225 230 / 0.14), 0 0 22px rgb(92 225 230 / 0.5); }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* Motion is opt-out at the source: the engine reads this too, but the
+   styles must stand alone if scripting never boots. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

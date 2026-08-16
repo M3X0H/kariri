@@ -1,0 +1,9 @@
+# Build tooling. The compiled site itself (index.html + assets/) IS
+# committed — GitHub Pages serves this repository from the branch root.
+app/node_modules/
+app/dist/
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.log
