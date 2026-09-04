@@ -46,11 +46,20 @@ type Dict = {
   brand: string;
   loading: string;
 
-  hero: { first: string; last: string; role: string; field: string; open: string; place: string; claim: string; cue: string };
+  hero: { first: string; last: string; role: string; field: string; open: string; place: string; claim: string; cue: string; cta: string; cv: string };
   spec: { role: string; base: string; since: string; langs: string; langsV: string; baseV: string; sinceV: string; roleV: string };
 
   statement: { l1: string; l2: string };
-  about: { tag: string; p1: string; p2: string; facts: { k: string; v: string }[] };
+  stackTag: string;
+  about: {
+    tag: string;
+    p1: string;
+    p2: string;
+    facts: { k: string; v: string }[];
+    /* Counted from what is already on this page — certifications listed,
+       capability areas, and the companies the one IT desk covers. */
+    stats: { n: number; k: string }[];
+  };
 
   caps: { tag: string; lead: string; items: { name: string; desc: string }[] };
   career: {
@@ -64,7 +73,7 @@ type Dict = {
   };
   cred: { tag: string; lead: string; leadBy: string; all: string; items: string[] };
   contact: { tag: string; l1: string; l2: string; say: string; cta: string; ways: { k: string; v: string }[] };
-  footer: { name: string; built: string };
+  footer: { name: string; built: string; strip: string[] };
   portraitAlt: string;
 };
 
@@ -87,7 +96,9 @@ export const COPY: Record<Lang, Dict> = {
       open: 'متاح للعمل',
       place: 'الرياض',
       claim: 'أُبقي الأنظمة تعمل، والناس تُنجز.',
-      cue: 'مرّر'
+      cue: 'مرّر',
+      cta: 'تواصل معي',
+      cv: 'السيرة الذاتية'
     },
     spec: {
       role: 'الدور', roleV: 'أخصائي تقنية معلومات',
@@ -97,6 +108,7 @@ export const COPY: Record<Lang, Dict> = {
     },
 
     statement: { l1: 'علوم حاسب دراسةً.', l2: 'أنظمة ممارسةً.' },
+    stackTag: 'أدوات العمل',
     about: {
       tag: 'نبذة',
       p1: 'خريج علوم الحاسب من جامعة تبوك، ومعتمد من الهيئة السعودية للمهندسين كأخصائي علوم حاسب. عملي يبدأ حيث تلتقي الأنظمة بالناس: موظف لا يستطيع الطباعة، شبكة تتقطع، كاميرا توقفت عن التسجيل.',
@@ -106,6 +118,11 @@ export const COPY: Record<Lang, Dict> = {
         { k: 'الاعتماد', v: 'أخصائي علوم حاسب — الهيئة السعودية للمهندسين، 2025' },
         { k: 'المقر', v: 'الرياض، السعودية' },
         { k: 'اللغات', v: 'العربية · الإنجليزية' }
+      ],
+      stats: [
+        { n: 11, k: 'شهادة مهنية' },
+        { n: 6, k: 'مجالات عمل متصلة' },
+        { n: 4, k: 'شركات على مكتب تقنية واحد' }
       ]
     },
 
@@ -206,7 +223,11 @@ export const COPY: Record<Lang, Dict> = {
       ]
     },
 
-    footer: { name: 'محمد إسماعيل كريري', built: 'React · GSAP · Three.js' },
+    footer: {
+      name: 'محمد إسماعيل كريري',
+      built: 'React · GSAP · Three.js · Lightswind',
+      strip: ['أخصائي تقنية معلومات', 'الرياض', 'علوم الحاسب', 'متاح للعمل']
+    },
     portraitAlt: 'محمد إسماعيل كريري — أخصائي تقنية معلومات'
   },
 
@@ -228,7 +249,9 @@ export const COPY: Record<Lang, Dict> = {
       open: 'Open to work',
       place: 'Riyadh',
       claim: 'I keep systems running, and people working.',
-      cue: 'Scroll'
+      cue: 'Scroll',
+      cta: 'Get in touch',
+      cv: 'Curriculum vitae'
     },
     spec: {
       role: 'Role', roleV: 'IT Specialist',
@@ -238,6 +261,7 @@ export const COPY: Record<Lang, Dict> = {
     },
 
     statement: { l1: 'Computer Science by training.', l2: 'Systems by practice.' },
+    stackTag: 'Working stack',
     about: {
       tag: 'About',
       p1: 'Computer Science graduate from the University of Tabuk, recognized by the Saudi Council of Engineers as a Computer Science Specialist. My work starts where systems meet people: someone who cannot print, a connection that keeps dropping, a camera that stopped recording.',
@@ -247,6 +271,11 @@ export const COPY: Record<Lang, Dict> = {
         { k: 'Recognition', v: 'Computer Science Specialist — Saudi Council of Engineers, 2025' },
         { k: 'Based', v: 'Riyadh, Saudi Arabia' },
         { k: 'Languages', v: 'Arabic · English' }
+      ],
+      stats: [
+        { n: 11, k: 'Professional certifications' },
+        { n: 6, k: 'Connected capability areas' },
+        { n: 4, k: 'Companies on one IT desk' }
       ]
     },
 
@@ -347,7 +376,11 @@ export const COPY: Record<Lang, Dict> = {
       ]
     },
 
-    footer: { name: 'Mohammed Ismail Kariri', built: 'React · GSAP · Three.js' },
+    footer: {
+      name: 'Mohammed Ismail Kariri',
+      built: 'React · GSAP · Three.js · Lightswind',
+      strip: ['IT Specialist', 'Riyadh', 'Computer Science', 'Open to work']
+    },
     portraitAlt: 'Mohammed Ismail Kariri — IT Specialist'
   }
 };

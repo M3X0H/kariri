@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
+import { LazyMotion, domAnimation } from 'framer-motion';
 import { LangProvider, useLang } from './lib/lang';
-import { Cursor, Loader, Nav } from './components/Chrome';
-import { About, Hero, Statement } from './components/SectionsTop';
+import { Loader, Nav } from './components/Chrome';
+import { SmoothCursor } from './components/lightswind/smooth-cursor';
+import { About, Hero, StackBand, Statement } from './components/SectionsTop';
 import { Capabilities, Career, Contact, Credentials, Footer, Work } from './components/SectionsBottom';
 
 function Site() {
@@ -23,12 +25,13 @@ function Site() {
       <div className="grid-field" aria-hidden="true" />
       <div className="grain" aria-hidden="true" />
 
-      <Cursor />
+      <SmoothCursor />
       <Nav />
 
       <main id="main" className="relative">
         <Hero ready={ready} />
         <Statement />
+        <StackBand />
         <About />
         <Capabilities />
         <Career />
@@ -43,9 +46,16 @@ function Site() {
 }
 
 export default function App() {
+  /* Every Lightswind component here uses `m` rather than `motion`, and this
+     hands them just the animation feature set. The full `motion` component
+     statically pulls in drag, pan and layout projection as well — none of
+     which this site uses — and that was a third of the motion chunk.
+     `strict` makes the mistake loud: a stray `motion.*` throws. */
   return (
-    <LangProvider>
-      <Site />
-    </LangProvider>
+    <LazyMotion features={domAnimation} strict>
+      <LangProvider>
+        <Site />
+      </LangProvider>
+    </LazyMotion>
   );
 }

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Globe, Menu, X } from 'lucide-react';
+import { m, useScroll, useSpring } from 'framer-motion';
 import { useLang } from '../lib/lang';
-import { gsap, prefersReduced, isCoarse, EASE } from '../lib/motion';
+import { gsap, prefersReduced } from '../lib/motion';
 
 export const SECTIONS = ['start', 'about', 'capabilities', 'career', 'work', 'contact'] as const;
 
@@ -82,6 +83,10 @@ export function Loader({ onDone }: { onDone: () => void }) {
    ═══════════════════════════════════════════════════════════════ */
 export function Nav() {
   const { t, lang, toggle } = useLang();
+  const { scrollYProgress } = useScroll();
+  // Sprung, so the rail eases into place instead of tracking the wheel
+  // one-to-one and reading as a scrollbar.
+  const progress = useSpring(scrollYProgress, { stiffness: 140, damping: 28, restDelta: 0.001 });
   const [compact, setCompact] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<string>('start');
@@ -191,6 +196,13 @@ export function Nav() {
 
   return (
     <>
+      {/* How far through the page you are, as one hairline. */}
+      <m.div
+        aria-hidden="true"
+        className="fixed inset-x-0 top-0 z-[130] h-px origin-left bg-gradient-to-r from-cyan via-violet to-magenta motion-reduce:hidden"
+        style={{ scaleX: progress, transformOrigin: lang === 'ar' ? 'right' : 'left' }}
+      />
+
       <header
         className={[
           'fixed inset-x-0 top-0 z-[120] transition-all duration-500',
@@ -285,65 +297,7 @@ export function Nav() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   Pointer companion — fine pointers only, and never under reduced
-   motion. Two elements: a dot that tracks exactly and a ring that
-   lags, growing over anything interactive.
-   ═══════════════════════════════════════════════════════════════ */
-export function Cursor() {
-  const dot = useRef<HTMLDivElement>(null);
-  const ring = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (prefersReduced() || isCoarse()) return;
-    const d = dot.current;
-    const r = ring.current;
-    if (!d || !r) return;
-
-    const p = { x: innerWidth / 2, y: innerHeight / 2 };
-    const lag = { ...p };
-    let raf = 0;
-    let hot = false;
-
-    const move = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse') return;
-      p.x = e.clientX;
-      p.y = e.clientY;
-      hot = !!(e.target as HTMLElement)?.closest?.('a,button,summary,[data-hot]');
-      gsap.set(d, { x: p.x, y: p.y, opacity: 1 });
-      gsap.set(r, { opacity: 1 });
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-
-    const tick = () => {
-      raf = 0;
-      lag.x += (p.x - lag.x) * 0.16;
-      lag.y += (p.y - lag.y) * 0.16;
-      gsap.set(r, { x: lag.x, y: lag.y, scale: hot ? 1.9 : 1 });
-      if (Math.abs(p.x - lag.x) > 0.4 || Math.abs(p.y - lag.y) > 0.4) raf = requestAnimationFrame(tick);
-    };
-
-    const leave = () => gsap.to([d, r], { opacity: 0, duration: 0.2, ease: EASE });
-
-    window.addEventListener('pointermove', move, { passive: true });
-    document.addEventListener('pointerleave', leave);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('pointermove', move);
-      document.removeEventListener('pointerleave', leave);
-    };
-  }, []);
-
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[300] hidden md:block" aria-hidden="true">
-      <div
-        ref={dot}
-        className="absolute -ms-[3px] -mt-[3px] h-1.5 w-1.5 rounded-full bg-cyan opacity-0"
-      />
-      <div
-        ref={ring}
-        className="absolute -ms-4 -mt-4 h-8 w-8 rounded-full border border-cyan/50 opacity-0 transition-transform duration-200"
-      />
-    </div>
-  );
-}
+/* The pointer companion that used to live here is now Lightswind's
+   SmoothCursor — see `./lightswind/smooth-cursor.tsx`. It keeps the dot and
+   ring, and adds velocity: the ring rotates into the direction of travel,
+   stretches along it, and snaps to `[data-magnetic]` targets. */

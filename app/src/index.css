@@ -159,6 +159,46 @@
     border: 1px solid var(--line);
   }
 
+  /* Lightswind's AuroraBackground drives its shimmer from this. Upstream
+     ships it through the library's Tailwind plugin; the component is
+     vendored, so the keyframes are too. */
+  @keyframes aurora {
+    from { background-position: 50% 50%, 50% 50%; }
+    to   { background-position: 350% 50%, 350% 50%; }
+  }
+
+  .animate-aurora {
+    animation: aurora 62s linear infinite;
+  }
+
+  /* A section boundary that reads as a cut rather than a seam: the ground
+     lifts a shade and a hairline of accent runs along the edge. */
+  .chapter-edge {
+    position: relative;
+  }
+
+  .chapter-edge::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--aura) 80% 62% / 0.55) 22%,
+      hsl(calc(var(--aura) + 50) 80% 64% / 0.35) 62%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  /* Children of a TiltCard opt into depth with this rather than a bare
+     translateZ, which needs the parent's preserve-3d to mean anything. */
+  .lift-1 { transform: translateZ(26px); }
+  .lift-2 { transform: translateZ(48px); }
+  .lift-3 { transform: translateZ(74px); }
+
   /* A line of type that rises out of a clipping mask. */
   .mask-line { display: block; overflow: hidden; padding-block-end: 0.08em; }
 
