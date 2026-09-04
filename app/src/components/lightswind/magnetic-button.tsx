@@ -38,6 +38,9 @@ export interface MagneticButtonProps {
   download?: boolean;
   onClick?: () => void;
   className?: string;
+  /** Classes for the magnetism host. The control cannot stretch past it,
+      so a full-width button on a phone needs this too. */
+  wrapperClassName?: string;
   'aria-label'?: string;
 }
 
@@ -64,6 +67,7 @@ export function MagneticButton({
   download = false,
   onClick,
   className,
+  wrapperClassName,
   'aria-label': ariaLabel
 }: MagneticButtonProps) {
   const host = useRef<HTMLDivElement>(null);
@@ -131,7 +135,7 @@ export function MagneticButton({
   };
 
   return (
-    <div ref={host} className="inline-flex" data-magnetic>
+    <div ref={host} className={cn('inline-flex', wrapperClassName)} data-magnetic>
       {href ? (
         <m.a
           href={href}

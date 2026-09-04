@@ -78,16 +78,31 @@
 
   ::selection { background: var(--color-cyan); color: #04121b; }
 
-  /* Arabic is cursive, and its descenders sit well below the Latin
-     baseline — negative tracking, uppercasing and a 0.86 leading all
-     damage it, and the tight leading clips ي and ر inside a mask. */
-  :root[lang="ar"] .display-type {
-    letter-spacing: 0;
-    text-transform: none;
-    line-height: 1.18;
+  /* The two scripts get their own display size ramp. Cairo sets a wider,
+     shorter word than Space Grotesk at the same pixel size — "كريري" is
+     297 units per 100px against nine uppercase Latin letters — so one
+     clamp cannot serve both without leaving Arabic small and timid. */
+  :root {
+    --hero-name: clamp(2.75rem, 12.5vw, 10.5rem);
+    --measure: 52ch;
+    --measure-sm: 46ch;
   }
 
-  :root[lang="ar"] .mask-line { padding-block-end: 0.18em; }
+  /* Below `sm` the Latin ramp left the name a third short of the measure —
+     fine beside a 12.5vw desktop, timid as the focal point of a phone.
+     Scoped to small screens so the desktop clamp is untouched. */
+  @media (max-width: 639px) {
+    :root { --hero-name: clamp(3.25rem, 15vw, 4.5rem); }
+  }
+
+  :root[lang="ar"] {
+    --hero-name: clamp(4.5rem, 21vw, 11rem);
+    /* `ch` is the width of "0", and Arabic glyphs run narrower than it, so
+       the same `ch` count buys a much longer Arabic line. These are tuned
+       to land near 45 Arabic characters, not 52 zeroes. */
+    --measure: 40ch;
+    --measure-sm: 35ch;
+  }
 }
 
 @layer utilities {
@@ -111,7 +126,59 @@
     color: var(--color-ink-3);
   }
 
-  :root[lang="ar"] .label { letter-spacing: 0.06em; }
+  /* ── Arabic typography ──────────────────────────────────────────
+     These live in `utilities`, beside the rules they override, and not
+     in `base` where they read more naturally. Cascade layers are ranked
+     before specificity, so `base` loses to `utilities` no matter how
+     specific the selector: for months every rule below sat in `base` and
+     did nothing at all, leaving the Arabic name set at 0.86 leading with
+     -0.035em tracking — cramped, and clipped by its own mask.
+
+     Arabic is cursive and joined. Negative tracking pulls the joins into
+     each other, uppercasing is meaningless, and Cairo needs a 1.7em line
+     box to hold its ink, so Latin's 0.86 leading cuts through it. */
+  :root[lang="ar"] .display-type {
+    letter-spacing: 0;
+    word-spacing: 0.04em;
+    text-transform: none;
+    line-height: 1.16;
+  }
+
+  /* At display sizes Cairo Black is the weight that reads as deliberate;
+     700 goes soft once the type is this large.
+
+     Cairo reserves ascender room on every line whether the word uses it or
+     not — "محمد" has no ascender and no descender at all — so a metrically
+     correct 1.1 leaves the lockup visibly loose and sitting low in its box.
+     The tighter leading and the optical nudge close that gap; both are
+     safe here because the mask carries 0.3em of paint room at each end. */
+  :root[lang="ar"] .display-xl { font-weight: 900; line-height: 1.12; }
+
+  /* The name can go tighter still because of what it happens to contain:
+     "محمد" carries neither descender nor mark, so line one cannot reach
+     line two. A heading like "لنبنِ شيئًا / يستحقّ التشغيل." has a tanween
+     above and ascenders below it and collides at the same leading — so
+     this stays on the name rather than on every large heading. */
+  :root[lang="ar"] .display-hero { line-height: 1.0; }
+
+  :root[lang="ar"] .mask-stack { margin-block-start: -0.14em; }
+
+  /* Latin labels are tracked wide and uppercased. Arabic can do neither —
+     tracking severs the joins — so the small lift in word spacing is what
+     carries the same "label" register instead. */
+  :root[lang="ar"] .label {
+    letter-spacing: 0;
+    word-spacing: 0.05em;
+    text-transform: none;
+  }
+
+  .measure { max-width: var(--measure); }
+  .measure-sm { max-width: var(--measure-sm); }
+
+  /* Arabic sits below its baseline more than Latin and carries marks
+     above it, so it wants a looser rhythm to stay readable at length. */
+  :root[lang="ar"] .measure,
+  :root[lang="ar"] .measure-sm { line-height: 1.9; }
 
   .ltr { direction: ltr; unicode-bidi: isolate; }
 
@@ -201,6 +268,24 @@
 
   /* A line of type that rises out of a clipping mask. */
   .mask-line { display: block; overflow: hidden; padding-block-end: 0.08em; }
+
+  /* Cairo's ink runs about 0.27em past a 1.1 line box at each end, and the
+     mask is `overflow: hidden`, so without this the ي and ر tails are
+     sliced off. The padding buys the paint room; the negative margin hands
+     the space back so the name still stacks tightly. The word is still far
+     below the mask when the entrance starts it at yPercent 118, so the
+     reveal is unaffected.
+
+     `.mask-stack` on the parent is not decoration: adjacent negative
+     margins collapse to the single most-negative value rather than
+     summing, so as plain blocks these lines got back only half the space
+     and drifted a third of a line apart. Flex items do not collapse. */
+  .mask-stack { display: flex; flex-direction: column; }
+
+  :root[lang="ar"] .mask-line {
+    padding-block: 0.3em;
+    margin-block: -0.3em;
+  }
 
   /* The career entry that currently owns the middle of the screen. */
   .is-live .border-cyan { box-shadow: 0 0 0 7px rgb(92 225 230 / 0.14), 0 0 22px rgb(92 225 230 / 0.5); }

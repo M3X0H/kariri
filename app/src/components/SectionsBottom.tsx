@@ -30,20 +30,22 @@ export function Capabilities() {
     /* Rows arrive from the inline start, one after another, and shed a
        blur as they land — the section's own signature, distinct from the
        vertical rise used elsewhere. Travel stays inside the container
-       padding so nothing parks off-page before its trigger fires. */
-    const rows = (x: number) => () => {
+       padding so nothing parks off-page before its trigger fires.
+
+       Phones keep the stagger but trade the blur for a short rise: six
+       rows filtering at once is real GPU work on a phone, and at that
+       width the blur is barely legible anyway. */
+    const rows = (vars: gsap.TweenVars) => () => {
       gsap.from(q('[data-cap]'), {
         opacity: 0,
-        x,
-        filter: 'blur(8px)',
-        duration: 0.8,
         stagger: 0.08,
         ease: EASE,
-        scrollTrigger: { trigger: el, start: 'top 70%' }
+        scrollTrigger: { trigger: el, start: 'top 70%' },
+        ...vars
       });
     };
-    mm.add('(min-width: 768px)', rows(lang === 'ar' ? 46 : -46));
-    mm.add('(max-width: 767px)', rows(0));
+    mm.add('(min-width: 768px)', rows({ x: lang === 'ar' ? 46 : -46, filter: 'blur(8px)', duration: 0.8 }));
+    mm.add('(max-width: 767px)', rows({ y: 18, duration: 0.5 }));
 
     /* The diagram animates as one piece, on its wrapper. Its nodes and
        edges re-render on every hover to re-colour themselves, and React
@@ -83,7 +85,7 @@ export function Capabilities() {
         <h2 className="label mb-3">
           <span className="text-cyan">02</span> — {t.caps.tag}
         </h2>
-        <p className="mb-12 max-w-[46ch] text-lg text-ink-2">{t.caps.lead}</p>
+        <p className="measure-sm mb-12 text-lg text-ink-2">{t.caps.lead}</p>
 
         <div className="grid gap-12 lg:grid-cols-[1fr_340px] lg:items-start lg:gap-16">
           <ul className="rule">
@@ -130,7 +132,7 @@ export function Capabilities() {
                   style={{ gridTemplateRows: active === i ? '1fr' : '0fr' }}
                 >
                   <div className="overflow-hidden">
-                    <p className="max-w-[52ch] pt-3 text-sm text-ink-2 md:text-base">{cap.desc}</p>
+                    <p className="measure pt-3 text-sm text-ink-2 md:text-base">{cap.desc}</p>
                     <ul className="mt-3 flex flex-wrap gap-1.5">
                       {CAPABILITIES[i].tech.map((tech) => (
                         <li
@@ -239,9 +241,11 @@ export function Career() {
         gsap.from(entry, {
           opacity: 0,
           x: sideways ? (lang === 'ar' ? -dir : dir) * 40 : 0,
-          y: sideways ? 0 : 32,
-          scale: 0.96,
-          duration: 0.9,
+          // Shorter and shallower without two sides to travel between:
+          // a long slow rise on a full-width card just feels sluggish.
+          y: sideways ? 0 : 22,
+          scale: 0.97,
+          duration: sideways ? 0.9 : 0.55,
           ease: EASE,
           scrollTrigger: { trigger: entry, start: 'top 82%' }
         });
@@ -327,6 +331,7 @@ export function Career() {
                   {live === i && (
                     <BorderBeam
                       size={52}
+                      className="[--beam-w:26px] md:[--beam-w:52px]"
                       duration={6.5}
                       glowIntensity={0.6}
                       colorFrom="var(--color-cyan)"
@@ -343,13 +348,13 @@ export function Career() {
                     {e.points.map((p) => (
                       <li key={p} className="flex gap-3 text-sm text-ink-2">
                         <span className="mt-2.5 h-px w-3 shrink-0 bg-cyan/60" />
-                        <span className="max-w-[46ch]">{p}</span>
+                        <span className="measure-sm">{p}</span>
                       </li>
                     ))}
                   </ul>
 
                   {e.impact && (
-                    <p className="mt-5 border-s-2 border-cyan/40 ps-4 text-sm text-ink-3 md:ms-auto md:max-w-[46ch]">
+                    <p className="measure-sm mt-5 border-s-2 border-cyan/40 ps-4 text-sm text-ink-3 md:ms-auto">
                       {e.impact}
                     </p>
                   )}
@@ -386,19 +391,27 @@ export function Work() {
       scrollTrigger: { trigger: q('[data-details]')[0], start: 'top 78%' }
     });
 
-    // The visual arrives scaled down and out of focus, then resolves as it
-    // reaches the middle of the screen — the section's own signature.
-    gsap.fromTo(
-      q('[data-visual]'),
-      { scale: 0.9, filter: 'blur(14px)', opacity: 0.35 },
-      {
-        scale: 1,
-        filter: 'blur(0px)',
-        opacity: 1,
-        ease: 'none',
-        scrollTrigger: { trigger: q('[data-visual]')[0], start: 'top 88%', end: 'top 42%', scrub: 0.8 }
-      }
-    );
+    /* The visual arrives scaled down and out of focus, then resolves as it
+       reaches the middle of the screen — the section's own signature.
+       Scrubbed, so the blur repaints on every frame of the scroll: phones
+       get a third of the radius and a shallower scale for the same read
+       at a fraction of the fill cost. */
+    const mm = gsap.matchMedia();
+    const resolve = (blur: number, scale: number) => () => {
+      gsap.fromTo(
+        q('[data-visual]'),
+        { scale, filter: `blur(${blur}px)`, opacity: 0.35 },
+        {
+          scale: 1,
+          filter: 'blur(0px)',
+          opacity: 1,
+          ease: 'none',
+          scrollTrigger: { trigger: q('[data-visual]')[0], start: 'top 88%', end: 'top 42%', scrub: 0.8 }
+        }
+      );
+    };
+    mm.add('(min-width: 768px)', resolve(14, 0.9));
+    mm.add('(max-width: 767px)', resolve(5, 0.96));
 
     if (!isCoarse()) {
       gsap.to(q('[data-visual-inner]'), {
@@ -407,6 +420,8 @@ export function Work() {
         scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.7 }
       });
     }
+
+    return () => mm.revert();
   }, [lang]);
 
   return (
@@ -426,7 +441,7 @@ export function Work() {
           <div data-visual className="lg:sticky lg:top-28 lg:self-start">
             <TiltCard maxTilt={8} float={9} shine={0.2} perspective={1300}>
               <div className="relative aspect-[4/3] overflow-hidden border border-[var(--line-2)] bg-graphite">
-                <BorderBeam size={80} duration={8} glowIntensity={1} opacity={0.85} />
+                <BorderBeam size={80} className="[--beam-w:40px] md:[--beam-w:80px]" duration={8} glowIntensity={1} opacity={0.85} />
 
                 <div
                   data-visual-inner
@@ -452,7 +467,7 @@ export function Work() {
             <h3 data-detail className="display-type mt-4 text-[clamp(1.9rem,5.5vw,3.6rem)]">
               {p.title}
             </h3>
-            <p data-detail className="mt-6 max-w-[50ch] text-base leading-relaxed text-ink-2 md:text-lg">
+            <p data-detail className="measure mt-6 text-base text-ink-2 md:text-lg">
               {p.desc}
             </p>
 
@@ -481,7 +496,7 @@ export function Work() {
               </span>
             </div>
 
-            <p data-detail className="mt-10 max-w-[46ch] text-sm text-ink-3">
+            <p data-detail className="measure-sm mt-10 text-sm text-ink-3">
               {t.work.soon}
             </p>
           </div>
@@ -541,7 +556,7 @@ export function Credentials() {
             className="glass relative overflow-hidden p-8 md:p-12"
             style={{ background: 'linear-gradient(135deg, rgb(92 225 230 / 0.09), transparent 55%), rgb(16 19 25 / 0.6)' }}
           >
-            <BorderBeam size={90} duration={9} glowIntensity={1.1} colorFrom="var(--color-cyan)" colorTo="var(--color-magenta)" />
+            <BorderBeam size={90} className="[--beam-w:44px] md:[--beam-w:90px]" duration={9} glowIntensity={1.1} colorFrom="var(--color-cyan)" colorTo="var(--color-magenta)" />
             <p className="font-mono text-xs text-cyan">2025</p>
             <h3 lang="en" className="display-type mt-3 text-[clamp(1.6rem,5vw,3.2rem)]">
               {t.cred.lead}
@@ -628,7 +643,7 @@ export function Contact() {
           <span className="text-cyan">06</span> — {t.contact.tag}
         </p>
 
-        <h2 className="display-type text-[clamp(2.2rem,9vw,7rem)]">
+        <h2 className="mask-stack display-type display-xl text-[clamp(2.2rem,9vw,7rem)]">
           <span className="mask-line">
             <span data-line className="block">{t.contact.l1}</span>
           </span>
@@ -637,12 +652,20 @@ export function Contact() {
           </span>
         </h2>
 
-        <p data-say className="mt-8 max-w-[48ch] text-lg text-ink-2">
+        <p data-say className="measure-sm mt-8 text-lg text-ink-2">
           {t.contact.say}
         </p>
 
         <div data-cta className="mt-10">
-          <MagneticButton href={LINKS.whatsapp} external size="lg" variant="solid" strength={0.34}>
+          <MagneticButton
+            href={LINKS.whatsapp}
+            external
+            size="lg"
+            variant="solid"
+            strength={0.34}
+            wrapperClassName="w-full sm:w-auto"
+            className="w-full justify-center sm:w-auto"
+          >
             <MessageCircle size={18} aria-hidden />
             {t.contact.cta}
             <ArrowUpRight size={17} aria-hidden />
@@ -662,7 +685,10 @@ export function Contact() {
                   className="group flex items-center gap-4 border-b border-[var(--line)] py-5 transition-colors hover:text-cyan md:gap-8"
                 >
                   <Icon size={17} aria-hidden className="shrink-0 text-ink-3 transition-colors group-hover:text-cyan" />
-                  <span className="label w-[7rem] shrink-0">{w.k}</span>
+                  {/* A fixed 7rem label leaves ~140px for the value at 375px, which
+                      truncates the email mid-address. The Arabic labels are
+                      short, so on a phone they take their own width. */}
+                  <span className="label shrink-0 sm:w-[7rem]">{w.k}</span>
                   <span className="ltr flex-1 truncate text-sm md:text-base">{w.v}</span>
                   <ArrowUpRight
                     size={16}

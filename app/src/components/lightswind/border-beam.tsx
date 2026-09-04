@@ -19,7 +19,9 @@ import { cn } from './utils';
      generate. `speedMultiplier` folded into `duration`. */
 
 export interface BorderBeamProps {
-  /** Length of the comet, in px. */
+  /** Length of the comet, in px. Sets `--beam-w`, so a breakpoint utility
+      on `className` can resize it — a beam tuned for a wide panel is a
+      loud blob on a phone-width card. */
   size?: number;
   /** Seconds for one lap. */
   duration?: number;
@@ -72,7 +74,8 @@ export function BorderBeam({
         )}
         style={
           {
-            width: size,
+            '--beam-w': `${size}px`,
+            width: 'var(--beam-w)',
             offsetPath: `rect(0 auto auto 0 round ${beamBorderRadius}px)`,
             '--beam-from': colorFrom,
             '--beam-to': colorTo,

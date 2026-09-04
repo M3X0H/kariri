@@ -59,12 +59,24 @@ export function splitWords(el: HTMLElement): HTMLElement[] {
   el.textContent = '';
   const inners: HTMLElement[] = [];
 
+  /* Each word gets its own clipping mask, nested inside the line's mask —
+     so Arabic ink is at risk of being cut twice. Cairo overflows its line
+     box by roughly 0.27em at each end; the padding clears it and the
+     negative margin keeps the word's advance width unchanged, so the line
+     does not grow when it is split. */
+  const arabic = document.documentElement.lang === 'ar';
+  const pad = arabic ? '0.3em' : '0.12em';
+
   text.split(/\s+/).filter(Boolean).forEach((word, i, arr) => {
     const mask = document.createElement('span');
     mask.style.display = 'inline-block';
     mask.style.overflow = 'hidden';
     mask.style.verticalAlign = 'top';
-    mask.style.paddingBottom = '0.12em';
+    mask.style.paddingBottom = pad;
+    if (arabic) {
+      mask.style.paddingTop = pad;
+      mask.style.marginBlock = `-${pad}`;
+    }
 
     const inner = document.createElement('span');
     inner.style.display = 'inline-block';

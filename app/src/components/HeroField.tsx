@@ -13,8 +13,15 @@ import * as THREE from 'three';
    tab is hidden, and disposes everything it allocated on unmount.
    ═══════════════════════════════════════════════════════════════ */
 
-const COUNT = 720;
+/* Phones run the same field at roughly half the nodes and a capped pixel
+   ratio. The neighbour stitch is O(n²) at build time, so halving the count
+   quarters that too, and the fill cost drops with the device ratio — which
+   is what actually matters on a phone GPU. */
 const NEIGHBOURS = 2;
+const QUALITY = {
+  full: { count: 720, dpr: 1.75 },
+  lite: { count: 340, dpr: 1.25 }
+} as const;
 
 const VERT = /* glsl */ `
   attribute vec3 aDir;
@@ -51,10 +58,11 @@ const FRAG = /* glsl */ `
   }
 `;
 
-export default function HeroField() {
+export default function HeroField({ lite = false }: { lite?: boolean }) {
   const holder = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const { count: COUNT, dpr } = QUALITY[lite ? 'lite' : 'full'];
     const mount = holder.current;
     if (!mount) return;
 
@@ -69,7 +77,7 @@ export default function HeroField() {
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
     camera.position.z = 4.2;
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, dpr));
     renderer.setClearColor(0x000000, 0);
     mount.appendChild(renderer.domElement);
     renderer.domElement.style.cssText = 'display:block;width:100%;height:100%';
@@ -255,7 +263,7 @@ export default function HeroField() {
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
     };
-  }, []);
+  }, [lite]);
 
   return <div ref={holder} className="absolute inset-0" aria-hidden="true" />;
 }

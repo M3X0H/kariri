@@ -15,20 +15,23 @@ import { TiltCard } from './lightswind/tilt-card';
 
 const HeroField = lazy(() => import('./HeroField'));
 
-/* WebGL is worth it on a pointer device with a real viewport; anywhere
-   else the CSS bloom behind it carries the composition on its own. */
-function useFieldCapable() {
-  const [ok, setOk] = useState(false);
+/* The field is the hero's signature, so phones get it too — at half the
+   nodes, a capped pixel ratio and lower opacity, sitting behind the type
+   rather than competing with it. Only reduced motion opts out entirely,
+   and then the CSS bloom carries the composition on its own. */
+function useFieldQuality() {
+  const [quality, setQuality] = useState<null | 'full' | 'lite'>(null);
   useEffect(() => {
-    if (prefersReduced() || window.innerWidth < 768) return;
+    if (prefersReduced()) return;
     try {
       const c = document.createElement('canvas');
-      setOk(!!(c.getContext('webgl2') || c.getContext('webgl')));
+      if (!(c.getContext('webgl2') || c.getContext('webgl'))) return;
+      setQuality(window.innerWidth < 768 ? 'lite' : 'full');
     } catch {
-      setOk(false);
+      setQuality(null);
     }
   }, []);
-  return ok;
+  return quality;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -40,7 +43,7 @@ function useFieldCapable() {
    ═══════════════════════════════════════════════════════════════ */
 export function Hero({ ready }: { ready: boolean }) {
   const { t, lang } = useLang();
-  const field = useFieldCapable();
+  const field = useFieldQuality();
 
   const root = useScene<HTMLElement>((el) => {
     if (!ready) return;
@@ -89,21 +92,57 @@ export function Hero({ ready }: { ready: boolean }) {
       <AuroraBackground hue={186} spread={62} intensity={0.26} />
       <div className="aura" />
 
-      {/* The signal field, and the bloom that stands in for it. */}
-      <div data-field className="absolute inset-0 z-0">
+      {/* The signal field, and the bloom that stands in for it. On a phone
+          the name runs the full width and sits over the field, so the
+          field drops back in opacity and rides above the type rather than
+          through it. */}
+      <div
+        data-field
+        className="absolute inset-x-0 bottom-0 top-0 z-0 opacity-55 max-sm:bottom-auto max-sm:h-[62vh] sm:opacity-100"
+      >
         <div className="absolute left-1/2 top-1/2 h-[min(78vw,44rem)] w-[min(78vw,44rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(92,225,230,0.14),rgba(79,124,255,0.07)_45%,transparent_70%)] blur-2xl" />
         {field && (
           <Suspense fallback={null}>
-            <HeroField />
+            <HeroField lite={field === 'lite'} />
           </Suspense>
         )}
       </div>
 
       <div data-lift className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <div data-meta className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <span className="label">{t.hero.role}</span>
-          <span className="label ltr">24°42′N 46°43′E · {t.hero.place}</span>
-          <span className="inline-flex items-center gap-2">
+        {/* Phones open on an identity row — face, role, availability — so
+            the portrait introduces the name instead of trailing it as a
+            stray card. From `sm` up the portrait leaves this row and takes
+            its place beside the claim, where the desktop composition
+            wants it. */}
+        <div data-meta className="mb-7 flex items-center gap-3.5 sm:mb-6 sm:gap-x-5 sm:gap-y-2 sm:flex-wrap">
+          <img
+            src={LINKS.portrait}
+            alt=""
+            width={1062}
+            height={1280}
+            fetchPriority="high"
+            aria-hidden="true"
+            className="h-11 w-11 shrink-0 rounded-full object-cover object-[50%_18%] grayscale ring-1 ring-[var(--line-2)] sm:hidden"
+          />
+          <span className="min-w-0 flex-1 sm:flex-none">
+            <span className="label block truncate">{t.hero.role}</span>
+            <span className="mt-1 inline-flex items-center gap-2 sm:hidden">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-cyan shadow-[0_0_10px_2px_rgb(92_225_230/0.7)]" />
+              <ShinyText
+                className="label"
+                baseColor="var(--color-ink-2)"
+                shineColor="var(--color-cyan)"
+                rtl={lang === 'ar'}
+              >
+                {t.hero.open}
+              </ShinyText>
+            </span>
+          </span>
+
+          {/* The coordinates are a decorative flourish. On a phone they
+              cost a whole wrapped line and push the name down the page. */}
+          <span className="label ltr hidden sm:inline">24°42′N 46°43′E · {t.hero.place}</span>
+          <span className="hidden items-center gap-2 sm:inline-flex">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan shadow-[0_0_10px_2px_rgb(92_225_230/0.7)]" />
             <ShinyText
               className="label"
@@ -116,7 +155,7 @@ export function Hero({ ready }: { ready: boolean }) {
           </span>
         </div>
 
-        <h1 className="display-type text-[clamp(2.75rem,12.5vw,10.5rem)]">
+        <h1 className="mask-stack display-type display-xl display-hero text-[length:var(--hero-name)]">
           <span className="mask-line">
             <span data-name className="block">{t.hero.first}</span>
           </span>
@@ -125,25 +164,40 @@ export function Hero({ ready }: { ready: boolean }) {
           </span>
         </h1>
 
-        <div className="mt-8 flex flex-wrap items-end justify-between gap-x-10 gap-y-8">
+        <div className="mt-7 flex flex-wrap items-end justify-between gap-x-10 gap-y-8 sm:mt-8">
           {/* The measure belongs to the sentence, not to the row of
-              actions under it — capping both at 34ch wrapped the two
-              buttons onto separate lines for no reason. */}
-          <div>
-            <p data-meta className="max-w-[34ch] text-lg text-ink-2 md:text-xl">
+              actions under it — capping both at one measure wrapped the
+              two buttons onto separate lines for no reason. */}
+          <div className="w-full sm:w-auto">
+            <p data-meta className="measure-sm text-lg text-ink-2 md:text-xl">
               {t.hero.claim}
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <div data-act>
-                <MagneticButton href={LINKS.whatsapp} external size="md" variant="solid">
+            {/* Full-bleed and equal on a phone: two controls of different
+                widths stacked left-ragged read as an accident. They only
+                shrink to their content once there is a row to sit in. */}
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <div data-act className="w-full sm:w-auto">
+                <MagneticButton
+                  href={LINKS.whatsapp}
+                  external
+                  size="md"
+                  variant="solid"
+                  wrapperClassName="w-full sm:w-auto"
+                  className="w-full justify-center sm:w-auto"
+                >
                   <MessageCircle size={17} aria-hidden />
                   {t.hero.cta}
                   <ArrowUpRight size={16} aria-hidden />
                 </MagneticButton>
               </div>
-              <div data-act>
-                <ShineButton href={LINKS.cv} download rtl={lang === 'ar'} className="h-14 px-6">
+              <div data-act className="w-full sm:w-auto">
+                <ShineButton
+                  href={LINKS.cv}
+                  download
+                  rtl={lang === 'ar'}
+                  className="h-14 w-full justify-center px-6 sm:w-auto"
+                >
                   <FileText size={16} aria-hidden />
                   {t.hero.cv}
                 </ShineButton>
@@ -153,8 +207,9 @@ export function Hero({ ready }: { ready: boolean }) {
 
           {/* The portrait sits on a card that turns to face the pointer;
               the caption is lifted off its surface so the two planes
-              separate as it tilts. */}
-          <figure data-portrait className="relative">
+              separate as it tilts. On phones the face has already been
+              introduced up top, so this card stands down. */}
+          <figure data-portrait className="relative hidden sm:block">
             <TiltCard maxTilt={11} float={7} shine={0.22} className="w-fit">
               <div className="glass flex items-center gap-4 p-3 pe-6">
                 <img
@@ -162,7 +217,6 @@ export function Hero({ ready }: { ready: boolean }) {
                   alt={t.portraitAlt}
                   width={1062}
                   height={1280}
-                  fetchPriority="high"
                   className="lift-1 h-20 w-20 shrink-0 rounded-full object-cover object-[50%_18%] grayscale ring-1 ring-[var(--line-2)] md:h-24 md:w-24"
                 />
                 <figcaption className="lift-2 label max-w-[18ch] leading-relaxed">
@@ -173,7 +227,7 @@ export function Hero({ ready }: { ready: boolean }) {
           </figure>
         </div>
 
-        <dl data-meta className="rule mt-10 grid grid-cols-2 gap-x-6 gap-y-5 pt-6 md:grid-cols-4">
+        <dl data-meta className="rule mt-9 grid grid-cols-2 gap-x-6 gap-y-5 pt-6 sm:mt-10 md:grid-cols-4">
           {[
             [t.spec.role, t.spec.roleV],
             [t.spec.base, t.spec.baseV],
@@ -182,16 +236,18 @@ export function Hero({ ready }: { ready: boolean }) {
           ].map(([k, v]) => (
             <div key={k}>
               <dt className="label">{k}</dt>
-              <dd className="mt-1.5 text-sm text-ink">{v}</dd>
+              <dd className="mt-1.5 text-sm leading-relaxed text-ink">{v}</dd>
             </div>
           ))}
         </dl>
       </div>
 
+      {/* The cue only earns its place where the fold actually cuts the
+          composition. On a phone the spec grid already runs past it. */}
       <a
         data-cue
         href="#about"
-        className="absolute inset-x-0 bottom-5 z-10 mx-auto flex w-fit items-center gap-2 label hover:text-ink"
+        className="absolute inset-x-0 bottom-5 z-10 mx-auto hidden w-fit items-center gap-2 label hover:text-ink sm:flex"
       >
         {t.hero.cue}
         <ArrowDown size={13} aria-hidden className="animate-bounce" />
@@ -331,7 +387,7 @@ export function About() {
 
           <div>
             <ScrollReveal
-              className="max-w-[52ch] text-xl leading-relaxed text-ink md:text-2xl"
+              className="measure text-xl text-ink md:text-2xl"
               rtl={lang === 'ar'}
               blurStrength={7}
               staggerDelay={0.028}
@@ -340,18 +396,29 @@ export function About() {
               {t.about.p1}
             </ScrollReveal>
 
-            <p data-para className="mt-6 max-w-[52ch] text-base leading-relaxed text-ink-2 md:text-lg">
+            <p data-para className="measure mt-6 text-base text-ink-2 md:text-lg">
               {t.about.p2}
             </p>
 
-            <dl className="mt-12 grid grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-3">
+            {/* Three items in a two-column grid leaves one stranded on its
+                own row, and a third column at 375px shreds the longest
+                label across three lines. On phones they become a list —
+                figure on the inline start, label beside it, ruled — and
+                only stack into columns once there is width for them. */}
+            <dl className="mt-11 grid gap-y-4 sm:mt-12 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
               {t.about.stats.map((s) => (
-                /* Value first, label under it — the reading order is
-                   reversed with `flex-col-reverse` so the DL stays
-                   `dt` then `dd` for anything not reading visually. */
-                <div data-stat key={s.k} className="flex flex-col-reverse items-start">
-                  <dt className="label mt-2 max-w-[16ch] leading-relaxed">{s.k}</dt>
-                  <dd className="display-type text-[clamp(2.4rem,7vw,4.5rem)] text-ink">
+                /* `order-first` puts the figure ahead of its label along
+                   whichever axis is current, so it leads in both
+                   directions without duplicating the markup. */
+                <div
+                  data-stat
+                  key={s.k}
+                  className="flex items-baseline gap-4 border-t border-[var(--line)] pt-4 sm:flex-col-reverse sm:items-start sm:gap-0 sm:border-0 sm:pt-0"
+                >
+                  <dt className="label flex-1 leading-relaxed sm:mt-2 sm:max-w-[16ch] sm:flex-none">
+                    {s.k}
+                  </dt>
+                  <dd className="display-type order-first shrink-0 text-[clamp(2.4rem,7vw,4.5rem)] leading-none text-ink sm:order-none">
                     <CountUp value={s.n} duration={1.5} />
                   </dd>
                 </div>
