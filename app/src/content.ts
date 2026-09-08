@@ -51,6 +51,16 @@ type Dict = {
 
   statement: { l1: string; l2: string };
   stackTag: string;
+
+  /* The three faults are the ones already named in `about.p1` — the same
+     examples, pulled out so the page can walk through them one at a time
+     instead of burying them in a clause. Nothing new is claimed. */
+  fault: {
+    tag: string;
+    lead: string;
+    items: { code: string; state: string; line: string }[];
+  };
+
   about: {
     tag: string;
     p1: string;
@@ -61,7 +71,15 @@ type Dict = {
     stats: { n: number; k: string }[];
   };
 
-  caps: { tag: string; lead: string; items: { name: string; desc: string }[] };
+  caps: {
+    tag: string;
+    lead: string;
+    /* The map's own affordance line, and the labels on its core node. */
+    hint: string;
+    core: string;
+    coreRole: string;
+    items: { name: string; desc: string }[];
+  };
   career: {
     tag: string;
     entries: { year: string; span: string; kind: string; role: string; org: string; points: string[]; impact?: string }[];
@@ -109,6 +127,17 @@ export const COPY: Record<Lang, Dict> = {
 
     statement: { l1: 'علوم حاسب دراسةً.', l2: 'أنظمة ممارسةً.' },
     stackTag: 'أدوات العمل',
+
+    fault: {
+      tag: 'حيث يبدأ العمل',
+      lead: 'ثلاثة أعطال من يوم عادي. كلٌّ منها يوقف شخصًا عن عمله.',
+      items: [
+        { code: 'PRN', state: 'تعطّل', line: 'موظف لا يستطيع الطباعة.' },
+        { code: 'NET', state: 'انقطاع', line: 'شبكة تتقطّع طوال اليوم.' },
+        { code: 'CCTV', state: 'توقّف', line: 'كاميرا توقفت عن التسجيل.' }
+      ]
+    },
+
     about: {
       tag: 'نبذة',
       p1: 'خريج علوم الحاسب من جامعة تبوك، ومعتمد من الهيئة السعودية للمهندسين كأخصائي علوم حاسب. عملي يبدأ حيث تلتقي الأنظمة بالناس: موظف لا يستطيع الطباعة، شبكة تتقطع، كاميرا توقفت عن التسجيل.',
@@ -127,8 +156,11 @@ export const COPY: Record<Lang, Dict> = {
     },
 
     caps: {
-      tag: 'ماذا أفعل',
+      tag: 'خريطة القدرات',
       lead: 'ستة مجالات متصلة. كل عطل يمرّ بأكثر من واحد منها.',
+      hint: 'اختر أي عقدة',
+      core: 'محمد كريري',
+      coreRole: 'أخصائي تقنية معلومات',
       items: [
         { name: 'الدعم الفني', desc: 'الدعم اليومي للموظفين، وحل الأعطال قبل أن توقف العمل.' },
         { name: 'الأنظمة', desc: 'تشغيل الأنظمة ومتابعة استقرارها على مدار يوم العمل.' },
@@ -262,6 +294,17 @@ export const COPY: Record<Lang, Dict> = {
 
     statement: { l1: 'Computer Science by training.', l2: 'Systems by practice.' },
     stackTag: 'Working stack',
+
+    fault: {
+      tag: 'Where the work starts',
+      lead: 'Three faults from an ordinary day. Each one stops someone from working.',
+      items: [
+        { code: 'PRN', state: 'Blocked', line: 'Someone who cannot print.' },
+        { code: 'NET', state: 'Dropping', line: 'A connection that keeps dropping.' },
+        { code: 'CCTV', state: 'Offline', line: 'A camera that stopped recording.' }
+      ]
+    },
+
     about: {
       tag: 'About',
       p1: 'Computer Science graduate from the University of Tabuk, recognized by the Saudi Council of Engineers as a Computer Science Specialist. My work starts where systems meet people: someone who cannot print, a connection that keeps dropping, a camera that stopped recording.',
@@ -280,8 +323,11 @@ export const COPY: Record<Lang, Dict> = {
     },
 
     caps: {
-      tag: 'What I do',
+      tag: 'Capability map',
       lead: 'Six connected areas. Every fault runs through more than one of them.',
+      hint: 'Select any node',
+      core: 'Mohammed Kariri',
+      coreRole: 'IT Specialist',
       items: [
         { name: 'IT Support', desc: 'Day-to-day employee support, resolving faults before they stop the work.' },
         { name: 'Systems', desc: 'Running the systems and keeping them stable across the working day.' },

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowUpRight, FileText, Github, Linkedin, Mail, MessageCircle } from 'lucide-react';
 import { useLang } from '../lib/lang';
-import { CAPABILITIES, LINKS } from '../content';
+import { LINKS } from '../content';
 import { gsap, ScrollTrigger, useScene, aura, EASE, isCoarse } from '../lib/motion';
 import { AuroraBackground } from './lightswind/aurora-background';
 import { BorderBeam } from './lightswind/border-beam';
@@ -11,203 +11,6 @@ import { ShineButton } from './lightswind/shine-button';
 import { TextScrollMarquee } from './lightswind/text-scroll-marquee';
 import { TiltCard } from './lightswind/tilt-card';
 import { VelocityRow, VelocityRows } from './lightswind/velocity-rows';
-
-/* ═══════════════════════════════════════════════════════════════
-   CAPABILITIES — an ecosystem, not a badge grid.
-   Six nodes on a ring, wired to the ones they actually touch. Reading
-   a row lights that node and everything it connects to.
-
-   Lightswind: BorderBeam around the diagram panel.
-   ═══════════════════════════════════════════════════════════════ */
-export function Capabilities() {
-  const { t, lang } = useLang();
-  const [active, setActive] = useState(0);
-
-  const root = useScene<HTMLElement>((el) => {
-    const q = gsap.utils.selector(el);
-    const mm = gsap.matchMedia();
-
-    /* Rows arrive from the inline start, one after another, and shed a
-       blur as they land — the section's own signature, distinct from the
-       vertical rise used elsewhere. Travel stays inside the container
-       padding so nothing parks off-page before its trigger fires.
-
-       Phones keep the stagger but trade the blur for a short rise: six
-       rows filtering at once is real GPU work on a phone, and at that
-       width the blur is barely legible anyway. */
-    const rows = (vars: gsap.TweenVars) => () => {
-      gsap.from(q('[data-cap]'), {
-        opacity: 0,
-        stagger: 0.08,
-        ease: EASE,
-        scrollTrigger: { trigger: el, start: 'top 70%' },
-        ...vars
-      });
-    };
-    mm.add('(min-width: 768px)', rows({ x: lang === 'ar' ? 46 : -46, filter: 'blur(8px)', duration: 0.8 }));
-    mm.add('(max-width: 767px)', rows({ y: 18, duration: 0.5 }));
-
-    /* The diagram animates as one piece, on its wrapper. Its nodes and
-       edges re-render on every hover to re-colour themselves, and React
-       rewriting their style attribute mid-tween left them pinned at
-       opacity 0 while their transform finished — visible as an empty
-       column. The wrapper carries no React style prop, so it is safe. */
-    gsap.from(q('[data-graph]'), {
-      opacity: 0,
-      scale: 0.88,
-      transformOrigin: 'center',
-      duration: 1,
-      ease: EASE,
-      scrollTrigger: { trigger: el, start: 'top 70%' }
-    });
-
-    return () => mm.revert();
-  }, [lang]);
-
-  // Ring geometry, computed once — six nodes evenly placed.
-  const R = 118;
-  const nodes = CAPABILITIES.map((_, i) => {
-    const a = (i / CAPABILITIES.length) * Math.PI * 2 - Math.PI / 2;
-    return { x: 160 + Math.cos(a) * R, y: 160 + Math.sin(a) * R };
-  });
-
-  const lit = (i: number) => i === active || (CAPABILITIES[active].links as readonly number[]).includes(i);
-
-  return (
-    <section
-      ref={root}
-      id="capabilities"
-      className="chapter-edge relative scroll-mt-24 px-[max(1.25rem,5vw)] py-[clamp(3.5rem,8vh,6.5rem)]"
-      style={aura(235)}
-    >
-      <div className="aura" />
-      <div className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <h2 className="label mb-3">
-          <span className="text-cyan">02</span> — {t.caps.tag}
-        </h2>
-        <p className="measure-sm mb-12 text-lg text-ink-2">{t.caps.lead}</p>
-
-        <div className="grid gap-12 lg:grid-cols-[1fr_340px] lg:items-start lg:gap-16">
-          <ul className="rule">
-            {t.caps.items.map((cap, i) => (
-              <li
-                data-cap
-                key={cap.name}
-                onMouseEnter={() => setActive(i)}
-                onFocusCapture={() => setActive(i)}
-                className={[
-                  'group border-b border-[var(--line)] py-6 transition-colors duration-300',
-                  active === i ? 'text-ink' : 'text-ink-3'
-                ].join(' ')}
-              >
-                <button
-                  type="button"
-                  onClick={() => setActive(i)}
-                  aria-pressed={active === i}
-                  className="flex w-full items-baseline gap-4 text-start md:gap-7"
-                >
-                  <span className={['font-mono text-xs', active === i ? 'text-cyan' : ''].join(' ')}>
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <span
-                    className={[
-                      'display-type flex-1 text-[clamp(1.4rem,4vw,2.6rem)] transition-[color,transform] duration-500',
-                      active === i ? 'text-ink md:translate-x-1 rtl:md:-translate-x-1' : 'text-ink'
-                    ].join(' ')}
-                  >
-                    {cap.name}
-                  </span>
-                  <ArrowUpRight
-                    size={18}
-                    aria-hidden
-                    className={[
-                      'shrink-0 transition-all duration-300',
-                      active === i ? 'text-cyan opacity-100' : 'opacity-0'
-                    ].join(' ')}
-                  />
-                </button>
-
-                <div
-                  className="grid transition-[grid-template-rows] duration-500"
-                  style={{ gridTemplateRows: active === i ? '1fr' : '0fr' }}
-                >
-                  <div className="overflow-hidden">
-                    <p className="measure pt-3 text-sm text-ink-2 md:text-base">{cap.desc}</p>
-                    <ul className="mt-3 flex flex-wrap gap-1.5">
-                      {CAPABILITIES[i].tech.map((tech) => (
-                        <li
-                          key={tech}
-                          lang="en"
-                          className="border border-[var(--line)] px-2 py-1 font-mono text-[0.65rem] text-ink-2"
-                        >
-                          {tech}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          {/* The wiring. Decorative — the list above carries the meaning. */}
-          <div data-graph className="sticky top-28 hidden lg:block" aria-hidden="true">
-            <div className="glass relative overflow-hidden p-6">
-              <BorderBeam size={56} duration={9} glowIntensity={0.7} opacity={0.8} />
-              <svg viewBox="0 0 320 320" className="w-full">
-                {CAPABILITIES.map((cap, i) =>
-                  (cap.links as readonly number[])
-                    .filter((j) => j > i)
-                    .map((j) => (
-                      <line
-                        key={`${i}-${j}`}
-                        x1={nodes[i].x}
-                        y1={nodes[i].y}
-                        x2={nodes[j].x}
-                        y2={nodes[j].y}
-                        stroke={lit(i) && lit(j) ? 'var(--color-cyan)' : 'currentColor'}
-                        strokeWidth={lit(i) && lit(j) ? 1.2 : 0.6}
-                        className={lit(i) && lit(j) ? 'text-cyan' : 'text-ink-3'}
-                        opacity={lit(i) && lit(j) ? 0.85 : 0.3}
-                        style={{ transition: 'opacity .4s, stroke-width .4s' }}
-                      />
-                    ))
-                )}
-
-                {nodes.map((n, i) => (
-                  <g key={i} style={{ transition: 'opacity .4s' }}>
-                    {lit(i) && (
-                      <circle cx={n.x} cy={n.y} r={i === active ? 17 : 11} className="fill-cyan" opacity={0.14} />
-                    )}
-                    <circle
-                      cx={n.x}
-                      cy={n.y}
-                      r={i === active ? 7.5 : 5}
-                      className={lit(i) ? 'fill-cyan' : 'fill-ink-3'}
-                      opacity={lit(i) ? 1 : 0.7}
-                      style={{ transition: 'r .35s, opacity .35s' }}
-                    />
-                    <text
-                      x={n.x}
-                      y={n.y - 16}
-                      textAnchor="middle"
-                      className={['font-mono', lit(i) ? 'fill-ink' : 'fill-ink-3'].join(' ')}
-                      style={{ fontSize: 9, letterSpacing: '0.12em', transition: 'fill .35s' }}
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </text>
-                  </g>
-                ))}
-              </svg>
-
-              <p className="label mt-4 text-center">{t.caps.items[active].name}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ═══════════════════════════════════════════════════════════════
    CAREER — the spine draws itself as you descend, the year pins to
@@ -273,18 +76,19 @@ export function Career() {
     <section
       ref={root}
       id="career"
-      className="chapter-edge relative scroll-mt-24 px-[max(1.25rem,5vw)] py-[clamp(3.5rem,8vh,6.5rem)]"
-      style={aura(258)}
+      className="chapter-edge relative scroll-mt-[var(--rail)] px-[max(1.25rem,5vw)] py-[clamp(4rem,9vh,7rem)]"
+      style={aura(234)}
     >
       <div className="aura" />
       <div className="relative z-10 mx-auto w-full max-w-[88rem]">
         <h2 className="label mb-12">
-          <span className="text-cyan">03</span> — {t.career.tag}
+          <span aria-hidden="true"><span className="text-cyan">03</span> — </span>{t.career.tag}
         </h2>
 
         <div data-track className="relative">
           <span
             data-spine
+            aria-hidden="true"
             className="absolute inset-y-0 start-[7px] w-px bg-gradient-to-b from-cyan via-violet to-transparent md:start-1/2"
           />
 
@@ -315,8 +119,9 @@ export function Career() {
                     to clear that gap plus half its own width to actually
                     sit on the line rather than float beside it. */}
                 <span
+                  aria-hidden="true"
                   className={[
-                    'absolute top-8 z-10 h-3.5 w-3.5 rounded-full border-2 border-cyan bg-void transition-shadow duration-500',
+                    'live-marker absolute top-8 z-10 h-3.5 w-3.5 rounded-full border-2 border-cyan bg-void transition-shadow duration-500',
                     'start-0 md:start-auto',
                     i % 2 === 0 ? 'md:-start-[55px]' : 'md:-end-[55px]'
                   ].join(' ')}
@@ -340,14 +145,14 @@ export function Career() {
                   )}
 
                   <p className="font-mono text-xs text-cyan">{e.kind}</p>
-                  <h3 className="display-type mt-2 text-[clamp(1.3rem,3.2vw,2.1rem)]">{e.role}</h3>
+                  <h3 className="display-soft mt-2 text-[clamp(1.3rem,3.2vw,2.1rem)]">{e.role}</h3>
                   <p className="mt-2 text-base text-ink-2">{e.org}</p>
                   <p className="mt-1 font-mono text-xs text-ink-3">{e.span}</p>
 
                   <ul className={['mt-5 space-y-2', i % 2 === 0 ? '' : 'md:[&_li]:flex-row-reverse'].join(' ')}>
                     {e.points.map((p) => (
                       <li key={p} className="flex gap-3 text-sm text-ink-2">
-                        <span className="mt-2.5 h-px w-3 shrink-0 bg-cyan/60" />
+                        <span aria-hidden="true" className="mt-2.5 h-px w-3 shrink-0 bg-cyan/60" />
                         <span className="measure-sm">{p}</span>
                       </li>
                     ))}
@@ -372,6 +177,11 @@ export function Career() {
    WORK — the visual pins and turns to face the pointer while the
    write-up moves past it. One real project, presented at full scale
    rather than padded out with invented ones.
+
+   The visual is the site's own identity lockup rather than a grey
+   wireframe: the project *is* this page, so a stand-in mock-up of some
+   other page would have been a small lie in the middle of the section
+   that is meant to prove the work.
 
    Lightswind: TiltCard (3D perspective), BorderBeam, ShineButton.
    ═══════════════════════════════════════════════════════════════ */
@@ -415,7 +225,7 @@ export function Work() {
 
     if (!isCoarse()) {
       gsap.to(q('[data-visual-inner]'), {
-        yPercent: -9,
+        yPercent: -8,
         ease: 'none',
         scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.7 }
       });
@@ -428,13 +238,13 @@ export function Work() {
     <section
       ref={root}
       id="work"
-      className="chapter-edge relative scroll-mt-24 px-[max(1.25rem,5vw)] py-[clamp(3.5rem,8vh,6.5rem)]"
-      style={aura(288)}
+      className="chapter-edge relative scroll-mt-[var(--rail)] px-[max(1.25rem,5vw)] py-[clamp(4rem,9vh,7rem)]"
+      style={aura(246)}
     >
       <div className="aura" />
       <div className="relative z-10 mx-auto w-full max-w-[88rem]">
         <h2 className="label mb-12">
-          <span className="text-cyan">04</span> — {t.work.tag}
+          <span aria-hidden="true"><span className="text-cyan">04</span> — </span>{t.work.tag}
         </h2>
 
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
@@ -445,16 +255,42 @@ export function Work() {
 
                 <div
                   data-visual-inner
-                  className="absolute inset-0 flex flex-col justify-center gap-4 p-[8%] [transform-style:preserve-3d]"
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-5 p-[8%] [transform-style:preserve-3d]"
                 >
-                  <div className="absolute inset-0 bg-[radial-gradient(70%_60%_at_75%_15%,rgba(92,225,230,0.18),transparent_65%)]" />
-                  <span className="lift-3 relative display-type text-[clamp(2rem,7vw,4.5rem)] leading-none">
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_35%,rgba(92,225,230,0.16),transparent_65%)]"
+                  />
+
+                  {/* The same aperture the hero opens on, at card scale. */}
+                  <div className="lift-3 relative aspect-square w-[34%] shrink-0">
+                    <span aria-hidden="true" className="aperture-ring" style={{ inset: '-14%' }} />
+                    <span aria-hidden="true" className="aperture-ring" style={{ inset: '-30%', opacity: 0.55 }} />
+                    <img
+                      src={LINKS.portrait}
+                      alt=""
+                      aria-hidden="true"
+                      width={1062}
+                      height={1280}
+                      loading="lazy"
+                      className="h-full w-full rounded-full border border-[var(--line-2)] object-cover object-[50%_16%] grayscale"
+                    />
+                    <span aria-hidden="true" className="aperture-sweep" />
+                  </div>
+
+                  <span
+                    lang="en"
+                    className="lift-2 relative display-type text-[clamp(1.4rem,4.6vw,2.8rem)] leading-none"
+                  >
                     KARIRI
                   </span>
-                  <span className="lift-2 relative h-2.5 w-[62%] bg-gradient-to-r from-cyan to-blue" />
-                  <span className="lift-1 relative h-2.5 w-[84%] bg-panel-2" />
-                  <span className="lift-1 relative h-2.5 w-[45%] bg-panel-2" />
-                  <span className="relative mt-2 h-14 w-full bg-[repeating-linear-gradient(90deg,var(--color-panel-2)_0_11%,transparent_11%_13%)]" />
+
+                  <span aria-hidden="true" className="lift-1 relative h-px w-[58%] bg-gradient-to-r from-transparent via-cyan to-transparent" />
+
+                  <span
+                    aria-hidden="true"
+                    className="relative h-6 w-full bg-[repeating-linear-gradient(90deg,var(--color-panel-2)_0_9%,transparent_9%_12%)] opacity-70"
+                  />
                 </div>
               </div>
             </TiltCard>
@@ -471,8 +307,9 @@ export function Work() {
               {p.desc}
             </p>
 
-            <div data-detail className="rule mt-10 pt-6">
-              <p className="label">{p.stack}</p>
+            <div data-detail className="mt-10">
+              <div aria-hidden="true" className="wire h-px w-full" />
+              <p className="label mt-6">{p.stack}</p>
               <p lang="en" className="mt-2 font-mono text-sm text-ink">
                 React · TypeScript · GSAP · Three.js · Lightswind
               </p>
@@ -491,7 +328,7 @@ export function Work() {
                 <ArrowUpRight size={15} aria-hidden />
               </ShineButton>
               <span className="inline-flex items-center gap-2 px-3 py-3 text-sm text-ink-3">
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan" />
+                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-cyan" />
                 {p.live}
               </span>
             </div>
@@ -541,14 +378,15 @@ export function Credentials() {
   return (
     <section
       ref={root}
-      className="chapter-edge relative overflow-hidden py-[clamp(3.5rem,8vh,6.5rem)]"
-      style={aura(288)}
+      id="credentials"
+      className="chapter-edge relative scroll-mt-[var(--rail)] overflow-hidden py-[clamp(4rem,9vh,7rem)]"
+      style={aura(256)}
     >
       <div className="aura" />
       <div className="relative z-10">
         <div className="mx-auto w-full max-w-[88rem] px-[max(1.25rem,5vw)]">
           <h2 className="label mb-12">
-            <span className="text-cyan">05</span> — {t.cred.tag}
+            <span aria-hidden="true"><span className="text-cyan">05</span> — </span>{t.cred.tag}
           </h2>
 
           <div
@@ -556,7 +394,14 @@ export function Credentials() {
             className="glass relative overflow-hidden p-8 md:p-12"
             style={{ background: 'linear-gradient(135deg, rgb(92 225 230 / 0.09), transparent 55%), rgb(16 19 25 / 0.6)' }}
           >
-            <BorderBeam size={90} className="[--beam-w:44px] md:[--beam-w:90px]" duration={9} glowIntensity={1.1} colorFrom="var(--color-cyan)" colorTo="var(--color-magenta)" />
+            <BorderBeam
+              size={58}
+              className="[--beam-w:32px] md:[--beam-w:58px]"
+              duration={9}
+              glowIntensity={0.55}
+              colorFrom="var(--color-cyan)"
+              colorTo="var(--color-violet)"
+            />
             <p className="font-mono text-xs text-cyan">2025</p>
             <h3 lang="en" className="display-type mt-3 text-[clamp(1.6rem,5vw,3.2rem)]">
               {t.cred.lead}
@@ -564,7 +409,7 @@ export function Credentials() {
             <p className="mt-3 text-ink-2">{t.cred.leadBy}</p>
           </div>
 
-          <p className="label mt-12 mb-5">{t.cred.all}</p>
+          <p className="label mb-5 mt-12">{t.cred.all}</p>
         </div>
 
         {/* Full bleed on purpose: the tracks have to run off both edges or
@@ -579,7 +424,7 @@ export function Credentials() {
                     lang="en"
                     className="me-3 inline-flex items-center gap-3 whitespace-nowrap border border-[var(--line)] bg-graphite/50 px-5 py-3 text-sm text-ink-2"
                   >
-                    <span className="h-1 w-1 shrink-0 rounded-full bg-cyan/70" />
+                    <span aria-hidden="true" className="h-1 w-1 shrink-0 rounded-full bg-cyan/70" />
                     {c}
                   </span>
                 ))}
@@ -630,20 +475,23 @@ export function Contact() {
     <section
       ref={root}
       id="contact"
-      className="chapter-edge relative scroll-mt-24 overflow-hidden px-[max(1.25rem,5vw)] pb-[clamp(3rem,8vh,6rem)] pt-[clamp(3.5rem,8vh,6.5rem)]"
-      style={aura(316)}
+      className="chapter-edge relative scroll-mt-[var(--rail)] overflow-hidden px-[max(1.25rem,5vw)] pb-[clamp(3rem,8vh,6rem)] pt-[clamp(4rem,9vh,7rem)]"
+      style={aura(264)}
     >
-      {/* Violet into magenta, and no further: the page's spectrum ends here. */}
-      <AuroraBackground hue={276} spread={46} intensity={0.26} showRadialGradient={false} />
+      {/* Indigo into violet, and no further: the page's spectrum ends here. */}
+      <AuroraBackground hue={258} spread={38} intensity={0.11} showRadialGradient={false} />
       <div className="aura" />
       <ParticleField count={64} speed={0.9} />
 
       <div className="relative z-10 mx-auto w-full max-w-[88rem]">
         <p className="label mb-10" aria-hidden="true">
-          <span className="text-cyan">06</span> — {t.contact.tag}
+          <span aria-hidden="true"><span className="text-cyan">06</span> — </span>{t.contact.tag}
         </p>
 
-        <h2 className="mask-stack display-type display-xl text-[clamp(2.2rem,9vw,7rem)]">
+        <h2
+          aria-label={`${t.contact.l1} ${t.contact.l2}`}
+          className="mask-stack display-type display-xl text-[clamp(2.2rem,8.4vw,6.6rem)]"
+        >
           <span className="mask-line">
             <span data-line className="block">{t.contact.l1}</span>
           </span>
@@ -693,7 +541,7 @@ export function Contact() {
                   <ArrowUpRight
                     size={16}
                     aria-hidden
-                    className="shrink-0 text-ink-3 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:text-cyan"
+                    className="shrink-0 text-ink-3 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-cyan"
                   />
                 </a>
               </li>

@@ -2,11 +2,16 @@
 
 /* ═══════════════════════════════════════════════════════════════
    SIGNAL — design tokens
-   A single cool spectrum used as *light*, never as flat fill.
+
+   One idea runs the whole page: a fault enters a system, is traced
+   through it, and comes back out working. Everything visual serves
+   that — the wires, the pulses, the node language, the cool spectrum
+   read as *light* rather than as flat fill.
+
    Every accent below clears WCAG AA on the void ground.
    ═══════════════════════════════════════════════════════════════ */
 @theme {
-  --color-void: #050507;
+  --color-void: #050609;
   --color-graphite: #0b0d12;
   --color-panel: #101319;
   --color-panel-2: #171b24;
@@ -18,10 +23,15 @@
   --color-cyan: #5ce1e6;
   --color-blue: #4f7cff;
   --color-violet: #8b5cf6;
-  --color-magenta: #d946ef;
 
-  --font-display: "Space Grotesk", "Cairo", system-ui, sans-serif;
-  --font-sans: "Cairo", "Space Grotesk", system-ui, sans-serif;
+  /* Latin display is a technical grotesk; Arabic display is Kufi, which
+     is geometric and monumental in the same register rather than a
+     cursive face pressed into a job it was not drawn for. Body copy in
+     both scripts is IBM Plex Sans Arabic, which carries a real Latin
+     alongside its Arabic instead of falling back to a stranger. */
+  --font-display: "Space Grotesk", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-kufi: "Noto Kufi Arabic", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans Arabic", "Space Grotesk", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --ease-signal: cubic-bezier(0.16, 1, 0.3, 1);
@@ -32,8 +42,12 @@
     --line: rgb(245 247 250 / 0.1);
     --line-2: rgb(245 247 250 / 0.2);
     /* The ambient hue, eased per section by the scroll engine so the
-       page changes temperature as the story moves. */
+       page changes temperature as the story moves. It walks the cool
+       spectrum from cyan at the hero to violet at the close and stops
+       there — magenta was the note that made the gradient generic. */
     --aura: 186;
+    /* Height of the fixed navigation, so sections can clear it. */
+    --rail: 5rem;
     color-scheme: dark;
   }
 
@@ -78,31 +92,37 @@
 
   ::selection { background: var(--color-cyan); color: #04121b; }
 
-  /* The two scripts get their own display size ramp. Cairo sets a wider,
-     shorter word than Space Grotesk at the same pixel size — "كريري" is
-     297 units per 100px against nine uppercase Latin letters — so one
-     clamp cannot serve both without leaving Arabic small and timid. */
+  /* The two scripts get their own display ramp, and both are measured
+     against the column the name actually occupies rather than against
+     the viewport. That column is half the row from `lg` up and the whole
+     page below it, so a viewport-based clamp cannot serve both: tuned to
+     fit "MOHAMMED" beside the aperture it left the same word four tenths
+     of the measure on a tablet, and tuned for the tablet it overran the
+     mask and sliced the M off at 1440. `cqi` is 1% of the name column,
+     so one number holds at every width.
+
+     The vw values are the fallback for engines without container
+     queries; the `cqi` declaration overwrites them where it parses. */
   :root {
-    --hero-name: clamp(2.75rem, 12.5vw, 10.5rem);
+    --hero-name: clamp(3rem, 8vw, 8.5rem);
+    --hero-name: clamp(3rem, 15.5cqi, 8.5rem);
     --measure: 52ch;
     --measure-sm: 46ch;
   }
 
-  /* Below `sm` the Latin ramp left the name a third short of the measure —
-     fine beside a 12.5vw desktop, timid as the focal point of a phone.
-     Scoped to small screens so the desktop clamp is untouched. */
-  @media (max-width: 639px) {
-    :root { --hero-name: clamp(3.25rem, 15vw, 4.5rem); }
-  }
-
+  /* Kufi sets a wider, shorter word than Space Grotesk at the same pixel
+     size — "كريري" is 2.85em against "MOHAMMED" at 5.56em — so Arabic
+     needs nearly twice the ramp to reach the same optical presence. */
   :root[lang="ar"] {
-    --hero-name: clamp(4.5rem, 21vw, 11rem);
-    /* `ch` is the width of "0", and Arabic glyphs run narrower than it, so
-       the same `ch` count buys a much longer Arabic line. These are tuned
-       to land near 45 Arabic characters, not 52 zeroes. */
+    --hero-name: clamp(4rem, 15vw, 11rem);
+    --hero-name: clamp(4rem, 29cqi, 11rem);
+    /* `ch` is the width of "0", and Arabic glyphs run narrower than it,
+       so the same `ch` count buys a much longer Arabic line. These are
+       tuned to land near 45 Arabic characters, not 52 zeroes. */
     --measure: 40ch;
     --measure-sm: 35ch;
   }
+
 }
 
 @layer utilities {
@@ -117,6 +137,22 @@
     text-transform: uppercase;
   }
 
+  /* The display face without the uppercasing — for full sentences set at
+     display size, where all-caps reads as shouting rather than as a
+     heading, and where Arabic has no case to apply in the first place. */
+  .display-soft {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  :root[lang="ar"] .display-soft {
+    font-family: var(--font-kufi);
+    letter-spacing: 0;
+    line-height: 1.5;
+  }
+
   .label {
     font-family: var(--font-mono);
     font-size: 0.6875rem;
@@ -126,45 +162,45 @@
     color: var(--color-ink-3);
   }
 
+  /* `.label` sets its own colour, and it is declared after Tailwind's
+     colour utilities inside the same cascade layer — so `text-cyan` on
+     the same element silently loses to it. This is the accented variant,
+     declared later still so it wins. */
+  .label-accent { color: var(--color-cyan); }
+
   /* ── Arabic typography ──────────────────────────────────────────
      These live in `utilities`, beside the rules they override, and not
      in `base` where they read more naturally. Cascade layers are ranked
      before specificity, so `base` loses to `utilities` no matter how
-     specific the selector: for months every rule below sat in `base` and
-     did nothing at all, leaving the Arabic name set at 0.86 leading with
-     -0.035em tracking — cramped, and clipped by its own mask.
+     specific the selector.
 
-     Arabic is cursive and joined. Negative tracking pulls the joins into
-     each other, uppercasing is meaningless, and Cairo needs a 1.7em line
-     box to hold its ink, so Latin's 0.86 leading cuts through it. */
+     Arabic is joined and has no case. Negative tracking pulls the joins
+     into each other, uppercasing is meaningless, and the script needs a
+     taller line box than Latin's 0.86 to hold its ink. */
   :root[lang="ar"] .display-type {
+    font-family: var(--font-kufi);
     letter-spacing: 0;
     word-spacing: 0.04em;
     text-transform: none;
-    line-height: 1.16;
+    line-height: 1.24;
   }
 
-  /* At display sizes Cairo Black is the weight that reads as deliberate;
-     700 goes soft once the type is this large.
+  /* At display sizes Kufi's 700 is the weight that reads as deliberate.
+     Its ink still overruns a metrically tight line box, so the leading
+     here is paired with the paint room `.mask-line` reserves below. */
+  :root[lang="ar"] .display-xl { font-weight: 700; line-height: 1.18; }
 
-     Cairo reserves ascender room on every line whether the word uses it or
-     not — "محمد" has no ascender and no descender at all — so a metrically
-     correct 1.1 leaves the lockup visibly loose and sitting low in its box.
-     The tighter leading and the optical nudge close that gap; both are
-     safe here because the mask carries 0.3em of paint room at each end. */
-  :root[lang="ar"] .display-xl { font-weight: 900; line-height: 1.12; }
+  /* The name can go tighter than a general heading because of what it
+     contains: "محمد" carries neither descender nor mark, so line one
+     cannot reach line two. A heading like "لنبنِ شيئًا / يستحقّ التشغيل."
+     has a tanween above and ascenders below it and would collide at the
+     same leading — so this stays on the name. */
+  :root[lang="ar"] .display-hero { line-height: 1.02; }
 
-  /* The name can go tighter still because of what it happens to contain:
-     "محمد" carries neither descender nor mark, so line one cannot reach
-     line two. A heading like "لنبنِ شيئًا / يستحقّ التشغيل." has a tanween
-     above and ascenders below it and collides at the same leading — so
-     this stays on the name rather than on every large heading. */
-  :root[lang="ar"] .display-hero { line-height: 1.0; }
-
-  :root[lang="ar"] .mask-stack { margin-block-start: -0.14em; }
+  :root[lang="ar"] .mask-stack { margin-block-start: -0.12em; }
 
   /* Latin labels are tracked wide and uppercased. Arabic can do neither —
-     tracking severs the joins — so the small lift in word spacing is what
+     tracking severs the joins — so a small lift in word spacing is what
      carries the same "label" register instead. */
   :root[lang="ar"] .label {
     letter-spacing: 0;
@@ -172,13 +208,24 @@
     text-transform: none;
   }
 
+  /* Latin runs inside Arabic copy — codes, counts, stack names — keep
+     their tracking, because they are still Latin. */
+  :root[lang="ar"] .label.ltr,
+  :root[lang="ar"] [lang="en"].label {
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* The query container `--hero-name` is measured against. */
+  .name-box { container-type: inline-size; }
+
   .measure { max-width: var(--measure); }
   .measure-sm { max-width: var(--measure-sm); }
 
   /* Arabic sits below its baseline more than Latin and carries marks
      above it, so it wants a looser rhythm to stay readable at length. */
   :root[lang="ar"] .measure,
-  :root[lang="ar"] .measure-sm { line-height: 1.9; }
+  :root[lang="ar"] .measure-sm { line-height: 1.95; }
 
   .ltr { direction: ltr; unicode-bidi: isolate; }
 
@@ -191,8 +238,8 @@
     pointer-events: none;
     z-index: 0;
     background:
-      radial-gradient(60% 55% at 78% 18%, hsl(var(--aura) 85% 60% / 0.16), transparent 62%),
-      radial-gradient(55% 50% at 15% 82%, hsl(calc(var(--aura) + 58) 80% 62% / 0.11), transparent 64%);
+      radial-gradient(60% 55% at 78% 18%, hsl(var(--aura) 76% 58% / 0.115), transparent 62%),
+      radial-gradient(55% 50% at 15% 82%, hsl(calc(var(--aura) + 28) 70% 60% / 0.075), transparent 64%);
     transition: background 1.2s var(--ease-signal);
   }
 
@@ -234,15 +281,10 @@
     to   { background-position: 350% 50%, 350% 50%; }
   }
 
-  .animate-aurora {
-    animation: aurora 62s linear infinite;
-  }
+  .animate-aurora { animation: aurora 62s linear infinite; }
 
-  /* A section boundary that reads as a cut rather than a seam: the ground
-     lifts a shade and a hairline of accent runs along the edge. */
-  .chapter-edge {
-    position: relative;
-  }
+  /* A section boundary that reads as a cut rather than a seam. */
+  .chapter-edge { position: relative; }
 
   .chapter-edge::before {
     content: "";
@@ -253,8 +295,8 @@
     background: linear-gradient(
       90deg,
       transparent,
-      hsl(var(--aura) 80% 62% / 0.55) 22%,
-      hsl(calc(var(--aura) + 50) 80% 64% / 0.35) 62%,
+      hsl(var(--aura) 78% 62% / 0.5) 22%,
+      hsl(calc(var(--aura) + 28) 74% 64% / 0.3) 62%,
       transparent
     );
     pointer-events: none;
@@ -269,12 +311,10 @@
   /* A line of type that rises out of a clipping mask. */
   .mask-line { display: block; overflow: hidden; padding-block-end: 0.08em; }
 
-  /* Cairo's ink runs about 0.27em past a 1.1 line box at each end, and the
-     mask is `overflow: hidden`, so without this the ي and ر tails are
-     sliced off. The padding buys the paint room; the negative margin hands
-     the space back so the name still stacks tightly. The word is still far
-     below the mask when the entrance starts it at yPercent 118, so the
-     reveal is unaffected.
+  /* Kufi's ink runs past a tight line box at both ends, and the mask is
+     `overflow: hidden`, so without this the ي and ر tails are sliced off.
+     The padding buys the paint room; the negative margin hands the space
+     back so the name still stacks tightly.
 
      `.mask-stack` on the parent is not decoration: adjacent negative
      margins collapse to the single most-negative value rather than
@@ -283,12 +323,111 @@
   .mask-stack { display: flex; flex-direction: column; }
 
   :root[lang="ar"] .mask-line {
-    padding-block: 0.3em;
-    margin-block: -0.3em;
+    padding-block: 0.26em;
+    margin-block: -0.26em;
+  }
+
+  /* ── The signal language ────────────────────────────────────────
+     A wire is a hairline that carries a travelling pulse. It is the
+     one decorative motif the whole page shares: the hero connector,
+     the capability map's edges and the career spine are all wires. */
+  .wire {
+    position: relative;
+    background: linear-gradient(
+      to var(--wire-to, right),
+      transparent,
+      var(--line-2) 18%,
+      var(--line-2) 82%,
+      transparent
+    );
+  }
+
+  :root[lang="ar"] .wire { --wire-to: left; }
+
+  .wire::after {
+    content: "";
+    position: absolute;
+    inset-block: 50%;
+    inline-size: 26%;
+    block-size: 1px;
+    margin-block-start: -0.5px;
+    background: linear-gradient(to var(--wire-to, right), transparent, var(--color-cyan), transparent);
+    animation: wire-run 3.4s var(--ease-signal) infinite;
+    animation-delay: var(--wire-delay, 0s);
+  }
+
+  @keyframes wire-run {
+    0%       { inset-inline-start: -26%; opacity: 0; }
+    12%      { opacity: 1; }
+    72%, 100% { inset-inline-start: 100%; opacity: 0; }
+  }
+
+  /* An SVG edge with a dash running along it. The length is written per
+     edge from script, because a dash tuned for one span crawls on a
+     longer one and strobes on a shorter. */
+  .edge-pulse {
+    stroke-dasharray: 12 var(--edge-len, 400);
+    stroke-dashoffset: calc(12px + var(--edge-len, 400) * 1px);
+    animation: edge-run var(--edge-dur, 3s) linear infinite;
+    animation-delay: var(--edge-delay, 0s);
+  }
+
+  @keyframes edge-run {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* The field is densest at the core and dissolves outward, so it reads
+     as something emanating from the portrait rather than as a ball
+     parked behind it — and so the type around it sits on ground rather
+     than on a lattice. The fade is tighter on a phone, where the status
+     rail and the name are only a portrait-width away from the core;
+     wide screens let it run further, because there the spokes passing
+     under the name are what ties the lockup together. */
+  .field-mask {
+    --field-fade: 56%;
+    mask-image: radial-gradient(circle at 50% 50%, #000 25%, rgb(0 0 0 / 0.5) 40%, transparent var(--field-fade));
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 25%, rgb(0 0 0 / 0.5) 40%, transparent var(--field-fade));
+  }
+
+  @media (min-width: 1024px) {
+    .field-mask { --field-fade: 76%; }
+  }
+
+  /* The portrait aperture: the person sits at the centre of the network
+     rather than beside it, so the rings are part of the diagram. */
+  .aperture-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 1px solid var(--line);
+    pointer-events: none;
+  }
+
+  .aperture-sweep {
+    position: absolute;
+    inset: -1px;
+    border-radius: 9999px;
+    pointer-events: none;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      hsl(var(--aura) 85% 66% / 0.55) 24deg,
+      transparent 62deg,
+      transparent 360deg
+    );
+    mask: radial-gradient(circle, transparent calc(100% - 2px), #000 calc(100% - 2px));
+    -webkit-mask: radial-gradient(circle, transparent calc(100% - 2px), #000 calc(100% - 2px));
+    animation: aperture-spin 9s linear infinite;
+  }
+
+  @keyframes aperture-spin {
+    to { transform: rotate(360deg); }
   }
 
   /* The career entry that currently owns the middle of the screen. */
-  .is-live .border-cyan { box-shadow: 0 0 0 7px rgb(92 225 230 / 0.14), 0 0 22px rgb(92 225 230 / 0.5); }
+  .is-live .live-marker {
+    box-shadow: 0 0 0 7px rgb(92 225 230 / 0.14), 0 0 22px rgb(92 225 230 / 0.5);
+  }
 
   .sr-only {
     position: absolute;
@@ -310,4 +449,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+
+  /* These read as artefacts once frozen mid-travel rather than as
+     decoration that has simply stopped. */
+  .wire::after,
+  .edge-pulse,
+  .aperture-sweep { display: none !important; }
 }

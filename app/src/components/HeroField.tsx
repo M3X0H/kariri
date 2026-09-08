@@ -4,11 +4,17 @@ import * as THREE from 'three';
 /* ═══════════════════════════════════════════════════════════════
    The signal field.
 
-   A sphere of points distributed by the Fibonacci lattice, stitched to
-   their nearest neighbours so the surface reads as a network rather
-   than a geodesic cage. A handful of nodes carry a travelling pulse.
+   A shell of points distributed by the Fibonacci lattice and stitched
+   to their nearest neighbours, so the surface reads as a network rather
+   than a geodesic cage. The shell is hollow on purpose: this canvas is
+   centred on the portrait aperture, so the person sits inside his own
+   network instead of beside a decorative sphere.
 
-   It answers to the pointer (tilt + parallax) and to scroll (the sphere
+   Spokes run from just outside the aperture out to the shell, dim at
+   the inner end so they appear to emerge from behind the portrait, and
+   a handful of pulses travel along them.
+
+   It answers to the pointer (tilt + parallax) and to scroll (the shell
    disperses as the hero leaves). It idles when off-screen or when the
    tab is hidden, and disposes everything it allocated on unmount.
    ═══════════════════════════════════════════════════════════════ */
@@ -19,9 +25,14 @@ import * as THREE from 'three';
    is what actually matters on a phone GPU. */
 const NEIGHBOURS = 2;
 const QUALITY = {
-  full: { count: 720, dpr: 1.75 },
-  lite: { count: 340, dpr: 1.25 }
+  full: { count: 700, dpr: 1.75, spokes: 22, aa: true },
+  lite: { count: 300, dpr: 1.25, spokes: 12, aa: false }
 } as const;
+
+/* Where a spoke starts. The aperture covers roughly the inner third of
+   this canvas, so anything closer than this is hidden behind the face
+   and only costs fill. */
+const INNER = 0.36;
 
 const VERT = /* glsl */ `
   attribute vec3 aDir;
@@ -62,13 +73,13 @@ export default function HeroField({ lite = false }: { lite?: boolean }) {
   const holder = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const { count: COUNT, dpr } = QUALITY[lite ? 'lite' : 'full'];
+    const { count: COUNT, dpr, spokes: SPOKES, aa } = QUALITY[lite ? 'lite' : 'full'];
     const mount = holder.current;
     if (!mount) return;
 
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
+      renderer = new THREE.WebGLRenderer({ antialias: aa, alpha: true, powerPreference: 'low-power' });
     } catch {
       return; // No WebGL — the CSS fallback behind this stays visible.
     }
@@ -82,7 +93,7 @@ export default function HeroField({ lite = false }: { lite?: boolean }) {
     mount.appendChild(renderer.domElement);
     renderer.domElement.style.cssText = 'display:block;width:100%;height:100%';
 
-    /* ── geometry ─────────────────────────────────────────────── */
+    /* ── the shell ────────────────────────────────────────────── */
     const positions = new Float32Array(COUNT * 3);
     const dirs = new Float32Array(COUNT * 3);
     const colors = new Float32Array(COUNT * 3);
@@ -125,7 +136,7 @@ export default function HeroField({ lite = false }: { lite?: boolean }) {
     /* uSize is a world-space radius, not pixels: the shader converts it
        with (320 / -z), which at this camera distance is roughly ×76.
        Feeding pixels in here produced 200px sprites that additively
-       blew the whole sphere out to a solid white disc. */
+       blew the whole shell out to a solid white disc. */
     const uniforms = {
       uSize: { value: 0.055 },
       uDisperse: { value: 0 },
@@ -145,7 +156,7 @@ export default function HeroField({ lite = false }: { lite?: boolean }) {
     const points = new THREE.Points(pointGeo, pointMat);
 
     /* Stitch each point to its nearest neighbours. O(n²) once at build
-       time on 720 points is a few milliseconds and never runs again. */
+       time on 700 points is a few milliseconds and never runs again. */
     const linePos: number[] = [];
     const lineCol: number[] = [];
     const seen = new Set<string>();
@@ -180,15 +191,90 @@ export default function HeroField({ lite = false }: { lite?: boolean }) {
     const lineMat = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.14,
+      opacity: 0.13,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
 
     const lines = new THREE.LineSegments(lineGeo, lineMat);
 
+    /* ── the spokes ───────────────────────────────────────────── */
+    /* Radial wires from just outside the aperture to the shell. Blending
+       is additive, so brightness *is* colour magnitude: scaling the inner
+       vertex toward black is the fade, and costs nothing to draw. */
+    const spokeIdx: number[] = [];
+    const spokePos: number[] = [];
+    const spokeCol: number[] = [];
+    const step = Math.floor(COUNT / SPOKES);
+
+    for (let s = 0; s < SPOKES; s++) {
+      const i = (s * step + ((s * 37) % step)) % COUNT;
+      spokeIdx.push(i);
+      const d = pts[i];
+      spokePos.push(d.x * INNER, d.y * INNER, d.z * INNER, d.x, d.y, d.z);
+      const [r, g, b] = [colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]];
+      spokeCol.push(r * 0.04, g * 0.04, b * 0.04, r, g, b);
+    }
+
+    const spokeGeo = new THREE.BufferGeometry();
+    spokeGeo.setAttribute('position', new THREE.Float32BufferAttribute(spokePos, 3));
+    spokeGeo.setAttribute('color', new THREE.Float32BufferAttribute(spokeCol, 3));
+
+    const spokeMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    const spokeLines = new THREE.LineSegments(spokeGeo, spokeMat);
+
+    /* ── the pulses ───────────────────────────────────────────── */
+    /* One travelling point per spoke, its position rewritten each frame.
+       At most 22 vec3 writes — far cheaper than any particle system, and
+       it is the detail that makes the field read as *carrying* something
+       rather than merely existing. */
+    const pulseN = spokeIdx.length;
+    const pulsePos = new Float32Array(pulseN * 3);
+    const pulseDir = new Float32Array(pulseN * 3);
+    const pulseCol = new Float32Array(pulseN * 3);
+    const pulseScale = new Float32Array(pulseN);
+    const pulseSeed = new Float32Array(pulseN);
+    const pulseT = new Float32Array(pulseN);
+
+    for (let s = 0; s < pulseN; s++) {
+      const i = spokeIdx[s];
+      pulseDir.set([pts[i].x, pts[i].y, pts[i].z], s * 3);
+      pulseCol.set([colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]], s * 3);
+      pulseScale[s] = 1.5 + Math.random() * 0.9;
+      pulseSeed[s] = Math.random();
+      pulseT[s] = Math.random();
+    }
+
+    const pulseGeo = new THREE.BufferGeometry();
+    const pulseAttr = new THREE.BufferAttribute(pulsePos, 3);
+    pulseAttr.setUsage(THREE.DynamicDrawUsage);
+    pulseGeo.setAttribute('position', pulseAttr);
+    pulseGeo.setAttribute('aDir', new THREE.BufferAttribute(pulseDir, 3));
+    pulseGeo.setAttribute('color', new THREE.BufferAttribute(pulseCol, 3));
+    pulseGeo.setAttribute('aScale', new THREE.BufferAttribute(pulseScale, 1));
+    pulseGeo.setAttribute('aSeed', new THREE.BufferAttribute(pulseSeed, 1));
+
+    const pulseMat = new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: VERT,
+      fragmentShader: FRAG,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexColors: true
+    });
+
+    const pulses = new THREE.Points(pulseGeo, pulseMat);
+
     const group = new THREE.Group();
-    group.add(points, lines);
+    group.add(points, lines, spokeLines, pulses);
     group.rotation.z = -0.18;
     scene.add(group);
 
@@ -234,9 +320,21 @@ export default function HeroField({ lite = false }: { lite?: boolean }) {
       raf = requestAnimationFrame(tick);
       if (!visible || document.hidden) return;
 
+      const dt = Math.min(clock.getDelta(), 0.05);
       const t = clock.getElapsedTime();
       uniforms.uTime.value = t;
       uniforms.uDisperse.value += (scrollT * 1.5 - uniforms.uDisperse.value) * 0.06;
+
+      // Pulses run outward, then restart from the aperture.
+      for (let s = 0; s < pulseN; s++) {
+        pulseT[s] += dt * (0.16 + pulseSeed[s] * 0.2);
+        if (pulseT[s] > 1) pulseT[s] -= 1;
+        const r = INNER + (1 - INNER) * pulseT[s];
+        pulsePos[s * 3] = pulseDir[s * 3] * r;
+        pulsePos[s * 3 + 1] = pulseDir[s * 3 + 1] * r;
+        pulsePos[s * 3 + 2] = pulseDir[s * 3 + 2] * r;
+      }
+      pulseAttr.needsUpdate = true;
 
       pointer.x += (pointer.tx - pointer.x) * 0.045;
       pointer.y += (pointer.ty - pointer.y) * 0.045;
@@ -245,7 +343,9 @@ export default function HeroField({ lite = false }: { lite?: boolean }) {
       group.rotation.x = pointer.y * 0.3;
       group.position.y = -scrollT * 0.55;
 
-      lineMat.opacity = 0.14 * (1 - scrollT * 0.85);
+      const fade = 1 - scrollT * 0.85;
+      lineMat.opacity = 0.13 * fade;
+      spokeMat.opacity = 0.5 * fade;
       renderer.render(scene, camera);
     };
     tick();
@@ -258,8 +358,12 @@ export default function HeroField({ lite = false }: { lite?: boolean }) {
       io.disconnect();
       pointGeo.dispose();
       lineGeo.dispose();
+      spokeGeo.dispose();
+      pulseGeo.dispose();
       pointMat.dispose();
       lineMat.dispose();
+      spokeMat.dispose();
+      pulseMat.dispose();
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
     };

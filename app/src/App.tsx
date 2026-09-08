@@ -3,9 +3,22 @@ import { LazyMotion, domAnimation } from 'framer-motion';
 import { LangProvider, useLang } from './lib/lang';
 import { Loader, Nav } from './components/Chrome';
 import { SmoothCursor } from './components/lightswind/smooth-cursor';
-import { About, Hero, StackBand, Statement } from './components/SectionsTop';
-import { Capabilities, Career, Contact, Credentials, Footer, Work } from './components/SectionsBottom';
+import { About, Fault, Hero } from './components/SectionsTop';
+import { SystemMap } from './components/SystemMap';
+import { Career, Contact, Credentials, Footer, Work } from './components/SectionsBottom';
 
+/* The page is a route, not a résumé layout: a fault enters, it is
+   traced through a system, and the person who does the tracing is
+   introduced by his work rather than ahead of it.
+
+     hero      — who, at the centre of his own network
+     fault     — three faults from an ordinary day
+     map       — the six connected areas each one runs through   01
+     about     — the operator behind them                        02
+     career    — where he has applied them                       03
+     work      — what he has built                               04
+     cred      — what validates it                               05
+     contact   — how to reach him                                06 */
 function Site() {
   const { t } = useLang();
   const [ready, setReady] = useState(false);
@@ -30,10 +43,9 @@ function Site() {
 
       <main id="main" className="relative">
         <Hero ready={ready} />
-        <Statement />
-        <StackBand />
+        <Fault />
+        <SystemMap />
         <About />
-        <Capabilities />
         <Career />
         <Work />
         <Credentials />

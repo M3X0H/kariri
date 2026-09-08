@@ -4,7 +4,16 @@ import { m, useScroll, useSpring } from 'framer-motion';
 import { useLang } from '../lib/lang';
 import { gsap, prefersReduced } from '../lib/motion';
 
-export const SECTIONS = ['start', 'about', 'capabilities', 'career', 'work', 'contact'] as const;
+/* The chapters that carry a number on the page, in page order. The hero
+   is not one of them: it is reached through the wordmark, which every
+   visitor already reads as "home", and dropping it from the bar buys the
+   width that the credentials chapter needs. */
+export const NAV = ['capabilities', 'about', 'career', 'work', 'credentials', 'contact'] as const;
+
+/* What the scroll spy watches. `start` and `fault` have no entry in the
+   bar, but they still have to be here or the spy reports the chapter
+   below them as current while the hero is still on screen. */
+const TRACKED = ['start', 'fault', ...NAV] as const;
 
 /* ═══════════════════════════════════════════════════════════════
    Loading sequence
@@ -59,8 +68,10 @@ export function Loader({ onDone }: { onDone: () => void }) {
       style={{ clipPath: 'inset(0 0 0% 0)' }}
     >
       <div data-fade className="flex items-end justify-between gap-6">
-        <span className="font-mono text-ink-3 text-xs tracking-[0.3em] uppercase">Mohammed Kariri</span>
-        <span className="font-display text-ink text-[clamp(3rem,12vw,9rem)] leading-none tabular-nums">
+        <span lang="en" className="font-mono text-xs uppercase tracking-[0.3em] text-ink-3">
+          Mohammed Kariri
+        </span>
+        <span className="font-display text-[clamp(3rem,12vw,9rem)] leading-none tabular-nums text-ink">
           {String(pct).padStart(3, '0')}
         </span>
       </div>
@@ -80,6 +91,10 @@ export function Loader({ onDone }: { onDone: () => void }) {
    the hero. In-page links are driven here rather than left to the
    browser's fragment jump, so they clear the fixed bar, move focus to
    the destination, and behave the same through Back and Forward.
+
+   The full bar appears at `lg`, not `md`: six Arabic chapter names plus
+   the wordmark and the two controls need more than 768px, and at that
+   width they were colliding rather than wrapping.
    ═══════════════════════════════════════════════════════════════ */
 export function Nav() {
   const { t, lang, toggle } = useLang();
@@ -93,11 +108,11 @@ export function Nav() {
   const lastHash = useRef({ hash: '', at: 0 });
 
   const labels: Record<string, string> = {
-    start: t.nav.home,
-    about: t.nav.about,
     capabilities: t.nav.caps,
+    about: t.nav.about,
     career: t.nav.career,
     work: t.nav.work,
+    credentials: t.cred.tag,
     contact: t.nav.contact
   };
 
@@ -121,13 +136,13 @@ export function Nav() {
       ticking = false;
       setCompact(window.scrollY > window.innerHeight * 0.6);
 
-      let current: (typeof SECTIONS)[number] = SECTIONS[0];
-      for (const id of SECTIONS) {
+      let current: string = TRACKED[0];
+      for (const id of TRACKED) {
         const el = document.getElementById(id);
         if (el && el.getBoundingClientRect().top <= 160) current = id;
       }
       if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
-        current = SECTIONS[SECTIONS.length - 1];
+        current = TRACKED[TRACKED.length - 1];
       }
       setActive(current);
     };
@@ -199,7 +214,7 @@ export function Nav() {
       {/* How far through the page you are, as one hairline. */}
       <m.div
         aria-hidden="true"
-        className="fixed inset-x-0 top-0 z-[130] h-px origin-left bg-gradient-to-r from-cyan via-violet to-magenta motion-reduce:hidden"
+        className="fixed inset-x-0 top-0 z-[130] h-px origin-left bg-gradient-to-r from-cyan via-blue to-violet motion-reduce:hidden"
         style={{ scaleX: progress, transformOrigin: lang === 'ar' ? 'right' : 'left' }}
       />
 
@@ -214,13 +229,16 @@ export function Nav() {
           className={[
             'mx-auto flex items-center gap-4 transition-all duration-500',
             compact
-              ? 'glass w-[min(94vw,44rem)] rounded-full px-4 py-2'
+              ? 'glass w-[min(94vw,30rem)] rounded-full px-4 py-2 lg:w-[min(94vw,66rem)]'
               : 'w-[min(96vw,88rem)] px-[max(1.25rem,env(safe-area-inset-left))]'
           ].join(' ')}
           style={{ transitionTimingFunction: 'cubic-bezier(0.16,1,0.3,1)' }}
         >
-          <a href="#start" className="flex items-center gap-2.5 shrink-0">
-            <span className="grid h-7 w-7 place-items-center bg-ink font-mono text-[0.6rem] font-medium text-void">
+          <a href="#start" className="flex h-10 shrink-0 items-center gap-2.5">
+            <span
+              lang="en"
+              className="grid h-7 w-7 place-items-center bg-ink font-mono text-[0.6rem] font-medium text-void"
+            >
               MK
             </span>
             <span className={['font-display text-sm', compact ? 'hidden sm:inline' : ''].join(' ')}>
@@ -228,22 +246,23 @@ export function Nav() {
             </span>
           </a>
 
-          <nav aria-label={t.nav.menu} className="ms-auto hidden items-center gap-1 md:flex">
-            {SECTIONS.map((id, i) => (
+          <nav aria-label={t.nav.menu} className="ms-auto hidden items-center gap-0.5 lg:flex">
+            {NAV.map((id, i) => (
               <a
                 key={id}
                 href={`#${id}`}
-                aria-current={active === id ? 'true' : undefined}
+                aria-current={active === id ? 'page' : undefined}
                 className={[
                   'group relative px-3 py-2 text-sm transition-colors duration-300',
                   active === id ? 'text-ink' : 'text-ink-3 hover:text-ink'
                 ].join(' ')}
               >
-                <span className="me-1.5 font-mono text-[0.6rem] opacity-50">
+                <span aria-hidden="true" className="me-1.5 hidden font-mono text-[0.6rem] opacity-50 xl:inline">
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {labels[id]}
                 <span
+                  aria-hidden="true"
                   className={[
                     'absolute inset-x-2 bottom-1 h-px bg-cyan transition-transform duration-500',
                     active === id ? 'scale-x-100' : 'scale-x-0'
@@ -254,7 +273,7 @@ export function Nav() {
             ))}
           </nav>
 
-          <div className={['flex items-center gap-1', compact ? 'ms-auto md:ms-0' : 'ms-auto md:ms-0'].join(' ')}>
+          <div className="ms-auto flex items-center gap-1 lg:ms-0">
             <button
               onClick={toggle}
               aria-label={t.nav.lang}
@@ -268,7 +287,7 @@ export function Nav() {
               aria-expanded={open}
               aria-controls="menu-sheet"
               aria-label={t.nav.menu}
-              className="grid h-10 w-10 place-items-center text-ink-2 transition-colors hover:text-ink md:hidden"
+              className="grid h-10 w-10 place-items-center text-ink-2 transition-colors hover:text-ink lg:hidden"
             >
               {open ? <X size={18} aria-hidden /> : <Menu size={18} aria-hidden />}
             </button>
@@ -276,19 +295,21 @@ export function Nav() {
         </div>
       </header>
 
-      {/* Mobile sheet: full bleed, large type, one item per line. */}
+      {/* Sheet: full bleed, large type, one chapter per line. */}
       <div
         id="menu-sheet"
         hidden={!open}
-        className="fixed inset-0 z-[110] flex flex-col justify-center gap-1 bg-void/95 px-[6vw] backdrop-blur-xl md:hidden"
+        className="fixed inset-0 z-[110] flex flex-col justify-center gap-1 bg-void/95 px-[6vw] backdrop-blur-xl lg:hidden"
       >
-        {SECTIONS.map((id, i) => (
+        {NAV.map((id, i) => (
           <a
             key={id}
             href={`#${id}`}
-            className="flex items-baseline gap-4 border-b border-[var(--line)] py-4 font-display text-[clamp(1.7rem,8vw,2.6rem)] leading-none"
+            className="flex items-baseline gap-4 border-b border-[var(--line)] py-4 font-display text-[clamp(1.6rem,7.5vw,2.6rem)] leading-none"
           >
-            <span className="font-mono text-[0.7rem] text-cyan">{String(i + 1).padStart(2, '0')}</span>
+            <span aria-hidden="true" className="font-mono text-[0.7rem] text-cyan">
+              {String(i + 1).padStart(2, '0')}
+            </span>
             <span className={active === id ? 'text-cyan' : 'text-ink'}>{labels[id]}</span>
           </a>
         ))}
