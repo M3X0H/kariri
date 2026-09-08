@@ -189,6 +189,19 @@ export function Work() {
   const { t, lang } = useLang();
   const p = t.work.project;
 
+  /* The project is this page, so the card shows what the page actually
+     is — its six chapters on a wire, in the site's own node language —
+     rather than a wireframe of some other website or, worse, the
+     portrait a second time twenty centimetres below the first. */
+  const chapters: [string, string][] = [
+    ['01', t.nav.caps],
+    ['02', t.nav.about],
+    ['03', t.nav.career],
+    ['04', t.nav.work],
+    ['05', t.cred.tag],
+    ['06', t.nav.contact]
+  ];
+
   const root = useScene<HTMLElement>((el) => {
     const q = gsap.utils.selector(el);
 
@@ -251,46 +264,59 @@ export function Work() {
           <div data-visual className="lg:sticky lg:top-28 lg:self-start">
             <TiltCard maxTilt={8} float={9} shine={0.2} perspective={1300}>
               <div className="relative aspect-[4/3] overflow-hidden border border-[var(--line-2)] bg-graphite">
-                <BorderBeam size={80} className="[--beam-w:40px] md:[--beam-w:80px]" duration={8} glowIntensity={1} opacity={0.85} />
+                <BorderBeam
+                  size={44}
+                  className="[--beam-w:26px] md:[--beam-w:44px]"
+                  duration={8}
+                  glowIntensity={0.4}
+                  opacity={0.75}
+                  colorFrom="var(--color-cyan)"
+                  colorTo="var(--color-blue)"
+                />
 
                 <div
                   data-visual-inner
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-5 p-[8%] [transform-style:preserve-3d]"
+                  className="absolute inset-0 flex flex-col justify-center p-[8%] [transform-style:preserve-3d]"
                 >
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_35%,rgba(92,225,230,0.16),transparent_65%)]"
+                    className="absolute inset-0 bg-[radial-gradient(72%_62%_at_72%_16%,rgba(92,225,230,0.15),transparent_66%)]"
                   />
 
-                  {/* The same aperture the hero opens on, at card scale. */}
-                  <div className="lift-3 relative aspect-square w-[34%] shrink-0">
-                    <span aria-hidden="true" className="aperture-ring" style={{ inset: '-14%' }} />
-                    <span aria-hidden="true" className="aperture-ring" style={{ inset: '-30%', opacity: 0.55 }} />
-                    <img
-                      src={LINKS.portrait}
-                      alt=""
-                      aria-hidden="true"
-                      width={1062}
-                      height={1280}
-                      loading="lazy"
-                      className="h-full w-full rounded-full border border-[var(--line-2)] object-cover object-[50%_16%] grayscale"
-                    />
-                    <span aria-hidden="true" className="aperture-sweep" />
+                  <div className="lift-3 relative mb-5 flex items-center gap-3">
+                    <span
+                      lang="en"
+                      className="grid h-7 w-7 shrink-0 place-items-center bg-ink font-mono text-[0.55rem] font-medium text-void"
+                    >
+                      MK
+                    </span>
+                    <span lang="en" className="display-type text-[clamp(1rem,3vw,1.6rem)] leading-none">
+                      KARIRI
+                    </span>
+                    <span
+                      lang="en"
+                      className="ms-auto truncate font-mono text-[0.55rem] tracking-[0.12em] text-ink-3"
+                    >
+                      m3x0h.github.io
+                    </span>
                   </div>
 
-                  <span
-                    lang="en"
-                    className="lift-2 relative display-type text-[clamp(1.4rem,4.6vw,2.8rem)] leading-none"
-                  >
-                    KARIRI
-                  </span>
-
-                  <span aria-hidden="true" className="lift-1 relative h-px w-[58%] bg-gradient-to-r from-transparent via-cyan to-transparent" />
-
-                  <span
-                    aria-hidden="true"
-                    className="relative h-6 w-full bg-[repeating-linear-gradient(90deg,var(--color-panel-2)_0_9%,transparent_9%_12%)] opacity-70"
-                  />
+                  <ol className="lift-1 relative ps-5">
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-y-2 start-[2.5px] w-px bg-gradient-to-b from-cyan via-blue to-transparent"
+                    />
+                    {chapters.map(([no, label]) => (
+                      <li key={no} className="relative flex items-baseline gap-2.5 py-[0.3rem]">
+                        <span
+                          aria-hidden="true"
+                          className="absolute -start-5 top-[0.62rem] h-1.5 w-1.5 rounded-full bg-cyan/85"
+                        />
+                        <span lang="en" className="font-mono text-[0.55rem] text-cyan">{no}</span>
+                        <span className="truncate text-[0.78rem] leading-tight text-ink">{label}</span>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
               </div>
             </TiltCard>
