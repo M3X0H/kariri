@@ -254,12 +254,21 @@
     color: var(--color-cyan);
   }
 
+  /* The chapter readout. Empty until the spy has published one, so a
+     browser that never runs the script simply gets no label rather than
+     a stray pair of quotes. */
+  .hud-chapter::after {
+    content: var(--chapter, "");
+    color: var(--color-ink-2);
+  }
+
   /* A phone has no room for a frame on top of a full-bleed composition,
      and the margin it would need is exactly the margin the design is
      spending on the image. Corners and one figure survive. */
   @media (max-width: 767px) {
     .hud { inset: 0.5rem; }
     .hud-side { display: none; }
+    .hud-chapter { display: none; }
   }
 
   /* ── The field ──────────────────────────────────────────────────

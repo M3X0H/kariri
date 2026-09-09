@@ -47,6 +47,12 @@ export function Hud() {
         {lang === 'ar' ? 'AR / RTL' : 'EN / LTR'}
       </span>
 
+      {/* Where you are, printed on the frame. The value is written by
+          the navigation's scroll spy as `--chapter` and rendered through
+          `content`, so this element never re-renders and the loop never
+          touches a text node. */}
+      <span className="hud-tag hud-chapter" style={{ top: '-0.42rem', insetInlineEnd: '1.5rem' }} />
+
       {/* Runs up the frame's edge, the way a dimension is labelled on a
           drawing. Hidden on a phone, where the frame itself steps back. */}
       <span lang="en" className="hud-tag hud-side ltr">

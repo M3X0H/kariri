@@ -123,6 +123,8 @@ export function Nav() {
   isMounted.current = mounted;
 
   const labels: Record<string, string> = {
+    start: t.nav.home,
+    fault: t.fault.tag,
     capabilities: t.nav.caps,
     about: t.nav.about,
     career: t.nav.career,
@@ -130,6 +132,23 @@ export function Nav() {
     credentials: t.cred.tag,
     contact: t.nav.contact
   };
+
+  /* The scroll spy already knows which chapter holds the screen, and
+     the frame is the one element every chapter shares — so it prints
+     it. Published as a custom property rather than passed down through
+     React: the HUD is decorative and inert, and a chapter change should
+     not re-render it. Same trick the live scroll figure uses, and the
+     reason the frame reads as one instrument rather than as a border.
+
+     `content` takes a quoted string, so the quotes are part of the
+     value. */
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--chapter',
+      JSON.stringify(labels[active] ?? '')
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, lang]);
 
   useLayoutEffect(() => {
     const nav = bar.current;
