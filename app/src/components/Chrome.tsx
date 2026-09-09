@@ -365,7 +365,7 @@ export function Nav() {
                 href={`#${id}`}
                 aria-current={active === id ? 'page' : undefined}
                 className={[
-                  'relative px-3 py-2 text-sm transition-colors duration-300',
+                  'u-line relative px-3 py-2 text-sm transition-colors duration-300',
                   active === id ? 'text-ink' : 'text-ink-3 hover:text-ink'
                 ].join(' ')}
               >
@@ -422,14 +422,13 @@ export function Nav() {
         hidden={!mounted}
         className="fixed inset-0 z-[110] flex flex-col justify-center gap-1 bg-void/95 px-[6vw] backdrop-blur-xl lg:hidden"
       >
-        <div className="pointer-light" aria-hidden="true" />
         {NAV.map((id, i) => (
           <a
             key={id}
             data-sheet-link
             href={`#${id}`}
             aria-current={active === id ? 'page' : undefined}
-            className="relative flex items-baseline gap-4 border-b border-[var(--line)] py-4 font-display text-[clamp(1.6rem,7.5vw,2.6rem)] leading-none"
+            className="row-step relative flex items-baseline gap-4 border-b border-[var(--line)] py-4 font-display text-[clamp(1.6rem,7.5vw,2.6rem)] leading-none"
           >
             <span aria-hidden="true" className="font-mono text-[0.7rem] text-cyan">
               {String(i + 1).padStart(2, '0')}

@@ -11,15 +11,21 @@
    Every accent below clears WCAG AA on the void ground.
    ═══════════════════════════════════════════════════════════════ */
 @theme {
-  --color-void: #050609;
-  --color-graphite: #0b0d12;
-  --color-panel: #101319;
-  --color-panel-2: #171b24;
+  --color-void: #07080a;
+  --color-graphite: #0c0e11;
+  --color-panel: #111418;
+  --color-panel-2: #171b20;
 
-  --color-ink: #f5f7fa;
-  --color-ink-2: #a7afc0;
-  --color-ink-3: #7e8798;
+  /* Bone, not blue-white. A warm ink against a cool black is the whole
+     difference between "dark theme" and a printed instrument panel, and
+     it costs nothing. */
+  --color-ink: #e9e7e2;
+  --color-ink-2: #9b9a95;
+  --color-ink-3: #6c6b67;
 
+  /* One accent. It is used as hairlines, ticks and pulses — light drawn
+     as a line, not smeared as a glow. `blue` and `violet` survive only
+     inside the WebGL field, where they are actual light. */
   --color-cyan: #5ce1e6;
   --color-blue: #4f7cff;
   --color-violet: #8b5cf6;
@@ -39,8 +45,14 @@
 
 @layer base {
   :root {
-    --line: rgb(245 247 250 / 0.1);
-    --line-2: rgb(245 247 250 / 0.2);
+    --line: rgb(233 231 226 / 0.11);
+    --line-2: rgb(233 231 226 / 0.22);
+    --line-3: rgb(233 231 226 / 0.4);
+
+    /* The page's own margin. The HUD frame sits on it, every full-bleed
+       rule starts from it, and section padding is derived from it — so
+       one number keeps the whole page on a single grid. */
+    --pad: max(1.15rem, 4.2vw);
     /* The ambient hue, eased per section by the scroll engine so the
        page changes temperature as the story moves. It walks the cool
        spectrum from cyan at the hero to violet at the close and stops
@@ -250,8 +262,8 @@
     pointer-events: none;
     z-index: 0;
     background:
-      radial-gradient(60% 55% at 78% 18%, hsl(var(--aura) 76% 58% / 0.115), transparent 62%),
-      radial-gradient(55% 50% at 15% 82%, hsl(calc(var(--aura) + 28) 70% 60% / 0.075), transparent 64%);
+      radial-gradient(58% 52% at calc(78% + var(--pxc) * 6%) calc(16% + var(--pyc) * 5%), hsl(var(--aura) 70% 56% / 0.06), transparent 64%),
+      radial-gradient(52% 48% at calc(15% - var(--pxc) * 5%) calc(84% - var(--pyc) * 4%), hsl(calc(var(--aura) + 24) 64% 58% / 0.04), transparent 66%);
     transition: background 1.2s var(--ease-signal);
   }
 
@@ -276,34 +288,44 @@
     -webkit-mask-image: radial-gradient(120% 90% at 50% 30%, #000 35%, transparent 78%);
   }
 
-  /* One soft light for the whole document, following the pointer. It is
-     a single fixed element moved by transform — no gradient is ever
-     re-painted — which is why the page can respond to the pointer
-     everywhere at once for the price of one composited layer. */
-  .pointer-light {
+  /* The pointer used to drag a soft coloured blob around the page. A
+     blob is atmosphere; this page wants instrumentation. Two hairlines
+     spanning the viewport and meeting under the cursor say the same
+     thing — "the page knows where you are" — in the language the rest
+     of the design is speaking, and they are 2px of paint instead of a
+     74vmax gradient layer. */
+  .crosshair {
     position: fixed;
-    left: 50%;
-    top: 50%;
-    width: 74vmax;
-    height: 74vmax;
-    margin: -37vmax 0 0 -37vmax;
-    z-index: 0;
+    inset: 0;
+    z-index: 2;
     pointer-events: none;
-    border-radius: 9999px;
-    background: radial-gradient(
-      circle,
-      rgb(92 225 230 / 0.055),
-      rgb(79 124 255 / 0.035) 42%,
-      transparent 68%
-    );
-    transform: translate3d(calc(var(--pxc) * 24vw), calc(var(--pyc) * 22vh), 0);
+  }
+
+  .crosshair::before,
+  .crosshair::after {
+    content: "";
+    position: absolute;
+    background: rgb(92 225 230 / 0.16);
     will-change: transform;
   }
 
-  /* It is a pointer affordance. There is no pointer on a phone, and the
-     layer is pure cost there. */
+  .crosshair::before {
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 1px;
+    transform: translateX(calc(var(--px) * 100vw));
+  }
+
+  .crosshair::after {
+    inset-inline: 0;
+    top: 0;
+    block-size: 1px;
+    transform: translateY(calc(var(--py) * 100vh));
+  }
+
+  /* There is no pointer on a phone, so there is nothing to track. */
   @media (hover: none), (max-width: 767px) {
-    .pointer-light { display: none; }
+    .crosshair { display: none; }
   }
 
   .grain {
@@ -513,6 +535,109 @@
     -webkit-mask: radial-gradient(circle, transparent 63%, #000 64%);
   }
 
+  /* ── Pointer-reactive surfaces ──────────────────────────────────
+     These read the global pointer signal rather than binding their own
+     listener, so a whole page of them costs one loop. They are for
+     *large* objects only: the signal is viewport-relative, so a small
+     card at the edge of the screen would lean the wrong way — those
+     use TiltCard, which measures its own box. */
+  .tilt-global {
+    transform:
+      perspective(1200px)
+      rotateY(calc(var(--pxc) * var(--tilt, 7deg)))
+      rotateX(calc(var(--pyc) * var(--tilt, 7deg) * -0.62))
+      translate3d(calc(var(--pxc) * var(--shift, 10px)), calc(var(--pyc) * var(--shift, 10px) * 0.7), 0);
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  /* A plane that lifts off whatever is tilting behind it. */
+  .tilt-lift { transform: translateZ(var(--lift, 40px)); }
+
+  @media (hover: none) {
+    .tilt-global { transform: none; }
+    .tilt-lift { transform: none; }
+  }
+
+  /* ── Micro-interactions ─────────────────────────────────────────
+     Small, and everywhere. A page feels responsive because of what
+     happens under the cursor a hundred times, not because of the one
+     big reveal it plays once. */
+
+  /* An underline that draws from the reading edge on hover, and
+     retracts to the same edge — not the opposite one, which is what a
+     plain scale-x does and why it always looks slightly wrong. */
+  .u-line {
+    position: relative;
+  }
+
+  .u-line::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    bottom: -0.18em;
+    inline-size: 100%;
+    block-size: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: inline-start;
+    transition: transform 0.45s var(--ease-signal);
+  }
+
+  .u-line:hover::after,
+  .u-line:focus-visible::after { transform: scaleX(1); }
+
+  /* Row hover: the whole line steps toward the reading edge and its
+     rule lights. Used on every list of links on the page. */
+  .row-step {
+    transition: transform 0.4s var(--ease-signal), border-color 0.4s, color 0.4s;
+  }
+
+  .row-step:hover,
+  .row-step:focus-visible {
+    transform: translateX(calc(var(--step, 10px) * var(--dirx, 1)));
+    border-color: var(--line-3);
+  }
+
+  :root[lang="ar"] .row-step { --dirx: -1; }
+
+  @media (hover: none) {
+    .row-step:hover { transform: none; }
+  }
+
+  /* A hairline that runs the top edge of a card while the pointer is on
+     it — the cheap, sharp cousin of a border beam. */
+  .edge-run {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .edge-run::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -40%;
+    top: 0;
+    inline-size: 40%;
+    block-size: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-cyan), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .edge-run:hover::before {
+    opacity: 1;
+    animation: edge-run 1.5s linear infinite;
+  }
+
+  @keyframes edge-run {
+    to { inset-inline-start: 100%; }
+  }
+
+  /* Icons that lean in the direction they promise. */
+  .go-icon { transition: transform 0.4s var(--ease-signal); }
+  .group:hover .go-icon { transform: translate(0.28rem, -0.28rem); }
+  :root[lang="ar"] .group:hover .go-icon { transform: translate(-0.28rem, -0.28rem); }
+
   /* ── The capability map ─────────────────────────────────────────
      The instrument turns: two rings, opposite directions, slow enough
      to read as drift. Everything else here is state on one element —
@@ -528,6 +653,29 @@
     --near: 0;
     will-change: transform;
   }
+
+  /* Every node breathes, and none of them together: the phase comes
+     from the node's own index, so the ring reads as six things running
+     rather than one thing blinking. */
+  @keyframes node-breathe {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 0.14; transform: scale(1.85); }
+  }
+
+  .map-node-halo {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 1px solid var(--color-cyan);
+    opacity: 0;
+    pointer-events: none;
+    animation: node-breathe 3.4s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * -0.56s);
+  }
+
+  /* Only the live nodes breathe; a ring where all six pulse at once is
+     a loading spinner, not a diagram. */
+  .map-node[data-state="off"] .map-node-halo { animation-play-state: paused; opacity: 0; }
 
   .map-node-disc {
     display: grid;
@@ -647,7 +795,7 @@
   .wire::after,
   .edge-pulse,
   .aperture-sweep,
-  .pointer-light { display: none !important; }
+  .crosshair { display: none !important; }
 
   /* The signal loop never starts, so these would sit frozen at whatever
      the neutral values compute to. Stating it is cheaper than trusting
@@ -657,7 +805,9 @@
   .vel-lean { transform: none !important; }
 
   .map-spin,
-  .map-spin-slow { animation: none !important; }
+  .map-spin-slow,
+  .map-node-halo,
+  .edge-run:hover::before { animation: none !important; }
 
   .map-node-disc { transform: none !important; box-shadow: none !important; }
 }

@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { useLang } from '../lib/lang';
 import { CAPABILITIES, STACK } from '../content';
-import { gsap, useScene, aura, EASE, prefersReduced } from '../lib/motion';
+import { gsap, useScene, aura, EASE, prefersReduced, isCoarse } from '../lib/motion';
 
 /* ═══════════════════════════════════════════════════════════════
    SYSTEM MAP — the signature interaction.
@@ -325,12 +325,13 @@ export function SystemMap() {
 
     /* A slow camera across the section, so the diagram is never sitting
        at exactly the same angle twice. */
+    const swing = isCoarse() ? 7 : 3.5;
     gsap.fromTo(
       q('[data-camera]'),
-      { rotate: -3.5, scale: 0.95 },
+      { rotate: -swing, scale: 0.94 },
       {
-        rotate: 3.5,
-        scale: 1.02,
+        rotate: swing,
+        scale: 1.03,
         ease: 'none',
         scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 1.1 }
       }
@@ -366,7 +367,7 @@ export function SystemMap() {
     >
       <div className="aura" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[88rem]">
+      <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
         <div data-lead>
           <h2 className="label mb-3">
             <span aria-hidden="true">
@@ -442,6 +443,30 @@ export function SystemMap() {
                         opacity={live ? 0.8 : 0.32}
                         style={{ transition: 'opacity .45s, stroke-width .45s' }}
                       />
+                      {/* The core feeds the whole ring, always — dim and
+                          slow on the spokes that are not selected, so the
+                          diagram is never actually still. */}
+                      {e.a === -1 && !live && (
+                        <line
+                          x1={e.x1}
+                          y1={e.y1}
+                          x2={e.x2}
+                          y2={e.y2}
+                          stroke="var(--color-cyan)"
+                          strokeWidth={1.6}
+                          strokeLinecap="round"
+                          className="edge-pulse"
+                          opacity={0.28}
+                          style={
+                            {
+                              '--edge-len': e.len,
+                              '--edge-dur': `${(e.len / 26).toFixed(2)}s`,
+                              '--edge-delay': `${e.b * 0.9}s`
+                            } as CSSProperties
+                          }
+                        />
+                      )}
+
                       {/* The travelling signal, on live wires only. */}
                       {live && (
                         <line
@@ -505,6 +530,11 @@ export function SystemMap() {
                   style={{ left: `${(node.x / BOX) * 100}%`, top: `${(node.y / BOX) * 100}%` }}
                 >
                   <span className="sr-only">{t.caps.items[i].name}</span>
+                  <span
+                    aria-hidden="true"
+                    className="map-node-halo"
+                    style={{ ['--i' as string]: i }}
+                  />
                   <span aria-hidden="true" className="map-node-disc">
                     {String(i + 1).padStart(2, '0')}
                   </span>
@@ -563,7 +593,7 @@ export function SystemMap() {
                 key={s}
                 data-chip
                 lang="en"
-                className="border border-[var(--line)] px-3 py-1.5 font-mono text-xs text-ink-3 transition-colors duration-300 hover:border-cyan/50 hover:text-ink"
+                className="row-step border border-[var(--line)] px-3 py-1.5 font-mono text-xs text-ink-3 hover:border-cyan/50 hover:text-ink" style={{ ['--step' as string]: '4px' }}
               >
                 {s}
               </li>

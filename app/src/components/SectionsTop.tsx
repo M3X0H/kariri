@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUpRight, FileText, MessageCircle } from 'lucide-react';
 import { useLang } from '../lib/lang';
 import { LINKS } from '../content';
 import { gsap, useScene, splitUnits, aura, EASE, prefersReduced, isCoarse } from '../lib/motion';
+import { arrive, depthPass, drift, parallax } from '../lib/scenes';
 import { AuroraBackground } from './lightswind/aurora-background';
 import { CountUp } from './lightswind/count-up';
 import { MagneticButton } from './lightswind/magnetic-button';
@@ -109,6 +110,15 @@ export function Hero({ ready }: { ready: boolean }) {
       ease: 'none',
       scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 0.9 }
     });
+
+    /* Three planes, three speeds. The instrument marks sit furthest
+       back and travel most, the status rail sits between, the type
+       barely moves — which is what separates the composition into
+       depths rather than sliding it as one sheet. */
+    q('[data-float]').forEach((mark) => parallax(mark, 26, 1.1));
+    drift(q('[data-float]'), isCoarse() ? 5 : 11);
+
+    tl.from(q('[data-float]'), { opacity: 0, scale: 0.4, duration: 0.9, stagger: 0.06 }, 0.7);
   }, [ready, lang]);
 
   return (
@@ -121,6 +131,37 @@ export function Hero({ ready }: { ready: boolean }) {
       {/* Cyan through blue into indigo — the page opens at the cool end. */}
       <AuroraBackground hue={186} spread={62} intensity={0.24} />
       <div className="aura" />
+
+      {/* The furthest plane. Small marks that drift on their own, travel
+          most under scroll, and give the composition something to have
+          depth *against* — without them the hero is two planes and a
+          background. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[5]">
+        {[
+          { t: '12%', l: '8%', k: 'tick' },
+          { t: '22%', l: '92%', k: 'dot' },
+          { t: '74%', l: '6%', k: 'dot' },
+          { t: '86%', l: '88%', k: 'tick' },
+          { t: '44%', l: '96%', k: 'cross' },
+          { t: '64%', l: '13%', k: 'cross' }
+        ].map((m, i) => (
+          <span
+            key={i}
+            data-float
+            className="absolute"
+            style={{ top: m.t, left: m.l }}
+          >
+            {m.k === 'tick' && <span className="block h-px w-8 bg-cyan/40" />}
+            {m.k === 'dot' && <span className="block h-1 w-1 rounded-full bg-cyan/60" />}
+            {m.k === 'cross' && (
+              <span className="relative block h-3 w-3">
+                <span className="absolute inset-x-0 top-1/2 h-px bg-ink-3/50" />
+                <span className="absolute inset-y-0 left-1/2 w-px bg-ink-3/50" />
+              </span>
+            )}
+          </span>
+        ))}
+      </div>
 
       <div data-lift className="relative z-10 mx-auto w-full max-w-[88rem]">
         {/* Status rail. Everything here is a fact about right now: what he
@@ -153,11 +194,11 @@ export function Hero({ ready }: { ready: boolean }) {
           >
             {/* GSAP owns the transform on `[data-aperture]` for the scroll
                 exit, so the pointer camera lives one level in. Only the
-                object moves with the pointer — the type stays put, which
+                object turns with the pointer — the type stays put, which
                 is what makes it read as depth rather than as drift, and
                 keeps the largest text on the site off a composited
                 layer where it would lose subpixel antialiasing. */}
-            <div className="hero-camera relative aspect-square">
+            <div className="tilt-global relative aspect-square" style={{ ['--tilt' as string]: '8deg', ['--shift' as string]: '12px' }}>
               {/* The network, centred on the face. It is far larger than
                   the aperture and deliberately runs off the section, so
                   the spokes pass under the name rather than stopping at a
@@ -179,7 +220,7 @@ export function Hero({ ready }: { ready: boolean }) {
               <div data-ring aria-hidden="true" className="aperture-ring z-10" style={{ inset: '-8%' }} />
               <div data-ring aria-hidden="true" className="aperture-ring z-10" style={{ inset: '-19%', opacity: 0.6 }} />
 
-              <div data-iris className="relative z-10 h-full w-full overflow-hidden rounded-full border border-[var(--line-2)]">
+              <div data-iris className="tilt-lift relative z-10 h-full w-full overflow-hidden rounded-full border border-[var(--line-2)]" style={{ ['--lift' as string]: '34px' }}>
                 <img
                   src={LINKS.portrait}
                   alt={t.portraitAlt}
@@ -448,19 +489,32 @@ export function About() {
       gsap
         .timeline({ scrollTrigger: { trigger: el, start: 'top 72%' } })
         .from(q('[data-tag]'), { opacity: 0, x, y, duration: 0.7, ease: EASE })
-        .from(q('[data-para]'), { opacity: 0, x, y, duration: 0.9, ease: EASE }, 0.1)
-        .from(q('[data-stat]'), { opacity: 0, y: 26, duration: 0.7, stagger: 0.1, ease: EASE }, 0.3);
+        .from(q('[data-para]'), { opacity: 0, x, y, filter: 'blur(8px)', duration: 0.9, ease: EASE }, 0.1);
     };
 
     mm.add('(min-width: 1024px)', build(lang === 'ar' ? 40 : -40, 0));
     mm.add('(max-width: 1023px)', build(0, 30));
 
+    /* The figures do not fade in together. Each one rises out of its own
+       rule with the count already running, so the row reads left to
+       right like something being tallied. */
+    arrive(q('[data-stat]'), { y: 44, stagger: 0.14, start: 'top 86%' });
+
+    /* The fact cards turn as they cross — the section's one moment of
+       real perspective, and the reason the grid stops reading as a
+       grid. */
+    depthPass(q('[data-fact]'), { rotate: 11 });
+
+    // The rule beside the copy draws itself as you descend.
     gsap.from(q('[data-draw]'), {
       scaleY: 0,
       transformOrigin: 'top',
       ease: 'none',
       scrollTrigger: { trigger: el, start: 'top 70%', end: 'bottom 70%', scrub: 0.5 }
     });
+
+    // The tally sits on a nearer plane than the copy above it.
+    if (!isCoarse()) parallax(q('[data-stats-row]')[0], 7, 1);
 
     return () => mm.revert();
   }, [lang]);
@@ -473,7 +527,7 @@ export function About() {
       style={aura(218)}
     >
       <div className="aura" />
-      <div className="relative z-10 mx-auto w-full max-w-[88rem]">
+      <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
         <h2 data-tag className="label mb-10">
           <span aria-hidden="true"><span className="text-cyan">02</span> — </span>{t.about.tag}
         </h2>
@@ -501,7 +555,7 @@ export function About() {
                 label across three lines. On phones they become a list —
                 figure on the inline start, label beside it, ruled — and
                 only stack into columns once there is width for them. */}
-            <dl className="mt-11 grid gap-y-4 sm:mt-12 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
+            <dl data-stats-row className="mt-11 grid gap-y-4 sm:mt-12 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
               {t.about.stats.map((s) => (
                 /* `order-first` puts the figure ahead of its label along
                    whichever axis is current, so it leads in both
@@ -529,8 +583,9 @@ export function About() {
               {t.about.facts.map((f, i) => (
                 <SpotlightCard
                   key={f.k}
+                  data-fact
                   glowColor={['var(--color-cyan)', 'var(--color-blue)', 'var(--color-violet)', 'var(--color-cyan)'][i % 4]}
-                  className="border-0 p-5"
+                  className="edge-run border-0 p-5"
                 >
                   <p className="label">{f.k}</p>
                   <p className="mt-2 text-sm text-ink">{f.v}</p>

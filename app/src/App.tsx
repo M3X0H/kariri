@@ -1,7 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { LazyMotion, domAnimation } from 'framer-motion';
 import { LangProvider, useLang } from './lib/lang';
 import { useSignals } from './lib/signals';
+import { gsap, prefersReduced } from './lib/motion';
+import { recede } from './lib/scenes';
 import { Loader, Nav } from './components/Chrome';
 import { SmoothCursor } from './components/lightswind/smooth-cursor';
 import { About, Fault, Hero } from './components/SectionsTop';
@@ -30,6 +32,24 @@ function Site() {
   // publishes — see `lib/signals.ts`.
   useSignals();
 
+  /* Depth, applied once for the whole document. Every chapter that is
+     not pinned recedes as it leaves — falls back in z, softens, dims —
+     so the page reads as one camera moving through a set rather than a
+     stack of panels cutting to each other. Sections opt in with
+     `data-stage` on the wrapper the effect should own; the pinned ones
+     (fault, career) deliberately do not, because their own timeline
+     already governs what happens while they hold the screen.
+
+     This runs after the children's own scenes, so their triggers are
+     already registered when these are added. */
+  useEffect(() => {
+    if (!ready || prefersReduced()) return;
+    const ctx = gsap.context(() => {
+      document.querySelectorAll('[data-stage]').forEach(recede);
+    });
+    return () => ctx.revert();
+  }, [ready]);
+
   return (
     <>
       {!ready && <Loader onDone={done} />}
@@ -42,7 +62,7 @@ function Site() {
       </a>
 
       <div className="grid-field" aria-hidden="true" />
-      <div className="pointer-light" aria-hidden="true" />
+      <div className="crosshair" aria-hidden="true" />
       <div className="grain" aria-hidden="true" />
 
       <SmoothCursor />

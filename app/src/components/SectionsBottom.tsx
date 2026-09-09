@@ -3,6 +3,7 @@ import { ArrowUpRight, FileText, Github, Linkedin, Mail, MessageCircle } from 'l
 import { useLang } from '../lib/lang';
 import { LINKS } from '../content';
 import { gsap, ScrollTrigger, useScene, splitUnits, aura, EASE, isCoarse, prefersReduced } from '../lib/motion';
+import { arrive, depthPass, parallax } from '../lib/scenes';
 import { AuroraBackground } from './lightswind/aurora-background';
 import { BorderBeam } from './lightswind/border-beam';
 import { MagneticButton } from './lightswind/magnetic-button';
@@ -94,17 +95,23 @@ export function Career() {
       // at its index without arithmetic against pixel distances.
       tl.to(track, { x: () => dir * distance(), ease: 'none', duration: n - 1 }, 0);
 
+      /* Each post turns as it crosses: it arrives edge-on, squares up
+         to the reader in the middle of the screen, and turns away
+         again. The sign follows the travel direction, so the cards
+         always rotate *into* the movement rather than against it. */
+      const lean = dir * -13;
+
       cards.forEach((card, i) => {
         tl.fromTo(
           card,
-          { scale: 0.9, opacity: 0.35, filter: 'blur(5px)' },
-          { scale: 1, opacity: 1, filter: 'blur(0px)', ease: 'none', duration: 0.55 },
+          { scale: 0.88, opacity: 0.3, filter: 'blur(6px)', rotationY: -lean, transformPerspective: 1400 },
+          { scale: 1, opacity: 1, filter: 'blur(0px)', rotationY: 0, ease: 'none', duration: 0.55 },
           Math.max(0, i - 0.55)
         );
         if (i < n - 1) {
           tl.to(
             card,
-            { scale: 0.9, opacity: 0.35, filter: 'blur(5px)', ease: 'none', duration: 0.55 },
+            { scale: 0.88, opacity: 0.3, filter: 'blur(6px)', rotationY: lean, ease: 'none', duration: 0.55 },
             i + 0.45
           );
         }
@@ -124,18 +131,12 @@ export function Career() {
       }
     );
 
+    /* Phones get the same turn the horizontal track gives, driven by
+       scroll instead of by travel: each post arrives leaning away and
+       squares up as it reaches the middle of the screen. */
+    depthPass(q('[data-entry]'), { rotate: 8 });
+
     q('[data-entry]').forEach((card, i) => {
-      gsap.fromTo(
-        card,
-        { scale: 0.94, opacity: 0.4, y: 34 },
-        {
-          scale: 1,
-          opacity: 1,
-          y: 0,
-          ease: 'none',
-          scrollTrigger: { trigger: card, start: 'top 90%', end: 'top 45%', scrub: 0.6 }
-        }
-      );
       ScrollTrigger.create({
         trigger: card,
         start: 'top 62%',
@@ -293,14 +294,11 @@ export function Work() {
   const root = useScene<HTMLElement>((el) => {
     const q = gsap.utils.selector(el);
 
-    gsap.from(q('[data-detail]'), {
-      opacity: 0,
-      y: 40,
-      duration: 0.8,
-      stagger: 0.1,
-      ease: EASE,
-      scrollTrigger: { trigger: q('[data-details]')[0], start: 'top 78%' }
-    });
+    arrive(q('[data-detail]'), { y: 44, stagger: 0.1, start: 'top 80%' });
+
+    /* The write-up rides a little against the card beside it, so the two
+       halves of the section separate in depth as they pass. */
+    if (!isCoarse()) parallax(q('[data-details]')[0], 9, 1);
 
     /* The visual arrives scaled down and out of focus, then resolves as it
        reaches the middle of the screen — the section's own signature.
@@ -343,7 +341,7 @@ export function Work() {
       style={aura(246)}
     >
       <div className="aura" />
-      <div className="relative z-10 mx-auto w-full max-w-[88rem]">
+      <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
         <h2 className="label mb-12">
           <span aria-hidden="true"><span className="text-cyan">04</span> — </span>{t.work.tag}
         </h2>
@@ -351,7 +349,7 @@ export function Work() {
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
           <div data-visual className="lg:sticky lg:top-28 lg:self-start">
             <TiltCard maxTilt={8} float={9} shine={0.2} perspective={1300}>
-              <div className="relative aspect-[4/3] overflow-hidden border border-[var(--line-2)] bg-graphite">
+              <div className="edge-run relative aspect-[4/3] overflow-hidden border border-[var(--line-2)] bg-graphite">
                 <BorderBeam
                   size={44}
                   className="[--beam-w:26px] md:[--beam-w:44px]"
@@ -483,6 +481,22 @@ export function Credentials() {
       ease: EASE,
       scrollTrigger: { trigger: q('[data-rows]')[0], start: 'top 86%' }
     });
+
+    /* The two tracks lean in opposite directions as they pass, so the
+       index reads as two planes crossing rather than two lists
+       sliding. */
+    q('[data-rows] > * > *').forEach((row, i) => {
+      gsap.fromTo(
+        row,
+        { rotationX: i % 2 === 0 ? 16 : -16, transformPerspective: 900, opacity: 0.4 },
+        {
+          rotationX: 0,
+          opacity: 1,
+          ease: 'none',
+          scrollTrigger: { trigger: q('[data-rows]')[0], start: 'top 92%', end: 'bottom 55%', scrub: 0.7 }
+        }
+      );
+    });
   });
 
   // Split into two tracks so they can run against each other.
@@ -497,7 +511,7 @@ export function Credentials() {
       style={aura(256)}
     >
       <div className="aura" />
-      <div className="relative z-10">
+      <div data-stage className="relative z-10">
         <div className="mx-auto w-full max-w-[88rem] px-[max(1.25rem,5vw)]">
           <h2 className="label mb-12">
             <span aria-hidden="true"><span className="text-cyan">05</span> — </span>{t.cred.tag}
@@ -542,7 +556,7 @@ export function Credentials() {
                   <span
                     key={c}
                     lang="en"
-                    className="me-3 inline-flex items-center gap-3 whitespace-nowrap border border-[var(--line)] bg-graphite/50 px-5 py-3 text-sm text-ink-2"
+                    className="row-step me-3 inline-flex items-center gap-3 whitespace-nowrap border border-[var(--line)] bg-graphite/50 px-5 py-3 text-sm text-ink-2 hover:text-ink" style={{ ['--step' as string]: '0px' }}
                   >
                     <span aria-hidden="true" className="h-1 w-1 shrink-0 rounded-full bg-cyan/70" />
                     {c}
@@ -588,17 +602,10 @@ export function Contact() {
       .from(q('[data-cta]'), { opacity: 0, scale: 0.94, duration: 0.6, ease: 'back.out(1.6)' }, 0.6)
       .from(q('[data-way]'), { opacity: 0, y: 18, duration: 0.5, stagger: 0.06, ease: EASE }, 0.65);
 
-    /* Each route lifts off the list as the pointer reaches it. A row of
-       plain links is the one place on this page where nothing was
-       responding to anything. */
-    if (!isCoarse()) {
-      q('[data-way] a').forEach((row) => {
-        const to = (vars: gsap.TweenVars) =>
-          gsap.to(row, { duration: 0.35, ease: 'power2.out', overwrite: 'auto', ...vars });
-        row.addEventListener('pointerenter', () => to({ x: 10, opacity: 1 }));
-        row.addEventListener('pointerleave', () => to({ x: 0 }));
-      });
-    }
+    /* The closing type sits nearer than the motes behind it. Scroll
+       drives it, so a phone gets it too — this is exactly the kind of
+       depth that has to survive the absence of a cursor. */
+    parallax(q('[data-say]')[0], 8, 1);
   }, [lang]);
 
   const ways = [
@@ -621,7 +628,7 @@ export function Contact() {
       <div className="aura" />
       <ParticleField count={64} speed={0.9} />
 
-      <div className="relative z-10 mx-auto w-full max-w-[88rem]">
+      <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
         <p className="label mb-10" aria-hidden="true">
           <span aria-hidden="true"><span className="text-cyan">06</span> — </span>{t.contact.tag}
         </p>
@@ -669,7 +676,7 @@ export function Contact() {
                   href={route.href}
                   {...(route.ext ? { target: '_blank', rel: 'noopener' } : {})}
                   {...(route.download ? { download: true } : {})}
-                  className="group flex items-center gap-4 border-b border-[var(--line)] py-5 transition-colors hover:text-cyan md:gap-8"
+                  className="row-step group flex items-center gap-4 border-b border-[var(--line)] py-5 hover:text-cyan md:gap-8"
                 >
                   <Icon size={17} aria-hidden className="shrink-0 text-ink-3 transition-colors group-hover:text-cyan" />
                   {/* A fixed 7rem label leaves ~140px for the value at 375px, which
@@ -680,7 +687,7 @@ export function Contact() {
                   <ArrowUpRight
                     size={16}
                     aria-hidden
-                    className="shrink-0 text-ink-3 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-cyan"
+                    className="go-icon shrink-0 text-ink-3 transition-colors group-hover:text-cyan"
                   />
                 </a>
               </li>
