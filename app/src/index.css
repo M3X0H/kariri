@@ -627,6 +627,52 @@
     padding-block: clamp(2rem, 5vh, 3.5rem);
   }
 
+  /* The records themselves. A ledger, not a card grid: each credential
+     is a numbered line hung off a rule, which is how a list of eleven
+     things stays scannable and how an archive actually looks. The
+     perspective is on the stack so the rows can tip up out of it as
+     they arrive — depth in the arrival rather than in the resting
+     state, because a row that stays rotated is a row you cannot read. */
+  .record-stack {
+    perspective: 1200px;
+    perspective-origin: 50% 0%;
+  }
+
+  .record-row {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0 1rem;
+    border-block-start: 1px solid var(--line);
+    padding-block: 0.95rem;
+    transition: border-color 0.4s var(--ease-signal);
+  }
+
+  .record-index {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--color-ink-3);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.4s;
+  }
+
+  .record-name {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--color-ink-2);
+    transition: color 0.4s;
+  }
+
+  .record-row:hover { border-color: var(--line-3); }
+  .record-row:hover .record-index { color: var(--color-cyan); }
+  .record-row:hover .record-name { color: var(--color-ink); }
+
+  @media (min-width: 640px) {
+    .record-row { grid-template-columns: 3rem minmax(0, 1fr); }
+    .record-name { font-size: 1rem; }
+  }
+
   .archive-year {
     font-family: var(--font-mono);
     font-size: clamp(2.4rem, 7vw, 5rem);

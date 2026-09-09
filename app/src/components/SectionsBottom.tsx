@@ -10,7 +10,6 @@ import { MagneticButton } from './lightswind/magnetic-button';
 import { ShineButton } from './lightswind/shine-button';
 import { TextScrollMarquee } from './lightswind/text-scroll-marquee';
 import { TiltCard } from './lightswind/tilt-card';
-import { VelocityRow, VelocityRows } from './lightswind/velocity-rows';
 
 /* ═══════════════════════════════════════════════════════════════
    CAREER — the page turns sideways.
@@ -491,7 +490,8 @@ export function Work() {
    The hierarchy is the composition: a chapter where everything is a
    card is a chapter with nothing to look at.
 
-   Lightswind: VelocityRows for the index.
+   The credentials are set as a ledger rather than as sliding chips:
+   eleven lines you can actually read.
    ═══════════════════════════════════════════════════════════════ */
 export function Credentials() {
   const { t } = useLang();
@@ -506,34 +506,12 @@ export function Credentials() {
       ease: EASE,
       scrollTrigger: { trigger: el, start: 'top 75%' }
     });
-    gsap.from(q('[data-rows]'), {
-      opacity: 0,
-      y: 30,
-      duration: 0.8,
-      ease: EASE,
-      scrollTrigger: { trigger: q('[data-rows]')[0], start: 'top 86%' }
-    });
-
-    /* The two tracks lean in opposite directions as they pass, so the
-       index reads as two planes crossing rather than two lists
-       sliding. */
-    q('[data-rows] > * > *').forEach((row, i) => {
-      gsap.fromTo(
-        row,
-        { rotationX: i % 2 === 0 ? 16 : -16, transformPerspective: 900, opacity: 0.4 },
-        {
-          rotationX: 0,
-          opacity: 1,
-          ease: 'none',
-          scrollTrigger: { trigger: q('[data-rows]')[0], start: 'top 92%', end: 'bottom 55%', scrub: 0.7 }
-        }
-      );
-    });
+    /* Each record tips up out of the stack and settles as it arrives.
+       The rotation is the archive's depth; the stagger is what stops
+       eleven rows landing as one block. */
+    depthPass(q('[data-record]'), { rotate: 13 });
+    arrive(q('[data-record]'), { y: 22, stagger: 0.045, start: 'top 92%' });
   });
-
-  // Split into two tracks so they can run against each other.
-  const half = Math.ceil(t.cred.items.length / 2);
-  const tracks = [t.cred.items.slice(0, half), t.cred.items.slice(half)];
 
   return (
     <section
@@ -566,43 +544,31 @@ export function Credentials() {
           <p className="label mb-5 mt-12">{t.cred.all}</p>
         </div>
 
-        {/* Full bleed on purpose: the tracks have to run off both edges or
-            they read as a list that happens to be sliding. */}
-        <div data-rows>
-          <VelocityRows className="space-y-3">
-            {/* Two planes, not two lists: the second track sits behind
-                the first, smaller and softer, so the archive has a front
-                and a back rather than being two rows that slide. */}
-            {tracks.map((track, i) => (
-              <div
-                key={i}
-                className={i === 1 ? 'archive-back' : undefined}
-              >
-                <VelocityRow baseVelocity={3.2} direction={i % 2 === 0 ? 1 : -1}>
-                  {track.map((c, j) => (
-                    <span
-                      key={c}
-                      lang="en"
-                      className="row-step me-3 inline-flex items-center gap-3 whitespace-nowrap border border-[var(--line)] bg-graphite/50 px-5 py-3 text-sm text-ink-2 hover:border-cyan/40 hover:text-ink"
-                      style={{ ['--step' as string]: '0px' }}
-                    >
-                      {/* A record in an archive has a number. */}
-                      <span aria-hidden="true" className="font-mono text-[0.6rem] text-cyan/70">
-                        {String(i * half + j + 1).padStart(2, '0')}
-                      </span>
-                      <span aria-hidden="true" className="h-3 w-px shrink-0 bg-[var(--line-2)]" />
-                      {c}
-                    </span>
-                  ))}
-                </VelocityRow>
-              </div>
-            ))}
-          </VelocityRows>
+        {/* ── the records ──────────────────────────────────────
+            This was two marquee tracks of chips, and the chips were
+            `aria-hidden` duplicates of a list that only existed in an
+            `sr-only` block underneath. So the eleven credentials were
+            readable to a screen reader and to nobody else — you cannot
+            read a line of text that is sliding past you.
 
-          {/* The tracks are decorative duplicates; this is the real list. */}
-          <ol className="sr-only">
-            {t.cred.items.map((c) => (
-              <li key={c} lang="en">{c}</li>
+            They are a ledger now: numbered, ruled, and actually legible.
+            The depth the chapter wanted is still there, but it is in
+            how the rows arrive — each one tips up out of the stack and
+            settles flat as it reaches you — rather than in motion the
+            reader has to fight. */}
+        <div className="mx-auto w-full max-w-[88rem] px-[var(--pad)]">
+          <ol data-rows className="record-stack grid12 gap-x-12">
+            {t.cred.items.map((c, i) => (
+              <li
+                key={c}
+                data-record
+                className="record-row col-span-12 lg:col-span-6"
+              >
+                <span lang="en" aria-hidden="true" className="record-index">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span lang="en" className="record-name">{c}</span>
+              </li>
             ))}
           </ol>
         </div>
