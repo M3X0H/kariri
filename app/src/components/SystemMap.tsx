@@ -115,7 +115,12 @@ export function SystemMap() {
     try {
       const c = document.createElement('canvas');
       if (!(c.getContext('webgl2') || c.getContext('webgl'))) return;
-      setField(window.innerWidth < 768 ? 'lite' : 'full');
+      /* Phones keep the flat ring. The scene needs room to be read as
+         a structure — seven bodies and their wires inside a 23rem
+         square is a smudge, and it costs a WebGL context and a
+         per-frame projection to draw it. The 2D ring says the same
+         thing at that size, legibly and for nothing. */
+      setField(window.innerWidth < 768 ? null : 'full');
     } catch {
       setField(null);
     }
@@ -251,7 +256,7 @@ export function SystemMap() {
             onPointerDown={onDown}
             onPointerUp={onUp}
           >
-            <div data-camera className="absolute inset-0">
+            <div data-camera className="map-stage absolute inset-0">
               {/* The structure. Seven bodies in real space, wired by
                   curves that bow through the volume, with charge running
                   the live ones — see `CapabilityField`. */}

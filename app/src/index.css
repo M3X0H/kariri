@@ -626,6 +626,19 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* The archive's back plane. Set behind the front row rather than
+     beside it — but only where there is width for the two to read as
+     depth. On a phone the two tracks are equals; a blurred, shrunken
+     half-opacity copy of the row above it is a smear, not a second
+     plane. */
+  @media (min-width: 768px) {
+    .archive-back {
+      transform: scale(0.88);
+      opacity: 0.5;
+      filter: blur(0.6px);
+    }
+  }
+
   /* ── TRANSMISSION (contact) ─────────────────────────────────────
      The close is mostly empty on purpose: the type has to have room to
      land, and the page has to feel like it has arrived somewhere. */
@@ -934,22 +947,50 @@
 
   :root[lang="ar"] .wire { --wire-to: left; }
 
+  /* The pulse travels by moving its PAINT, not its box.
+
+     It used to be a 26%-wide absolutely-positioned box animated from
+     `inset-inline-start: -26%` to `100%` — which parks it, at full
+     width, entirely past the end of the wire. Invisible there
+     (`opacity: 0`), but still a real box: on a 620px wire that is 161px
+     of layout hanging off the right edge, on every wire on the page, on
+     a 3.4s loop. Nothing clips it, so it lands in the document's
+     scrollable overflow and the whole page steps sideways and back.
+
+     Here the box is the wire — `inset-inline: 0`, never moved — and the
+     pulse is a background image swept across it. Same motion, same fade
+     at both ends, but the geometry cannot leave the hairline, so there
+     is nothing to clip and nothing to overflow.
+
+     The travel is expressed in background-position percentages, which
+     are relative to (wire − pulse) rather than to the wire: with a
+     pulse 26% wide, -36% sits it just off one end and 136% just off the
+     other. Reversed under RTL so it still runs with the text. */
   .wire::after {
     content: "";
     position: absolute;
+    inset-inline: 0;
     inset-block: 50%;
-    inline-size: 26%;
     block-size: 1px;
     margin-block-start: -0.5px;
-    background: linear-gradient(to var(--wire-to, right), transparent, var(--color-cyan), transparent);
+    --wire-from: -36%;
+    --wire-into: 136%;
+    background-image: linear-gradient(to var(--wire-to, right), transparent, var(--color-cyan), transparent);
+    background-repeat: no-repeat;
+    background-size: 26% 100%;
     animation: wire-run 3.4s var(--ease-signal) infinite;
     animation-delay: var(--wire-delay, 0s);
   }
 
+  :root[lang="ar"] .wire::after {
+    --wire-from: 136%;
+    --wire-into: -36%;
+  }
+
   @keyframes wire-run {
-    0%       { inset-inline-start: -26%; opacity: 0; }
+    0%       { background-position-x: var(--wire-from); opacity: 0; }
     12%      { opacity: 1; }
-    72%, 100% { inset-inline-start: 100%; opacity: 0; }
+    72%, 100% { background-position-x: var(--wire-into); opacity: 0; }
   }
 
   /* An SVG edge with a dash running along it. The length is written per
@@ -1165,6 +1206,17 @@
 
      The scene writes each button's `transform` every frame from the
      projected 3D position, so nothing here may set one. */
+  /* The scene's stage. The projection is already bounded in JS, so
+     nothing should ever reach this edge — but a WebGL scene writing
+     pixel offsets into live DOM must not be *able* to widen the
+     document even if it one day writes a bad frame, so the stage is a
+     containment boundary in its own right. The clip margin leaves the
+     node labels and halos room to sit proud of the box. */
+  .map-stage {
+    overflow: clip;
+    overflow-clip-margin: 2rem;
+  }
+
   .map-node {
     will-change: transform;
   }

@@ -174,9 +174,9 @@ export function Career() {
           on the screens with room for it. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden"
+        className="pointer-events-none absolute inset-0 z-0 hidden items-center justify-center overflow-hidden lg:flex"
       >
-        <span className="vel-lean display-type text-[clamp(6rem,30vw,26rem)] leading-none tabular-nums text-ink/[0.05] lg:text-[clamp(9rem,26vw,26rem)]">
+        <span className="vel-lean display-type text-[clamp(9rem,26vw,26rem)] leading-none tabular-nums text-ink/[0.05]">
           {t.career.entries[live].year}
         </span>
       </div>
@@ -578,11 +578,7 @@ export function Credentials() {
             {tracks.map((track, i) => (
               <div
                 key={i}
-                style={
-                  i === 1
-                    ? { transform: 'scale(0.88)', opacity: 0.5, filter: 'blur(0.6px)' }
-                    : undefined
-                }
+                className={i === 1 ? 'archive-back' : undefined}
               >
                 <VelocityRow baseVelocity={3.2} direction={i % 2 === 0 ? 1 : -1}>
                   {track.map((c, j) => (

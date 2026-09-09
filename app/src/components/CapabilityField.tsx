@@ -113,6 +113,8 @@ export interface CapabilityFieldProps {
   lite?: boolean;
 }
 
+const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
+
 export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite = false }: CapabilityFieldProps) {
   const holder = useRef<HTMLDivElement>(null);
 
@@ -138,6 +140,12 @@ export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite =
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
     camera.position.set(0, 0, 6.4);
+    /* `renderer.render` refreshes this, but the controls are projected
+       through the camera BEFORE the first render — with an identity
+       matrix the perspective divide runs against a positive view-space
+       z, the sign flips, and a node lands thousands of pixels off the
+       page. Build the matrix up front so frame one is already sane. */
+    camera.updateMatrixWorld();
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, dpr));
     renderer.setClearColor(0x000000, 0);
@@ -328,13 +336,32 @@ export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite =
     const tmpColor = new THREE.Color();
     let raf = 0;
 
+    /* A projection is only meaningful for a point in front of the
+       camera. Behind it, the perspective divide is by a negative w and
+       the result runs off to ±infinity — which, written into a
+       `translate3d`, is a real button parked thousands of pixels outside
+       the document. So the view-space depth is checked before the
+       divide, and the result is held inside the stage regardless. This
+       is what keeps the scene from being able to widen the page: the
+       numbers it writes are bounded at the point they are written, not
+       clipped after the fact. */
+    const view = new THREE.Vector3();
+
     const place = (el: HTMLElement | null, world: THREE.Vector3, w: number, h: number) => {
-      if (!el) return;
-      projected.copy(world).applyMatrix4(group.matrixWorld).project(camera);
-      const x = (projected.x * 0.5 + 0.5) * w;
-      const y = (-projected.y * 0.5 + 0.5) * h;
+      if (!el || !w || !h) return;
+
+      view.copy(world).applyMatrix4(group.matrixWorld).applyMatrix4(camera.matrixWorldInverse);
+      // In view space the camera looks down -z, so anything at or behind
+      // the near plane has no honest screen position. Leave the last one.
+      if (!Number.isFinite(view.z) || view.z > -camera.near) return;
+
+      projected.copy(view).applyMatrix4(camera.projectionMatrix);
+      if (!Number.isFinite(projected.x) || !Number.isFinite(projected.y)) return;
+
+      const x = clamp((projected.x * 0.5 + 0.5) * w, 0, w);
+      const y = clamp((-projected.y * 0.5 + 0.5) * h, 0, h);
       // Depth as scale, so a body further back reads as further back.
-      const s = 1 + (1 - projected.z) * 0.35;
+      const s = clamp(1 + (1 - projected.z) * 0.35, 0.55, 1.5);
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -50%) scale(${s.toFixed(3)})`;
     };
 
