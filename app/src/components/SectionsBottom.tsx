@@ -338,12 +338,33 @@ export function Work() {
     >
       <div className="aura" />
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <Chapter index="04" name={t.work.tag} className="mb-12" />
+        <Chapter index="04" name={t.work.tag} ghost={false} className="mb-12" />
 
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+        {/* The project's number as the scene's ground. This chapter
+            carries no ghost numeral — it has this instead. */}
+        <span lang="en" aria-hidden="true" className="work-numeral">
+          {p.no}
+        </span>
+
+        <div className="relative grid gap-10 lg:grid-cols-2 lg:gap-16">
           <div data-visual className="lg:sticky lg:top-28 lg:self-start">
             <TiltCard maxTilt={8} float={9} shine={0.2} perspective={1300}>
-              <div className="edge-run relative aspect-[4/3] overflow-hidden border border-[var(--line-2)] bg-graphite">
+              <div className="edge-run relative overflow-hidden border border-[var(--line-2)] bg-graphite">
+                {/* The work is a web interface, so it is presented as
+                    one — chrome, address, and all. */}
+                <div className="frame-chrome relative z-10">
+                  <span aria-hidden="true" className="frame-dot" />
+                  <span aria-hidden="true" className="frame-dot" />
+                  <span aria-hidden="true" className="frame-dot" />
+                  <span
+                    lang="en"
+                    className="label ltr ms-2 truncate text-[0.55rem] text-ink-3"
+                  >
+                    m3x0h.github.io/kariri
+                  </span>
+                </div>
+
+                <div className="relative aspect-[4/3]">
                 <BorderBeam
                   size={44}
                   className="[--beam-w:26px] md:[--beam-w:44px]"
@@ -398,6 +419,7 @@ export function Work() {
                     ))}
                   </ol>
                 </div>
+                </div>
               </div>
             </TiltCard>
           </div>
@@ -450,10 +472,15 @@ export function Work() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CREDENTIALS — the one that matters, then the rest as two tracks
-   that drift in opposite directions and surge with scroll velocity.
+   CREDENTIALS — the archive.
 
-   Lightswind: BorderBeam on the lead card, VelocityRows for the index.
+   One credential dominates, set as a record between two rules with its
+   year hollow beside it, and the rest travel behind it as two tracks
+   drifting in opposite directions and surging with scroll velocity.
+   The hierarchy is the composition: a chapter where everything is a
+   card is a chapter with nothing to look at.
+
+   Lightswind: VelocityRows for the index.
    ═══════════════════════════════════════════════════════════════ */
 export function Credentials() {
   const { t } = useLang();
@@ -509,30 +536,20 @@ export function Credentials() {
         <div className="mx-auto w-full max-w-[88rem] px-[var(--pad)]">
           <Chapter index="05" name={t.cred.tag} className="mb-12" />
 
-          {/* The one credential that matters is the only object in this
-              chapter, so it is the one that gets depth: the card turns to
-              face the pointer and its type lifts off the surface. */}
-          <div data-lead>
-            <TiltCard maxTilt={6} float={7} shine={0.18} perspective={1500}>
-              <div
-                className="glass relative overflow-hidden p-8 md:p-12"
-                style={{ background: 'linear-gradient(135deg, rgb(92 225 230 / 0.09), transparent 55%), rgb(16 19 25 / 0.6)' }}
-              >
-                <BorderBeam
-                  size={58}
-                  className="[--beam-w:32px] md:[--beam-w:58px]"
-                  duration={9}
-                  glowIntensity={0.55}
-                  colorFrom="var(--color-cyan)"
-                  colorTo="var(--color-violet)"
-                />
-                <p className="lift-1 relative font-mono text-xs text-cyan">2025</p>
-                <h3 lang="en" className="lift-3 relative display-type mt-3 text-[clamp(1.6rem,5vw,3.2rem)]">
-                  {t.cred.lead}
-                </h3>
-                <p className="lift-2 relative mt-3 text-ink-2">{t.cred.leadBy}</p>
-              </div>
-            </TiltCard>
+          {/* One credential dominates the chapter and the rest travel
+              behind it. It is set as a record, not as a card: hung
+              between two rules with the year hollow beside it, so the
+              scene reads as an archive rather than as another panel. */}
+          <div data-lead className="archive-lead grid12 items-baseline gap-y-5">
+            <p lang="en" className="archive-year col-span-12 sm:col-span-3">
+              2025
+            </p>
+            <div className="col-span-12 sm:col-span-9">
+              <h3 lang="en" className="display-type text-[clamp(1.7rem,5.5vw,3.6rem)]">
+                {t.cred.lead}
+              </h3>
+              <p className="mt-3 text-ink-2">{t.cred.leadBy}</p>
+            </div>
           </div>
 
           <p className="label mb-5 mt-12">{t.cred.all}</p>
@@ -612,7 +629,7 @@ export function Contact() {
     <section
       ref={root}
       id="contact"
-      className="chapter-edge relative scroll-mt-[var(--rail)] overflow-hidden px-[var(--pad)] pb-[clamp(3rem,8vh,6rem)] pt-[clamp(4rem,9vh,7rem)]"
+      className="chapter-edge scene-full relative scroll-mt-[var(--rail)] overflow-hidden px-[var(--pad)] pb-[clamp(3rem,8vh,6rem)] pt-[clamp(4rem,9vh,7rem)]"
       style={aura(264)}
     >
       {/* Indigo into violet, and no further: the page's spectrum ends here. */}
@@ -621,7 +638,7 @@ export function Contact() {
       <ParticleField count={64} speed={0.9} />
 
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <Chapter index="06" name={t.contact.tag} as="p" className="mb-12" />
+        <Chapter index="06" name={t.contact.tag} as="p" ghost={false} className="mb-12" />
 
         <h2
           aria-label={`${t.contact.l1} ${t.contact.l2}`}
@@ -635,7 +652,7 @@ export function Contact() {
           </span>
         </h2>
 
-        <p data-say className="measure-sm mt-8 text-lg text-ink-2">
+        <p data-say className="measure-sm mt-10 text-lg text-ink-2 md:mt-14">
           {t.contact.say}
         </p>
 
@@ -655,7 +672,13 @@ export function Contact() {
           </MagneticButton>
         </div>
 
-        <div aria-hidden="true" className="wire mt-16 h-px w-full" />
+        <div className="mt-20 flex items-center gap-3 md:mt-28">
+          <span aria-hidden="true" className="signal-bars">
+            <span /><span /><span /><span />
+          </span>
+          <span lang="en" className="label ltr">06 / 06</span>
+          <span aria-hidden="true" className="wire h-px flex-1" />
+        </div>
         <ul className="mt-0">
           {t.contact.ways.map((w, i) => {
             const route = ways[i];

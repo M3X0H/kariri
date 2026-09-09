@@ -497,6 +497,161 @@
     .hero-rail dl { margin-block-start: 0.9rem; }
   }
 
+  /* ═══════════════════════════════════════════════════════════════
+     SCENES
+
+     Each chapter is a different room in the same building. The frame,
+     the accent and the type are shared; the composition is not. What
+     follows is one block per scene type, and the deliberate absence of
+     a single "section" class is the point — a page where every chapter
+     carries the same furniture reads as a template no matter how good
+     the furniture is.
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* A chapter that owns the whole screen. Used only where the content
+     is a single object worth standing in front of. */
+  .scene-full {
+    min-block-size: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* ── EDITORIAL (about) ──────────────────────────────────────────
+     The figures are the composition, not a stat strip under it: set at
+     display scale, hung off a hairline, with the label small beside
+     them. Arabic gets the mono figures too — they are numerals, and
+     the register belongs to the instrument rather than to the script. */
+  .stat-mega {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(3.6rem, 11vw, 9rem);
+    line-height: 0.82;
+    letter-spacing: -0.04em;
+    color: var(--color-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A ruled row of facts. Replaces a grid of glowing cards — the same
+     information, read as a specification rather than as furniture. */
+  .fact-row {
+    display: grid;
+    grid-template-columns: minmax(0, 8rem) minmax(0, 1fr);
+    gap: 0.35rem 1.5rem;
+    border-block-start: 1px solid var(--line);
+    padding-block: 1.1rem;
+    transition: border-color 0.4s, background-color 0.4s;
+  }
+
+  @media (min-width: 640px) {
+    .fact-row { grid-template-columns: minmax(0, 11rem) minmax(0, 1fr); }
+  }
+
+  .fact-row:hover { border-color: var(--line-3); }
+
+  /* ── COMMAND CENTRE (capabilities) ──────────────────────────────
+     Readouts arranged around the diagram, so the map is instrumented
+     rather than illustrated. */
+  .readout-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .readout-cell {
+    background: var(--color-void);
+    padding: 0.7rem 0.85rem;
+  }
+
+  .readout-value {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    line-height: 1;
+    color: var(--color-cyan);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── CASE STUDY (work) ──────────────────────────────────────────
+     The project is presented inside an interface frame, because the
+     project *is* an interface. */
+  .frame-chrome {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-block-end: 1px solid var(--line);
+    padding: 0.6rem 0.85rem;
+    background: rgb(255 255 255 / 0.02);
+  }
+
+  .frame-dot {
+    inline-size: 0.42rem;
+    block-size: 0.42rem;
+    border-radius: 9999px;
+    background: var(--line-3);
+  }
+
+  /* The project's number, set as the scene's ground rather than as a
+     caption. Cropped by the frame it sits behind. */
+  .work-numeral {
+    position: absolute;
+    z-index: 0;
+    inset-block-start: -0.14em;
+    inset-inline-start: -0.06em;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(8rem, 26vw, 22rem);
+    line-height: 0.72;
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(233 231 226 / 0.08);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ── ARCHIVE (credentials) ──────────────────────────────────────
+     One credential dominates; the rest travel behind it. */
+  .archive-lead {
+    position: relative;
+    border-block: 1px solid var(--line-2);
+    padding-block: clamp(2rem, 5vh, 3.5rem);
+  }
+
+  .archive-year {
+    font-family: var(--font-mono);
+    font-size: clamp(2.4rem, 7vw, 5rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--color-cyan);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── TRANSMISSION (contact) ─────────────────────────────────────
+     The close is mostly empty on purpose: the type has to have room to
+     land, and the page has to feel like it has arrived somewhere. */
+  .signal-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    block-size: 0.9rem;
+  }
+
+  .signal-bars span {
+    inline-size: 2px;
+    background: var(--color-cyan);
+    animation: signal 1.6s ease-in-out infinite;
+  }
+
+  .signal-bars span:nth-child(1) { block-size: 35%; animation-delay: 0s; }
+  .signal-bars span:nth-child(2) { block-size: 65%; animation-delay: 0.18s; }
+  .signal-bars span:nth-child(3) { block-size: 100%; animation-delay: 0.36s; }
+  .signal-bars span:nth-child(4) { block-size: 55%; animation-delay: 0.54s; }
+
+  @keyframes signal {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 1; }
+  }
+
   /* A bracket with a figure on it — the measurement register. */
   .measure-mark {
     position: relative;
@@ -1171,6 +1326,7 @@
   .map-spin,
   .map-spin-slow,
   .map-node-halo,
+  .signal-bars span,
   .edge-run:hover::before { animation: none !important; }
 
   .plate-scan { display: none !important; }

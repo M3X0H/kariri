@@ -4,13 +4,12 @@ import { useLang } from '../lib/lang';
 import { Chapter } from './Chapter';
 import { LINKS } from '../content';
 import { gsap, useScene, splitUnits, aura, EASE, prefersReduced, isCoarse } from '../lib/motion';
-import { arrive, depthPass, drift, parallax } from '../lib/scenes';
+import { arrive, drift, parallax } from '../lib/scenes';
 import { CountUp } from './lightswind/count-up';
 import { MagneticButton } from './lightswind/magnetic-button';
 import { ScrollReveal } from './lightswind/scroll-reveal';
 import { ShineButton } from './lightswind/shine-button';
 import { ShinyText } from './lightswind/shiny-text';
-import { SpotlightCard, SpotlightCards } from './lightswind/spotlight-cards';
 
 const HeroField = lazy(() => import('./HeroField'));
 
@@ -429,11 +428,18 @@ export function Fault() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ABOUT — the lead paragraph resolves out of blur word by word, the
-   wire draws down beside it, and the facts light up under a moving
-   spotlight.
+   ABOUT — the editorial scene.
 
-   Lightswind: ScrollReveal (blur → sharp), CountUp, SpotlightCards.
+   No cards. The type is the composition: a lead set at display scale
+   holding the first eight columns, a second paragraph stepped inward
+   and travelling at a different speed so the two never read as one
+   block, then the three figures set enormous in mono and hung off a
+   rule — they are the section's watermark, which is why this chapter
+   carries no ghost numeral. The facts close it as a specification,
+   ruled and keyed, rather than as a grid of glowing panels.
+
+   The figures are mono in both languages on purpose. They are numerals,
+   and the register belongs to the instrument rather than to the script.
    ═══════════════════════════════════════════════════════════════ */
 export function About() {
   const { t, lang } = useLang();
@@ -442,117 +448,119 @@ export function About() {
     const q = gsap.utils.selector(el);
     const mm = gsap.matchMedia();
 
-    /* Wide screens get the horizontal entrance the section was designed
-       around. Narrow ones move vertically instead: a 40px sideways
-       offset on a 375px viewport parks content outside the page until
-       its trigger fires, which `overflow-x: clip` then hides. */
-    const build = (x: number, y: number) => () => {
+    /* Wide screens get the horizontal entrance the section is composed
+       around. Narrow ones move vertically instead: a sideways offset on
+       a 375px viewport parks content outside the page until its trigger
+       fires, which `overflow-x: clip` then hides. */
+    const build = (x: number) => () => {
       gsap
-        .timeline({ scrollTrigger: { trigger: el, start: 'top 72%' } })
-        .from(q('[data-tag]'), { opacity: 0, x, y, duration: 0.7, ease: EASE })
-        .from(q('[data-para]'), { opacity: 0, x, y, filter: 'blur(8px)', duration: 0.9, ease: EASE }, 0.1);
+        .timeline({ scrollTrigger: { trigger: el, start: 'top 74%' } })
+        .from(q('[data-tag]'), { opacity: 0, x, duration: 0.7, ease: EASE })
+        .from(q('[data-lead-copy]'), { opacity: 0, x, filter: 'blur(9px)', duration: 0.9, ease: EASE }, 0.1);
     };
 
-    mm.add('(min-width: 1024px)', build(lang === 'ar' ? 40 : -40, 0));
-    mm.add('(max-width: 1023px)', build(0, 30));
+    mm.add('(min-width: 1024px)', build(lang === 'ar' ? 44 : -44));
+    mm.add('(max-width: 1023px)', build(0));
 
-    /* The figures do not fade in together. Each one rises out of its own
-       rule with the count already running, so the row reads left to
-       right like something being tallied. */
-    arrive(q('[data-stat]'), { y: 44, stagger: 0.14, start: 'top 86%' });
+    /* The two paragraphs travel at different speeds. That difference is
+       the whole reason the block reads as edited rather than typed. */
+    if (!isCoarse()) {
+      parallax(q('[data-lead-copy]')[0], 5, 1.2);
+      parallax(q('[data-second]')[0], 14, 0.9);
+    }
 
-    /* The fact cards turn as they cross — the section's one moment of
-       real perspective, and the reason the grid stops reading as a
-       grid. */
-    depthPass(q('[data-fact]'), { rotate: 11 });
+    // Each figure rises out of its own rule with the count already running.
+    arrive(q('[data-stat]'), { y: 52, stagger: 0.13, start: 'top 88%' });
 
-    // The rule beside the copy draws itself as you descend.
-    gsap.from(q('[data-draw]'), {
-      scaleY: 0,
-      transformOrigin: 'top',
-      ease: 'none',
-      scrollTrigger: { trigger: el, start: 'top 70%', end: 'bottom 70%', scrub: 0.5 }
+    // The rule under the figures draws itself as the row lands.
+    gsap.from(q('[data-rule]'), {
+      scaleX: 0,
+      transformOrigin: lang === 'ar' ? 'right' : 'left',
+      duration: 1.1,
+      ease: EASE,
+      scrollTrigger: { trigger: q('[data-figures]')[0], start: 'top 90%' }
     });
 
-    // The tally sits on a nearer plane than the copy above it.
-    if (!isCoarse()) parallax(q('[data-stats-row]')[0], 7, 1);
-
-    return () => mm.revert();
+    // The specification rows deal out one at a time.
+    arrive(q('[data-fact]'), { y: 26, stagger: 0.07, start: 'top 90%' });
   }, [lang]);
 
   return (
     <section
       ref={root}
       id="about"
-      className="chapter-edge relative scroll-mt-[var(--rail)] px-[var(--pad)] py-[clamp(4rem,9vh,7rem)]"
+      className="chapter-edge relative scroll-mt-[var(--rail)] px-[var(--pad)] py-[clamp(4.5rem,11vh,9rem)]"
       style={aura(218)}
     >
       <div className="aura" />
+
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
         <div data-tag>
-          <Chapter index="02" name={t.about.tag} className="mb-10 md:mb-14" />
+          {/* No watermark here: the figures below are this scene's. */}
+          <Chapter index="02" name={t.about.tag} ghost={false} className="mb-12 md:mb-20" />
         </div>
 
-        <div className="grid gap-10 md:grid-cols-[auto_1fr] md:gap-14">
-          <span data-draw className="hidden w-px bg-gradient-to-b from-cyan via-violet to-transparent md:block" />
-
-          <div>
+        {/* ── the lead ──────────────────────────────────────────── */}
+        <div className="grid12">
+          <div data-lead-copy className="col-span-12 lg:col-span-8">
             <ScrollReveal
-              className="measure text-xl text-ink md:text-2xl"
+              className="text-[clamp(1.35rem,3.1vw,2.5rem)] leading-[1.35] text-ink"
               rtl={lang === 'ar'}
-              blurStrength={7}
-              staggerDelay={0.028}
-              threshold={0.25}
+              blurStrength={8}
+              staggerDelay={0.024}
+              threshold={0.2}
             >
               {t.about.p1}
             </ScrollReveal>
+          </div>
 
-            <p data-para className="measure mt-6 text-base text-ink-2 md:text-lg">
-              {t.about.p2}
-            </p>
+          {/* Stepped inward, and set smaller. An indent this deliberate
+              is what stops two paragraphs reading as one column. */}
+          <p
+            data-second
+            className="col-span-12 mt-8 text-base leading-relaxed text-ink-2 md:text-lg lg:col-span-7 lg:col-start-5 lg:mt-14"
+          >
+            {t.about.p2}
+          </p>
+        </div>
 
-            {/* Three items in a two-column grid leaves one stranded on its
-                own row, and a third column at 375px shreds the longest
-                label across three lines. On phones they become a list —
-                figure on the inline start, label beside it, ruled — and
-                only stack into columns once there is width for them. */}
-            <dl data-stats-row className="mt-11 grid gap-y-4 sm:mt-12 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
-              {t.about.stats.map((s) => (
-                /* `order-first` puts the figure ahead of its label along
-                   whichever axis is current, so it leads in both
-                   directions without duplicating the markup. */
-                <div
-                  data-stat
-                  key={s.k}
-                  className="flex items-baseline gap-4 border-t border-[var(--line)] pt-4 sm:flex-col-reverse sm:items-start sm:gap-0 sm:border-0 sm:pt-0"
-                >
-                  <dt className="label flex-1 leading-relaxed sm:mt-2 sm:max-w-[19ch] sm:flex-none">
-                    {s.k}
-                  </dt>
-                  <dd className="display-type order-first shrink-0 text-[clamp(2.4rem,7vw,4.5rem)] leading-none text-ink sm:order-none">
-                    <CountUp value={s.n} duration={1.5} />
-                  </dd>
-                </div>
-              ))}
-            </dl>
+        {/* ── the figures ───────────────────────────────────────── */}
+        <div data-figures className="mt-16 md:mt-24">
+          <span
+            data-rule
+            aria-hidden="true"
+            className="block h-px w-full bg-[var(--line-2)]"
+          />
 
-            <SpotlightCards
-              className="mt-12"
-              radius={280}
-              layoutClassName="grid gap-px bg-[var(--line)] sm:grid-cols-2"
-            >
-              {t.about.facts.map((f, i) => (
-                <SpotlightCard
-                  key={f.k}
-                  data-fact
-                  glowColor={['var(--color-cyan)', 'var(--color-blue)', 'var(--color-violet)', 'var(--color-cyan)'][i % 4]}
-                  className="edge-run border-0 p-5"
-                >
-                  <p className="label">{f.k}</p>
-                  <p className="mt-2 text-sm text-ink">{f.v}</p>
-                </SpotlightCard>
-              ))}
-            </SpotlightCards>
+          <dl className="grid12 gap-y-10 pt-8 md:pt-12">
+            {t.about.stats.map((s) => (
+              <div key={s.k} data-stat className="col-span-12 sm:col-span-4">
+                <dd className="stat-mega" lang="en">
+                  <CountUp value={s.n} duration={1.6} />
+                </dd>
+                <dt className="label mt-4 max-w-[20ch] leading-relaxed">{s.k}</dt>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        {/* ── the specification ─────────────────────────────────── */}
+        <div className="grid12 mt-16 gap-x-12 md:mt-24">
+          <div className="col-span-12 lg:col-span-6">
+            {t.about.facts.slice(0, 2).map((f) => (
+              <div key={f.k} data-fact className="fact-row">
+                <dt className="label">{f.k}</dt>
+                <dd className="text-sm leading-relaxed text-ink md:text-base">{f.v}</dd>
+              </div>
+            ))}
+          </div>
+          <div className="col-span-12 lg:col-span-6">
+            {t.about.facts.slice(2).map((f) => (
+              <div key={f.k} data-fact className="fact-row">
+                <dt className="label">{f.k}</dt>
+                <dd className="text-sm leading-relaxed text-ink md:text-base">{f.v}</dd>
+              </div>
+            ))}
           </div>
         </div>
       </div>

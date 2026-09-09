@@ -363,7 +363,7 @@ export function SystemMap() {
     <section
       ref={root}
       id="capabilities"
-      className="chapter-edge relative scroll-mt-[var(--rail)] px-[var(--pad)] py-[clamp(4rem,9vh,7rem)]"
+      className="chapter-edge scene-full relative scroll-mt-[var(--rail)] px-[var(--pad)] py-[clamp(3rem,7vh,5rem)]"
       style={aura(206)}
     >
       <div className="aura" />
@@ -577,6 +577,23 @@ export function SystemMap() {
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-cyan" />
               {t.caps.hint}
             </p>
+
+            {/* The diagram, instrumented. Every figure is read off the
+                graph itself, so a readout cannot drift out of step with
+                what is actually drawn above it. */}
+            <div className="readout-grid mt-8" aria-hidden="true">
+              {[
+                ['NODES', String(n).padStart(2, '0')],
+                ['LINKS', String(EDGES.filter((e) => e.a !== -1).length).padStart(2, '0')],
+                ['ACTIVE', String(active + 1).padStart(2, '0')],
+                ['LIT', String(NODES.filter((_, i) => linked(i)).length).padStart(2, '0')]
+              ].map(([k, v]) => (
+                <div key={k} className="readout-cell">
+                  <p lang="en" className="readout-value">{v}</p>
+                  <p lang="en" className="label ltr mt-1 text-[0.55rem]">{k}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
