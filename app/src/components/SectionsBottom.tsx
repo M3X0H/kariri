@@ -364,7 +364,7 @@ export function Work() {
                   </span>
                 </div>
 
-                <div className="relative aspect-[4/3]">
+                <div className="relative aspect-[16/11]">
                 <BorderBeam
                   size={44}
                   className="[--beam-w:26px] md:[--beam-w:44px]"
@@ -391,7 +391,7 @@ export function Work() {
                     >
                       MK
                     </span>
-                    <span lang="en" className="display-type text-[clamp(1rem,3vw,1.6rem)] leading-none">
+                    <span lang="en" className="display-type text-[clamp(1.15rem,3.6vw,2rem)] leading-none">
                       KARIRI
                     </span>
                     <span
@@ -414,7 +414,7 @@ export function Work() {
                           className="absolute -start-5 top-[0.62rem] h-1.5 w-1.5 rounded-full bg-cyan/85"
                         />
                         <span lang="en" className="font-mono text-[0.55rem] text-cyan">{no}</span>
-                        <span className="truncate text-[0.78rem] leading-tight text-ink">{label}</span>
+                        <span className="truncate text-[0.9rem] leading-tight text-ink">{label}</span>
                       </li>
                     ))}
                   </ol>
