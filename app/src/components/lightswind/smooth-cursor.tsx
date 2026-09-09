@@ -7,9 +7,14 @@ import { m, useMotionValue, useReducedMotion, useSpring, useTransform } from 'fr
    reads as momentum instead of teleporting.
 
    Adapted:
-   - The default arrow SVG is gone. This site's pointer language is a dot
-     and a ring, and a black cursor glyph on a near-black page was invisible
-     anyway. The shape is a prop; the motion model is upstream's.
+   - The default arrow SVG is gone, and so is the dot that replaced it.
+     This augments the system cursor rather than standing in for it: the
+     ring trails behind the real pointer and snaps to magnetic targets,
+     while the arrow the visitor's OS draws stays exactly where it is.
+     A replacement would mean `cursor: none`, and a spring-followed dot
+     is worse than the system cursor for anyone tracking it with any
+     difficulty — it lags by design. Upstream's black glyph was also
+     invisible on a near-black page. The motion model is upstream's.
    - Velocity, angle and stretch are motion values, not React state.
      Upstream calls `setIsMoving` and `setTrail` from inside a `mousemove`
      handler, re-rendering the whole cursor on every pointer event, and
@@ -48,11 +53,9 @@ export function SmoothCursor({
   const [shown, setShown] = useState(false);
   const hotRef = useRef(false);
 
-  // The dot is unsprung and lands exactly on the pointer; the ring reads a
-  // sprung copy of a separate target, so it arrives late — and can be aimed
-  // somewhere other than the pointer when a magnet claims it.
-  const dotX = useMotionValue(-100);
-  const dotY = useMotionValue(-100);
+  // The ring reads a sprung copy of a separate target, so it arrives late —
+  // and can be aimed somewhere other than the pointer when a magnet claims
+  // it. The system cursor is the thing that lands exactly on the pointer.
   const aimX = useMotionValue(-100);
   const aimY = useMotionValue(-100);
   const ringX = useSpring(aimX, { stiffness: 380, damping: 34, mass: 0.7 });
@@ -64,10 +67,24 @@ export function SmoothCursor({
   const stretch = useTransform(smoothSpeed, [0, 2.4], [1, 1.5], { clamp: true });
   const squash = useTransform(smoothSpeed, [0, 2.4], [1, 0.72], { clamp: true });
 
+  /* Arming is watched, not sampled once. A convertible switched out of
+     tablet mode, or a mouse plugged into a tablet, changes the answer
+     after mount — and the old code read the query a single time and
+     never looked again, so the ring simply never appeared. */
   useEffect(() => {
-    if (reduced) return;
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    setArmed(true);
+    if (reduced) {
+      setArmed(false);
+      return;
+    }
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const sync = () => setArmed(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, [reduced]);
+
+  useEffect(() => {
+    if (!armed) return;
 
     let lastX = 0;
     let lastY = 0;
@@ -87,9 +104,6 @@ export function SmoothCursor({
       speed.set(Math.min(3, Math.hypot(dx, dy) / dt));
       // Below a couple of pixels the direction is noise and the ring spins.
       if (Math.hypot(dx, dy) > 2) angle.set((Math.atan2(dy, dx) * 180) / Math.PI);
-
-      dotX.set(e.clientX);
-      dotY.set(e.clientY);
 
       const target = e.target as HTMLElement | null;
       const magnet = target?.closest?.(magneticSelector) as HTMLElement | null;
@@ -129,18 +143,12 @@ export function SmoothCursor({
       window.removeEventListener('pointerdown', press);
       window.removeEventListener('pointerup', release);
     };
-  }, [reduced, magneticSelector, hotSelector, dotX, dotY, aimX, aimY, angle, speed]);
+  }, [armed, magneticSelector, hotSelector, aimX, aimY, angle, speed]);
 
   if (!armed) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[300] hidden md:block" aria-hidden="true">
-      <m.div
-        className="absolute -ml-[3px] -mt-[3px] h-1.5 w-1.5 rounded-full"
-        style={{ x: dotX, y: dotY, background: color, opacity: shown ? 1 : 0 }}
-        animate={{ scale: down ? 0.5 : hot ? 0 : 1 }}
-        transition={{ type: 'spring', stiffness: 420, damping: 26 }}
-      />
       <m.div
         className="absolute rounded-full border"
         style={{
@@ -154,7 +162,7 @@ export function SmoothCursor({
           rotate: angle,
           scaleX: stretch,
           scaleY: squash,
-          opacity: shown ? (hot ? 0.95 : 0.4) : 0,
+          opacity: shown ? (hot ? 0.95 : 0.5) : 0,
           boxShadow: hot ? `0 0 24px -6px ${color}` : 'none'
         }}
         animate={{ scale: down ? 0.82 : hot ? 1.5 : 1 }}
