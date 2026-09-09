@@ -25,6 +25,22 @@ import { prefersReduced } from './motion';
    progress ring would otherwise sit frozen at zero.
    ═══════════════════════════════════════════════════════════════ */
 
+/* The same four numbers, readable from script.
+
+   CSS consumers read the custom properties; a WebGL frame cannot, and
+   `getComputedStyle` sixty times a second to fetch six floats is absurd.
+   So the loop writes both. Nothing here owns a listener of its own —
+   that is the entire point of this module, and a scene that added its
+   own `pointermove` would quietly undo it. */
+export const SIGNAL = {
+  px: 0.5,
+  py: 0.5,
+  pxc: 0,
+  pyc: 0,
+  vel: 0,
+  scroll: 0
+};
+
 /* How hard the smoothing pulls. Low enough that a flicked pointer
    glides rather than snaps, high enough not to feel like lag. */
 const EASE_POINTER = 0.085;
@@ -53,6 +69,7 @@ export function useSignals() {
       const span = root.scrollHeight - window.innerHeight;
       const p = span > 0 ? window.scrollY / span : 0;
       set('--scroll', p);
+      SIGNAL.scroll = p;
       /* A whole number as well, because the HUD prints it through a CSS
          counter — which needs an <integer>, and gets one without this
          module ever touching a text node. */
@@ -95,6 +112,12 @@ export function useSignals() {
       set('--pxc', x * 2 - 1);
       set('--pyc', y * 2 - 1);
       set('--vel', vel);
+
+      SIGNAL.px = x;
+      SIGNAL.py = y;
+      SIGNAL.pxc = x * 2 - 1;
+      SIGNAL.pyc = y * 2 - 1;
+      SIGNAL.vel = vel;
 
       const live =
         Math.abs(tx - x) > 0.0015 || Math.abs(ty - y) > 0.0015 || Math.abs(vel) > 0.002;

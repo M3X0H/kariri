@@ -1,9 +1,10 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy } from 'react';
 import { ArrowDown, ArrowUpRight, FileText, MessageCircle } from 'lucide-react';
 import { useLang } from '../lib/lang';
 import { Chapter } from './Chapter';
 import { LINKS } from '../content';
-import { gsap, useScene, splitUnits, aura, EASE, prefersReduced, isCoarse } from '../lib/motion';
+import { gsap, useScene, splitUnits, aura, EASE, isCoarse } from '../lib/motion';
+import { useWebglQuality } from '../lib/quality';
 import { arrive, drift, parallax } from '../lib/scenes';
 import { CountUp } from './lightswind/count-up';
 import { MagneticButton } from './lightswind/magnetic-button';
@@ -12,25 +13,6 @@ import { ShineButton } from './lightswind/shine-button';
 import { ShinyText } from './lightswind/shiny-text';
 
 const HeroField = lazy(() => import('./HeroField'));
-
-/* The field is the hero's signature, so phones get it too — at half the
-   nodes, a capped pixel ratio and no antialiasing, blooming out of the
-   portrait rather than competing with it. Only reduced motion opts out
-   entirely, and then the CSS bloom carries the composition on its own. */
-function useFieldQuality() {
-  const [quality, setQuality] = useState<null | 'full' | 'lite'>(null);
-  useEffect(() => {
-    if (prefersReduced()) return;
-    try {
-      const c = document.createElement('canvas');
-      if (!(c.getContext('webgl2') || c.getContext('webgl'))) return;
-      setQuality(window.innerWidth < 768 ? 'lite' : 'full');
-    } catch {
-      setQuality(null);
-    }
-  }, []);
-  return quality;
-}
 
 /* ═══════════════════════════════════════════════════════════════
    HERO — a plate, a name, and a rule.
@@ -56,7 +38,11 @@ function useFieldQuality() {
    ═══════════════════════════════════════════════════════════════ */
 export function Hero({ ready }: { ready: boolean }) {
   const { t, lang } = useLang();
-  const field = useFieldQuality();
+  /* The field is the hero's signature, so phones get it too — at half
+     the nodes and a capped pixel ratio, blooming out of the portrait
+     rather than competing with it. Only reduced motion opts out, and
+     then the composition carries on its own. */
+  const field = useWebglQuality();
 
   const root = useScene<HTMLElement>((el) => {
     if (!ready) return;
@@ -367,7 +353,7 @@ export function Fault() {
       ref={root}
       id="fault"
       className="chapter-edge relative flex scroll-mt-[var(--rail)] flex-col justify-center overflow-hidden px-[var(--pad)] py-[clamp(4rem,10vh,7rem)] lg:min-h-[100svh] lg:py-0"
-      style={aura(194)}
+      style={aura(36)}
     >
       <div className="aura" />
 
@@ -380,7 +366,7 @@ export function Fault() {
           <span
             aria-hidden="true"
             data-spine
-            className="absolute inset-y-0 start-0 w-px origin-top bg-gradient-to-b from-cyan via-blue to-transparent"
+            className="signal-spine absolute inset-y-0 start-0 w-px origin-top"
           />
 
           <ul>
@@ -392,10 +378,10 @@ export function Fault() {
               >
                 <span
                   aria-hidden="true"
-                  className="absolute -start-6 top-9 h-1.5 w-1.5 rounded-full bg-cyan shadow-[0_0_8px_2px_rgb(92_225_230/0.5)] md:-start-10 md:top-11"
+                  className="signal-dot absolute -start-6 top-9 h-1.5 w-1.5 rounded-full md:-start-10 md:top-11"
                 />
                 <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                  <span lang="en" className="label label-accent ltr">{f.code}</span>
+                  <span lang="en" className="label label-signal ltr">{f.code}</span>
                   <span className="label">{f.state}</span>
                 </div>
                 <p className="display-soft mt-2 text-[clamp(1.35rem,3.6vw,2.6rem)] text-ink">

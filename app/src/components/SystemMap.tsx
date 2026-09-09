@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { useLang } from '../lib/lang';
 import { Chapter } from './Chapter';
+import { useWebglQuality } from '../lib/quality';
 import { CAPABILITIES, STACK } from '../content';
 import { gsap, useScene, aura, EASE, prefersReduced } from '../lib/motion';
 
@@ -109,22 +110,14 @@ export function SystemMap() {
   /* The scene needs to know how heavy the WebGL may be — and whether it
      may run at all. Reduced motion keeps the fallback ring, which is
      static, legible and does everything the diagram has to do. */
-  const [field, setField] = useState<null | 'full' | 'lite'>(null);
-  useEffect(() => {
-    if (prefersReduced()) return;
-    try {
-      const c = document.createElement('canvas');
-      if (!(c.getContext('webgl2') || c.getContext('webgl'))) return;
-      /* Phones keep the flat ring. The scene needs room to be read as
-         a structure — seven bodies and their wires inside a 23rem
-         square is a smudge, and it costs a WebGL context and a
-         per-frame projection to draw it. The 2D ring says the same
-         thing at that size, legibly and for nothing. */
-      setField(window.innerWidth < 768 ? null : 'full');
-    } catch {
-      setField(null);
-    }
-  }, []);
+  /* Phones keep the flat ring, so the shared verdict's `lite` is read
+     as "not here". The scene needs room to be read as a structure —
+     seven bodies and their wires inside a 23rem square is a smudge,
+     and it costs a WebGL context and a per-frame projection to draw
+     it. The 2D ring says the same thing at that size, legibly and for
+     nothing. */
+  const quality = useWebglQuality();
+  const field = quality === 'full' ? 'full' : null;
 
   const core = useRef<HTMLDivElement>(null);
 
@@ -267,7 +260,6 @@ export function SystemMap() {
                     isLit={linked}
                     nodeEls={btns}
                     coreEl={core}
-                    lite={field === 'lite'}
                   />
                 </Suspense>
               )}

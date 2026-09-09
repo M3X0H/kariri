@@ -23,10 +23,20 @@
   --color-ink-2: #9b9a95;
   --color-ink-3: #6c6b67;
 
-  /* One accent. It is used as hairlines, ticks and pulses — light drawn
-     as a line, not smeared as a glow. `blue` and `violet` survive only
-     inside the WebGL field, where they are actual light. */
+  /* Two voices, and the second one is rationed.
+
+     Cyan is the working colour: hairlines, ticks, pulses — light drawn
+     as a line rather than smeared as a glow. Amber is the signal, and
+     it appears only where something is genuinely wrong: the three
+     faults, and the corridor's temperature as it passes them. A warm
+     metal against a cold one is what separates an instrument from a
+     dark theme, and rationing it is what keeps it from reading as a
+     gaming palette. Never use amber decoratively.
+
+     `blue` and `violet` survive only inside WebGL, where they are
+     actual light rather than fill. */
   --color-cyan: #5ce1e6;
+  --color-amber: #e8a33d;
   --color-blue: #4f7cff;
   --color-violet: #8b5cf6;
 
@@ -724,6 +734,29 @@
      declared later still so it wins. */
   .label-accent { color: var(--color-cyan); }
 
+  /* The alert register. Amber appears on this page in exactly one
+     chapter — the three faults — and on the corridor as it passes them.
+     That is the whole budget. A second accent used twice is a system; a
+     second accent used everywhere is a theme. */
+  .label-signal { color: var(--color-amber); }
+
+  .signal-dot {
+    background: var(--color-amber);
+    box-shadow: 0 0 9px 2px rgb(232 163 61 / 0.45);
+  }
+
+  /* The wire threading the three faults. It runs warm at the top, where
+     the fault enters, and cools as it descends toward the statement
+     that answers it — the chapter's argument, drawn as one line. */
+  .signal-spine {
+    background: linear-gradient(
+      to bottom,
+      var(--color-amber),
+      color-mix(in oklab, var(--color-amber) 45%, var(--color-cyan)),
+      transparent
+    );
+  }
+
   /* ── Arabic typography ──────────────────────────────────────────
      These live in `utilities`, beside the rules they override, and not
      in `base` where they read more naturally. Cascade layers are ranked
@@ -797,6 +830,30 @@
       radial-gradient(58% 52% at calc(78% + var(--pxc) * 6%) calc(16% + var(--pyc) * 5%), hsl(var(--aura) 70% 56% / 0.06), transparent 64%),
       radial-gradient(52% 48% at calc(15% - var(--pxc) * 5%) calc(84% - var(--pyc) * 4%), hsl(calc(var(--aura) + 24) 64% 58% / 0.04), transparent 66%);
     transition: background 1.2s var(--ease-signal);
+  }
+
+  /* The corridor the whole page is cut into — see `SystemScene`.
+
+     Behind everything, inert, and fixed. Fixed is not a detail here:
+     a fixed box is excluded from the viewport's scrollable overflow,
+     so whatever the scene draws it cannot widen the document. The 3D
+     is structurally unable to move the page sideways.
+
+     It is held well under the content deliberately. This is depth for
+     the type to sit in front of, not a picture competing with it. */
+  .system-scene {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.78;
+    contain: strict;
+  }
+
+  @media (max-width: 767px) {
+    /* A phone holds the type much closer to the eye, so the same field
+       reads as clutter at the same strength. */
+    .system-scene { opacity: 0.42; }
   }
 
   /* Fine technical grid, fixed so it never repaints on scroll. It

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { LazyMotion, domAnimation } from 'framer-motion';
 import { LangProvider, useLang } from './lib/lang';
 import { useSignals } from './lib/signals';
@@ -10,6 +10,9 @@ import { SmoothCursor } from './components/lightswind/smooth-cursor';
 import { About, Fault, Hero } from './components/SectionsTop';
 import { SystemMap } from './components/SystemMap';
 import { Career, Contact, Credentials, Footer, Work } from './components/SectionsBottom';
+import { useWebglQuality } from './lib/quality';
+
+const SystemScene = lazy(() => import('./components/SystemScene'));
 
 /* The page is a route, not a résumé layout: a fault enters, it is
    traced through a system, and the person who does the tracing is
@@ -27,6 +30,7 @@ function Site() {
   const { t } = useLang();
   const [ready, setReady] = useState(false);
   const done = useCallback(() => setReady(true), []);
+  const scene = useWebglQuality();
 
   // One pointer listener, one scroll listener and one rAF for the whole
   // site. Everything that reacts to you reads the properties this
@@ -61,6 +65,17 @@ function Site() {
       >
         {t.skip}
       </a>
+
+      {/* The space the whole page is cut into. It is mounted once, here,
+          rather than per-section: that is the difference between eight
+          chapters that each own a canvas and one corridor you travel
+          down. Held until the loader is done so the intro has the frame
+          budget to itself. */}
+      {ready && scene && (
+        <Suspense fallback={null}>
+          <SystemScene lite={scene === 'lite'} />
+        </Suspense>
+      )}
 
       <div className="grid-field" aria-hidden="true" />
       <div className="crosshair" aria-hidden="true" />

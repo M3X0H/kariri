@@ -5,10 +5,8 @@ import { Chapter } from './Chapter';
 import { LINKS } from '../content';
 import { gsap, ScrollTrigger, useScene, splitUnits, aura, EASE, isCoarse, prefersReduced } from '../lib/motion';
 import { arrive, depthPass, parallax } from '../lib/scenes';
-import { AuroraBackground } from './lightswind/aurora-background';
 import { BorderBeam } from './lightswind/border-beam';
 import { MagneticButton } from './lightswind/magnetic-button';
-import { ParticleField } from './lightswind/particle-field';
 import { ShineButton } from './lightswind/shine-button';
 import { TextScrollMarquee } from './lightswind/text-scroll-marquee';
 import { TiltCard } from './lightswind/tilt-card';
@@ -230,9 +228,9 @@ export function Career() {
                       size={64}
                       className="[--beam-w:30px] md:[--beam-w:64px]"
                       duration={7}
-                      glowIntensity={0.55}
+                      glowIntensity={0.18}
                       colorFrom="var(--color-cyan)"
-                      colorTo="var(--color-violet)"
+                      colorTo="var(--color-ink)"
                     />
                   )}
 
@@ -382,10 +380,10 @@ export function Work() {
                   size={44}
                   className="[--beam-w:26px] md:[--beam-w:44px]"
                   duration={8}
-                  glowIntensity={0.4}
-                  opacity={0.75}
+                  glowIntensity={0.15}
+                  opacity={0.7}
                   colorFrom="var(--color-cyan)"
-                  colorTo="var(--color-blue)"
+                  colorTo="var(--color-ink)"
                 />
 
                 <div
@@ -617,7 +615,7 @@ export function Credentials() {
    CONTACT — the close. Large type arriving line by line over drifting
    motes, a magnetic primary action, and every route to him as one list.
 
-   Lightswind: ParticleField, AuroraBackground, MagneticButton.
+   Lightswind: MagneticButton.
    ═══════════════════════════════════════════════════════════════ */
 export function Contact() {
   const { t, lang } = useLang();
@@ -656,12 +654,10 @@ export function Contact() {
       ref={root}
       id="contact"
       className="chapter-edge scene-full relative scroll-mt-[var(--rail)] overflow-hidden px-[var(--pad)] pb-[clamp(3rem,8vh,6rem)] pt-[clamp(4rem,9vh,7rem)]"
-      style={aura(264)}
+      style={aura(216)}
     >
       {/* Indigo into violet, and no further: the page's spectrum ends here. */}
-      <AuroraBackground hue={258} spread={38} intensity={0.11} showRadialGradient={false} />
       <div className="aura" />
-      <ParticleField count={64} speed={0.9} />
 
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
         <Chapter index="06" name={t.contact.tag} as="p" ghost={false} className="mb-12" />
