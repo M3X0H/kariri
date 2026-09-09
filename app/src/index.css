@@ -421,7 +421,7 @@
      name climbing over its lower edge. */
   .hero-plate {
     order: 1;
-    block-size: 42svh;
+    block-size: 38svh;
     margin-inline: calc(var(--pad) * -1);
     --fade-to: to top;
   }

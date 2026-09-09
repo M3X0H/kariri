@@ -229,11 +229,11 @@ export function Hero({ ready }: { ready: boolean }) {
             </span>
           </h1>
 
-          <p data-meta className="measure-sm mt-6 text-lg text-ink-2 md:text-xl">
+          <p data-meta className="measure-sm mt-5 text-lg text-ink-2 md:mt-6 md:text-xl">
             {t.hero.claim}
           </p>
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="mt-6 flex flex-col gap-2.5 sm:mt-7 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
             <div data-act className="w-full sm:w-auto">
               <MagneticButton
                 href={LINKS.whatsapp}
@@ -263,9 +263,9 @@ export function Hero({ ready }: { ready: boolean }) {
         </div>
 
         {/* ── the rail ──────────────────────────────────────────── */}
-        <div data-meta className="hero-rail relative z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-8 lg:pt-0">
+        <div data-meta className="hero-rail relative z-10 pb-[calc(1.1rem+env(safe-area-inset-bottom))] pt-6 lg:pb-0 lg:pt-0">
           <div aria-hidden="true" className="wire h-px w-full" />
-          <dl className="grid12 mt-5 gap-y-5">
+          <dl className="grid12 mt-4 gap-y-4 md:mt-5 md:gap-y-5">
             {spec.map(([k, v]) => (
               <div key={k} className="col-span-6 md:col-span-3">
                 <dt className="label">{k}</dt>
