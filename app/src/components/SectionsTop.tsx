@@ -152,7 +152,6 @@ export function Hero({ ready }: { ready: boolean }) {
             width={1062}
             height={1280}
             fetchPriority="high"
-            className="object-[50%_18%]"
           />
 
           {/* The network burns through the plate rather than floating

@@ -3,45 +3,68 @@ import * as THREE from 'three';
 import { CAPABILITIES } from '../content';
 
 /* ═══════════════════════════════════════════════════════════════
-   The capability field — the map, in three dimensions.
+   THE COMMAND CORE — the capability map as an instrument.
 
-   The diagram used to be flat SVG with HTML discs on top of it. It read
-   as a picture of a system. This is the system: seven bodies in real
-   space, wired by curves that bow through the volume rather than
-   crossing it, with charge running along the live ones and a haze of
-   motes filling the depth between them. The camera answers the pointer
-   and turns as the section passes, so the structure is seen from a
-   slightly different angle every time.
+   It used to be six spheres on a ring around a seventh, slightly larger
+   sphere. That is a node diagram, and a node diagram is a picture of a
+   system rather than a piece of one. This is built as equipment:
 
-   The controls stay in HTML. This scene projects each node's world
-   position to the screen every frame and writes it straight onto the
-   button's transform — no React render, no state, no second source of
-   truth — so the hit areas, focus rings and accessible names remain the
-   platform's while the thing you actually look at is WebGL.
+     the core      a reticle — concentric rings on three axes, a
+                   graduated dial, four registration brackets, each
+                   turning at its own rate. It surrounds the readout
+                   rather than sitting behind it.
+     the bus       the rim of the core, at CORE_R. Wires leave from
+                   there, not from the origin, so the centre stays
+                   clear for the name it is holding.
+     the modules   hexagonal plates, not spheres. Six sides reads as
+                   machined; a circle reads as a bullet point.
+     the traces    core-to-module runs solid and carries charge;
+                   module-to-module runs dashed and dim. Two weights,
+                   so the eye is told which relationship is primary.
 
-   Nothing here is decorative-random: the seven bodies are his six
-   capability areas around the core, and the curves are the relationships
-   `CAPABILITIES[].links` records.
+   Light is rationed. The rings, ticks, brackets and plates are drawn
+   with normal blending so they stay *lines* — precise, matte, and
+   readable at rest. Only what is genuinely energy (charge, halo, haze)
+   blends additively. That distinction is the whole difference between
+   an instrument and a neon sign.
+
+   The controls stay in HTML: this scene projects each node's world
+   position to the screen every frame and writes it onto the button's
+   transform, so hit areas, focus rings and accessible names remain the
+   platform's. `place` is bounded at the point it writes — see below.
+
+   Nothing here is decorative-random: the seven bodies are his six real
+   capability areas around the core, and the traces are the
+   relationships `CAPABILITIES[].links` records.
    ═══════════════════════════════════════════════════════════════ */
 
 const N = CAPABILITIES.length;
 const RING = 2.05;
 
+/* The radius the core assembly occupies, and therefore the rim the
+   traces leave from. Sized to clear the HTML readout that sits over the
+   middle — a wire emerging from behind a name looks like a mistake. */
+const CORE_R = 1.02;
+
 /* Node positions. The ring is tilted out of the XY plane and each body
-   is pushed a little along Z by its own index, so the structure has
-   real depth to rotate through instead of being a disc seen at an
-   angle. */
+   is pushed along Z by its own index, so the structure has real depth to
+   rotate through instead of being a disc seen at an angle. The z spread
+   is deliberately uneven: modules on one plane read as a diagram. */
 const NODE_POS = CAPABILITIES.map((_, i) => {
   const a = (i / N) * Math.PI * 2 - Math.PI / 2;
-  return new THREE.Vector3(Math.cos(a) * RING, Math.sin(a) * RING * 0.86, Math.sin(a * 2) * 0.42);
+  return new THREE.Vector3(
+    Math.cos(a) * RING,
+    Math.sin(a) * RING * 0.86,
+    Math.sin(a * 2) * 0.42 + Math.cos(a * 3) * 0.22
+  );
 });
 const CORE_POS = new THREE.Vector3(0, 0, 0);
 
-type Link = { a: number; b: number; curve: THREE.QuadraticBezierCurve3 };
+type Link = { a: number; b: number; curve: THREE.QuadraticBezierCurve3; dashed: boolean };
 
-/* Core → node, then node → node for every relationship. The control
-   point is pushed off the chord so a wire bows through the volume
-   instead of lying flat across it. */
+/* Core → node from the bus rim, then node → node for every recorded
+   relationship. The control point is pushed off the chord so a wire bows
+   through the volume instead of lying flat across it. */
 const LINKS: Link[] = (() => {
   const out: Link[] = [];
   const bow = (p: THREE.Vector3, q: THREE.Vector3, amount: number) => {
@@ -51,19 +74,24 @@ const LINKS: Link[] = (() => {
     return new THREE.QuadraticBezierCurve3(p.clone(), mid, q.clone());
   };
 
-  NODE_POS.forEach((p, i) => out.push({ a: -1, b: i, curve: bow(CORE_POS, p, 0.34) }));
+  NODE_POS.forEach((p, i) => {
+    // Leaves the rim on the bearing of the module it serves.
+    const rim = p.clone().setZ(0).normalize().multiplyScalar(CORE_R);
+    rim.z = p.z * 0.25;
+    out.push({ a: -1, b: i, curve: bow(rim, p, 0.28), dashed: false });
+  });
 
   CAPABILITIES.forEach((cap, i) => {
     (cap.links as readonly number[]).forEach((j) => {
       if (j <= i) return;
-      out.push({ a: i, b: j, curve: bow(NODE_POS[i], NODE_POS[j], -0.5) });
+      out.push({ a: i, b: j, curve: bow(NODE_POS[i], NODE_POS[j], -0.5), dashed: true });
     });
   });
 
   return out;
 })();
 
-const SEGMENTS = 26;
+const SEGMENTS = 30;
 const PULSES_PER_LINK = 2;
 
 const QUALITY = {
@@ -100,6 +128,58 @@ const MOTE_FRAG = /* glsl */ `
     gl_FragColor = vec4(0.36, 0.88, 0.9, smoothstep(0.5, 0.0, d) * vAlpha * uAlpha);
   }
 `;
+
+/* ── drawing primitives ───────────────────────────────────────────
+   The core is built from these rather than from meshes, because every
+   part of it is a line: that is what makes it read as drawn equipment
+   instead of modelled objects. */
+
+const ring = (r: number, segs = 128) => {
+  const p: number[] = [];
+  for (let i = 0; i <= segs; i++) {
+    const a = (i / segs) * Math.PI * 2;
+    p.push(Math.cos(a) * r, Math.sin(a) * r, 0);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  return g;
+};
+
+const arc = (r: number, from: number, to: number, segs = 20) => {
+  const p: number[] = [];
+  for (let i = 0; i <= segs; i++) {
+    const a = from + (to - from) * (i / segs);
+    p.push(Math.cos(a) * r, Math.sin(a) * r, 0);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  return g;
+};
+
+/* A graduated dial. Every sixth mark runs long, which is the detail that
+   makes a ring of ticks read as a scale rather than as a texture. */
+const graduations = (rIn: number, rOut: number, rLong: number, count: number) => {
+  const p: number[] = [];
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2;
+    const out = i % 6 === 0 ? rLong : rOut;
+    p.push(Math.cos(a) * rIn, Math.sin(a) * rIn, 0, Math.cos(a) * out, Math.sin(a) * out, 0);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  return g;
+};
+
+const hexagon = (r: number) => {
+  const p: number[] = [];
+  for (let i = 0; i <= 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + Math.PI / 6;
+    p.push(Math.cos(a) * r, Math.sin(a) * r, 0);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  return g;
+};
 
 export interface CapabilityFieldProps {
   /** Index of the node currently chosen. */
@@ -156,21 +236,90 @@ export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite =
     scene.add(group);
 
     const CYAN = new THREE.Color('#5ce1e6');
-    const DIM = new THREE.Color('#2a3138');
+    /* The resting colour of an unlit module. Selection should reduce the
+       others, not delete them: at #2a3138 four of the six areas vanished
+       and the map stopped describing a system. Steel reads as present
+       and unselected; soot reads as absent. */
+    const DIM = new THREE.Color('#55636f');
+    const dispose: { dispose(): void }[] = [];
 
-    /* ── the wires ────────────────────────────────────────────── */
-    /* One geometry for every link, coloured per vertex so a link can be
-       lit or dimmed by rewriting its colour range rather than by
-       swapping materials. */
-    const linkPos: number[] = [];
-    LINKS.forEach((l) => {
-      const pts = l.curve.getPoints(SEGMENTS);
-      for (let s = 0; s < SEGMENTS; s++) {
-        linkPos.push(pts[s].x, pts[s].y, pts[s].z, pts[s + 1].x, pts[s + 1].y, pts[s + 1].z);
-      }
+    /* Every line in the core and the modules is matte. Additive would
+       bloom them into each other and the precision — which is the whole
+       point of the object — would be the first thing lost. */
+    const lineMat = (color: THREE.Color | string, opacity: number) => {
+      const m = new THREE.LineBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity });
+      dispose.push(m);
+      return m;
+    };
+
+    const keep = <T extends THREE.BufferGeometry>(g: T) => {
+      dispose.push(g);
+      return g;
+    };
+
+    /* ── the core assembly ────────────────────────────────────── */
+    /* Three rings on three axes, a dial, and four registration
+       brackets. Each turns at its own rate and in its own direction, so
+       the thing reads as mechanism rather than as one spinning object.
+       All of it is slow: at rest this has to look composed, not busy. */
+    const core = new THREE.Group();
+    group.add(core);
+
+    const ringA = new THREE.Line(keep(ring(0.78)), lineMat('#5ce1e6', 0.22));
+    ringA.rotation.set(0.52, 0.18, 0);
+
+    const ringB = new THREE.Line(keep(ring(CORE_R)), lineMat('#5ce1e6', 0.34));
+    ringB.rotation.set(-0.28, 0.46, 0);
+
+    const ringC = new THREE.Line(keep(ring(1.24)), lineMat('#8fa0ad', 0.16));
+
+    const dial = new THREE.LineSegments(keep(graduations(1.06, 1.11, 1.17, 48)), lineMat('#5ce1e6', 0.3));
+
+    const brackets = new THREE.Group();
+    const bracketMat = lineMat('#8fa0ad', 0.3);
+    for (let i = 0; i < 4; i++) {
+      const c = Math.PI / 4 + (i / 4) * Math.PI * 2;
+      brackets.add(new THREE.Line(keep(arc(1.34, c - 0.22, c + 0.22)), bracketMat));
+    }
+
+    core.add(ringA, ringB, ringC, dial, brackets);
+
+    /* Three indicators riding the bus rim. They are the only part of the
+       core that moves quickly enough to catch the eye, and there are
+       three of them because two reads as a pair and four as a pattern. */
+    const orbGeo = keep(new THREE.SphereGeometry(0.028, 10, 10));
+    const orbMat = new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.85 });
+    dispose.push(orbMat);
+    const orbiters = [0, 1, 2].map((i) => {
+      const m = new THREE.Mesh(orbGeo, orbMat);
+      m.userData.phase = (i / 3) * Math.PI * 2;
+      ringB.add(m);
+      return m;
     });
 
-    const linkGeo = new THREE.BufferGeometry();
+    /* ── the traces ───────────────────────────────────────────── */
+    /* One geometry for every link, coloured per vertex so a link can be
+       lit or dimmed by rewriting its colour range rather than by
+       swapping materials. Dashed links emit alternate segments only, so
+       a secondary relationship reads as a broken trace — and each link
+       records where its vertices start, since the two kinds no longer
+       contribute the same count. */
+    const linkPos: number[] = [];
+    const linkRange: { at: number; count: number }[] = [];
+
+    LINKS.forEach((l) => {
+      const pts = l.curve.getPoints(SEGMENTS);
+      const at = linkPos.length / 3;
+      let count = 0;
+      for (let s = 0; s < SEGMENTS; s++) {
+        if (l.dashed && s % 2 === 1) continue;
+        linkPos.push(pts[s].x, pts[s].y, pts[s].z, pts[s + 1].x, pts[s + 1].y, pts[s + 1].z);
+        count += 2;
+      }
+      linkRange.push({ at, count });
+    });
+
+    const linkGeo = keep(new THREE.BufferGeometry());
     linkGeo.setAttribute('position', new THREE.Float32BufferAttribute(linkPos, 3));
     const linkCol = new Float32Array(linkPos.length);
     const linkColAttr = new THREE.BufferAttribute(linkCol, 3);
@@ -180,55 +329,77 @@ export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite =
     const linkMat = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.75,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.85,
       depthWrite: false
     });
+    dispose.push(linkMat);
     group.add(new THREE.LineSegments(linkGeo, linkMat));
 
-    // Vertices per link, so a link's colour range can be found by index.
-    const VPL = SEGMENTS * 2;
+    /* ── the modules ──────────────────────────────────────────── */
+    /* A hexagonal plate, a filled centre and two flanking marks. Each
+       plate carries a small tilt of its own so the six do not read as
+       one stamped row seen in perspective. */
+    const hexOuter = keep(hexagon(0.21));
+    const hexInner = keep(new THREE.CircleGeometry(0.062, 6));
+    const markGeo = keep(
+      (() => {
+        const g = new THREE.BufferGeometry();
+        g.setAttribute(
+          'position',
+          new THREE.Float32BufferAttribute([-0.3, 0, 0, -0.25, 0, 0, 0.25, 0, 0, 0.3, 0, 0], 3)
+        );
+        return g;
+      })()
+    );
 
-    /* ── the bodies ───────────────────────────────────────────── */
-    const nodeGeo = new THREE.SphereGeometry(0.085, 20, 20);
-    const nodeMats: THREE.MeshBasicMaterial[] = [];
-    const nodeMeshes: THREE.Mesh[] = [];
-    const halos: THREE.Sprite[] = [];
+    type Module = {
+      hub: THREE.Group;
+      plate: THREE.Line;
+      plateMat: THREE.LineBasicMaterial;
+      fill: THREE.Mesh;
+      fillMat: THREE.MeshBasicMaterial;
+      marks: THREE.LineSegments;
+      markMat: THREE.LineBasicMaterial;
+      halo: THREE.Sprite;
+    };
 
     const haloTex = (() => {
       const c = document.createElement('canvas');
       c.width = c.height = 96;
       const g = c.getContext('2d')!;
       const grad = g.createRadialGradient(48, 48, 0, 48, 48, 48);
-      grad.addColorStop(0, 'rgba(92,225,230,0.5)');
-      grad.addColorStop(0.3, 'rgba(92,225,230,0.12)');
+      grad.addColorStop(0, 'rgba(92,225,230,0.42)');
+      grad.addColorStop(0.3, 'rgba(92,225,230,0.1)');
       grad.addColorStop(1, 'rgba(92,225,230,0)');
       g.fillStyle = grad;
       g.fillRect(0, 0, 96, 96);
       return new THREE.CanvasTexture(c);
     })();
 
-    NODE_POS.forEach((p) => {
-      const mat = new THREE.MeshBasicMaterial({ color: CYAN.clone(), transparent: true });
-      const mesh = new THREE.Mesh(nodeGeo, mat);
-      mesh.position.copy(p);
-      group.add(mesh);
-      nodeMats.push(mat);
-      nodeMeshes.push(mesh);
+    const modules: Module[] = NODE_POS.map((p, i) => {
+      const hub = new THREE.Group();
+      hub.position.copy(p);
+      hub.rotation.set(Math.sin(i * 1.7) * 0.3, Math.cos(i * 2.1) * 0.35, i * 0.22);
+
+      const plateMat = lineMat(DIM, 0.9);
+      const plate = new THREE.Line(hexOuter, plateMat);
+
+      const fillMat = new THREE.MeshBasicMaterial({ color: DIM.clone(), transparent: true, opacity: 0.6 });
+      dispose.push(fillMat);
+      const fill = new THREE.Mesh(hexInner, fillMat);
+
+      const markMat = lineMat(DIM, 0.7);
+      const marks = new THREE.LineSegments(markGeo, markMat);
 
       const halo = new THREE.Sprite(
         new THREE.SpriteMaterial({ map: haloTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })
       );
-      halo.position.copy(p);
       halo.scale.setScalar(0.42);
-      group.add(halo);
-      halos.push(halo);
-    });
 
-    // The core is a body too, so the wires meet something.
-    const coreMat = new THREE.MeshBasicMaterial({ color: CYAN.clone(), transparent: true, opacity: 0.55 });
-    const coreMesh = new THREE.Mesh(new THREE.SphereGeometry(0.16, 24, 24), coreMat);
-    group.add(coreMesh);
+      hub.add(plate, fill, marks, halo);
+      group.add(hub);
+      return { hub, plate, plateMat, fill, fillMat, marks, markMat, halo };
+    });
 
     /* ── the charge ───────────────────────────────────────────── */
     /* Points that run the curves. Only the live links carry any, so the
@@ -240,7 +411,7 @@ export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite =
     const pulseT = new Float32Array(pulseCount);
     for (let i = 0; i < pulseCount; i++) pulseT[i] = Math.random();
 
-    const pulseGeo = new THREE.BufferGeometry();
+    const pulseGeo = keep(new THREE.BufferGeometry());
     const pulsePosAttr = new THREE.BufferAttribute(pulsePos, 3);
     const pulseAlphaAttr = new THREE.BufferAttribute(pulseAlpha, 1);
     pulsePosAttr.setUsage(THREE.DynamicDrawUsage);
@@ -257,30 +428,34 @@ export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite =
       depthWrite: false,
       blending: THREE.AdditiveBlending
     });
+    dispose.push(pulseMat);
     group.add(new THREE.Points(pulseGeo, pulseMat));
 
     /* ── the haze ─────────────────────────────────────────────── */
+    /* The furthest layer. Dim enough to be atmosphere rather than
+       content — it exists so the structure has something to be in
+       front of. */
     const motePos = new Float32Array(MOTES * 3);
     const moteScale = new Float32Array(MOTES);
     const moteSeed = new Float32Array(MOTES);
     for (let i = 0; i < MOTES; i++) {
       // A shell around the structure, not a cube of noise.
-      const r = 1.4 + Math.random() * 2.6;
+      const r = 1.9 + Math.random() * 2.8;
       const th = Math.random() * Math.PI * 2;
       const ph = Math.acos(2 * Math.random() - 1);
       motePos[i * 3] = Math.sin(ph) * Math.cos(th) * r;
       motePos[i * 3 + 1] = Math.sin(ph) * Math.sin(th) * r * 0.8;
-      motePos[i * 3 + 2] = Math.cos(ph) * r * 0.7;
-      moteScale[i] = 0.35 + Math.random() * 0.9;
+      motePos[i * 3 + 2] = Math.cos(ph) * r * 0.7 - 0.6;
+      moteScale[i] = 0.3 + Math.random() * 0.8;
       moteSeed[i] = Math.random();
     }
 
-    const moteGeo = new THREE.BufferGeometry();
+    const moteGeo = keep(new THREE.BufferGeometry());
     moteGeo.setAttribute('position', new THREE.BufferAttribute(motePos, 3));
     moteGeo.setAttribute('aScale', new THREE.BufferAttribute(moteScale, 1));
     moteGeo.setAttribute('aSeed', new THREE.BufferAttribute(moteSeed, 1));
 
-    const moteUniforms = { uTime: { value: 0 }, uSize: { value: 0.075 }, uAlpha: { value: 0.3 } };
+    const moteUniforms = { uTime: { value: 0 }, uSize: { value: 0.075 }, uAlpha: { value: 0.24 } };
     const moteMat = new THREE.ShaderMaterial({
       uniforms: moteUniforms,
       vertexShader: MOTE_VERT,
@@ -289,6 +464,7 @@ export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite =
       depthWrite: false,
       blending: THREE.AdditiveBlending
     });
+    dispose.push(moteMat);
     group.add(new THREE.Points(moteGeo, moteMat));
 
     /* ── responses ────────────────────────────────────────────── */
@@ -385,31 +561,55 @@ export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite =
 
       const { active: act, isLit: lit } = state.current;
 
-      // Bodies: the chosen one swells and burns, its neighbours glow,
-      // the rest recede.
-      NODE_POS.forEach((_, i) => {
-        const on = i === act;
-        const l = lit(i);
-        const target = on ? 1.9 : l ? 1.25 : 0.85;
-        const m = nodeMeshes[i];
-        m.scale.setScalar(m.scale.x + (target - m.scale.x) * 0.12);
-        nodeMats[i].color.lerp(l ? CYAN : DIM, 0.1);
-        nodeMats[i].opacity += ((l ? 1 : 0.5) - nodeMats[i].opacity) * 0.1;
+      /* The mechanism. Four rates, two directions — slow enough that a
+         still screenshot of this looks composed. */
+      ringA.rotation.z = t * 0.055;
+      ringB.rotation.z = -t * 0.038;
+      ringC.rotation.z = t * 0.019;
+      dial.rotation.z = -t * 0.013;
+      brackets.rotation.z = t * 0.007;
 
-        const halo = halos[i];
-        const haloTarget = on ? 1.05 + Math.sin(t * 2.1) * 0.09 : l ? 0.62 : 0.24;
-        halo.scale.setScalar(halo.scale.x + (haloTarget - halo.scale.x) * 0.1);
+      orbiters.forEach((m, i) => {
+        const a = m.userData.phase + t * 0.42 * (i % 2 ? -1 : 1);
+        m.position.set(Math.cos(a) * CORE_R, Math.sin(a) * CORE_R, 0);
       });
 
-      coreMat.opacity = 0.45 + Math.sin(t * 1.4) * 0.12;
-      coreMesh.scale.setScalar(1 + Math.sin(t * 1.4) * 0.05);
+      // The core answers a selection: the bus ring brightens with it.
+      const busTarget = act >= 0 ? 0.5 : 0.34;
+      (ringB.material as THREE.LineBasicMaterial).opacity +=
+        (busTarget - (ringB.material as THREE.LineBasicMaterial).opacity) * 0.06;
+      (dial.material as THREE.LineBasicMaterial).opacity = 0.26 + Math.sin(t * 1.1) * 0.05;
 
-      // Wires: colour written per link, so lighting is one buffer update.
+      /* Modules: the chosen one squares up and burns, its neighbours
+         hold, the rest recede. Scale is on the plate rather than on a
+         sphere, so what grows is a drawn edge. */
+      modules.forEach((m, i) => {
+        const on = i === act;
+        const l = lit(i);
+        const target = on ? 1.34 : l ? 1.1 : 0.9;
+        m.hub.scale.setScalar(m.hub.scale.x + (target - m.hub.scale.x) * 0.12);
+        // A selected module turns to face front; the others keep their lean.
+        m.hub.rotation.z += ((on ? 0 : i * 0.22) - m.hub.rotation.z) * 0.08;
+
+        m.plateMat.color.lerp(l ? CYAN : DIM, 0.1);
+        m.plateMat.opacity += ((on ? 1 : l ? 0.8 : 0.62) - m.plateMat.opacity) * 0.1;
+        m.fillMat.color.lerp(on ? CYAN : DIM, 0.1);
+        m.fillMat.opacity += ((on ? 0.95 : l ? 0.55 : 0.4) - m.fillMat.opacity) * 0.1;
+        m.markMat.color.lerp(l ? CYAN : DIM, 0.1);
+        m.markMat.opacity += ((l ? 0.65 : 0.4) - m.markMat.opacity) * 0.1;
+
+        const haloTarget = on ? 1.0 + Math.sin(t * 2.1) * 0.08 : l ? 0.55 : 0.2;
+        m.halo.scale.setScalar(m.halo.scale.x + (haloTarget - m.halo.scale.x) * 0.1);
+      });
+
+      // Traces: colour written per link, so lighting is one buffer update.
       LINKS.forEach((l, li) => {
         const live = l.a === -1 ? l.b === act : lit(l.a) && lit(l.b);
-        tmpColor.copy(live ? CYAN : DIM).multiplyScalar(live ? 0.85 : 0.16);
-        for (let v = 0; v < VPL; v++) {
-          const o = (li * VPL + v) * 3;
+        const weight = live ? 0.9 : l.dashed ? 0.22 : 0.36;
+        tmpColor.copy(live ? CYAN : DIM).multiplyScalar(weight);
+        const { at, count } = linkRange[li];
+        for (let v = 0; v < count; v++) {
+          const o = (at + v) * 3;
           linkCol[o] += (tmpColor.r - linkCol[o]) * 0.12;
           linkCol[o + 1] += (tmpColor.g - linkCol[o + 1]) * 0.12;
           linkCol[o + 2] += (tmpColor.b - linkCol[o + 2]) * 0.12;
@@ -453,17 +653,8 @@ export default function CapabilityField({ active, isLit, nodeEls, coreEl, lite =
       window.removeEventListener('scroll', onScroll);
       ro.disconnect();
       io.disconnect();
-      linkGeo.dispose();
-      nodeGeo.dispose();
-      pulseGeo.dispose();
-      moteGeo.dispose();
-      coreMesh.geometry.dispose();
-      linkMat.dispose();
-      pulseMat.dispose();
-      moteMat.dispose();
-      coreMat.dispose();
-      nodeMats.forEach((m) => m.dispose());
-      halos.forEach((s) => (s.material as THREE.SpriteMaterial).dispose());
+      dispose.forEach((d) => d.dispose());
+      modules.forEach((m) => (m.halo.material as THREE.SpriteMaterial).dispose());
       haloTex.dispose();
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);

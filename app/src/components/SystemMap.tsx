@@ -46,10 +46,15 @@ const CapabilityField = lazy(() => import('./CapabilityField'));
    out in percentages. When the field is running it takes these over and
    writes each button's transform from the projected 3D position
    instead; this is what the page falls back to, not what it aims for. */
-const FALLBACK = CAPABILITIES.map((_, i) => {
-  const a = (i / CAPABILITIES.length) * Math.PI * 2 - Math.PI / 2;
-  return { left: 50 + Math.cos(a) * 35, top: 50 + Math.sin(a) * 35 };
-});
+const BEARINGS = CAPABILITIES.map((_, i) => (i / CAPABILITIES.length) * Math.PI * 2 - Math.PI / 2);
+const FALLBACK = BEARINGS.map((a) => ({ left: 50 + Math.cos(a) * 35, top: 50 + Math.sin(a) * 35 }));
+
+/* The reticle's own dimensions, in the same 0–100 space the controls are
+   positioned in. The bus rim has to clear the readout it surrounds and
+   the traces have to reach a module without running under it, which is
+   what fixes every number here. */
+const R = { inner: 15, bus: 21, tickIn: 21.6, tick: 22.6, tickLong: 23.6, outer: 26.5, bracket: 29.5, traceIn: 22, traceOut: 28, nodes: 35 };
+const P = (a: number, r: number) => [50 + Math.cos(a) * r, 50 + Math.sin(a) * r] as const;
 
 const CYCLE_MS = 3600;
 
@@ -241,7 +246,7 @@ export function SystemMap() {
           <div
             ref={wrap}
             data-map
-            className="relative mx-auto aspect-square w-full max-w-[23rem] touch-pan-y sm:max-w-[27rem] lg:mx-0 lg:max-w-[34rem]"
+            className="relative mx-auto aspect-square w-full max-w-[23rem] touch-pan-y sm:max-w-[27rem] lg:mx-0 lg:max-w-[34rem] xl:max-w-[38rem]"
             onPointerEnter={() => setHeld(true)}
             onPointerLeave={() => setHeld(false)}
             onFocusCapture={() => setHeld(true)}
@@ -264,25 +269,67 @@ export function SystemMap() {
                 </Suspense>
               )}
 
-              {/* Without WebGL the ring is drawn flat and the controls
-                  keep their percentage positions. */}
+{/* Without WebGL — which is every phone, deliberately — the same
+                  instrument is drawn flat. Not a reduced version of the
+                  scene: the same object in two dimensions, with the core's
+                  rings and dial, registration brackets, and a trace running
+                  out to each module along its own bearing. The selected
+                  trace carries a running dash, which is the signal packet
+                  the 3D scene spends a particle system on.
+
+                  Everything here is one SVG and two CSS rotations, so a
+                  phone gets the composition without a WebGL context. */}
               {!field && (
                 <svg
                   viewBox="0 0 100 100"
-                  className="absolute inset-0 h-full w-full"
+                  className="map-reticle absolute inset-0 h-full w-full"
                   aria-hidden="true"
                   focusable="false"
                 >
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="35"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="0.2"
-                    strokeDasharray="1 2"
-                    className="text-ink-3/50"
-                  />
+                  <circle cx="50" cy="50" r={R.inner} className="reticle-line" />
+                  <circle cx="50" cy="50" r={R.bus} className="reticle-bus" />
+
+                  <g className="reticle-dial">
+                    {Array.from({ length: 36 }, (_, i) => {
+                      const a = (i / 36) * Math.PI * 2;
+                      const [x1, y1] = P(a, R.tickIn);
+                      const [x2, y2] = P(a, i % 6 === 0 ? R.tickLong : R.tick);
+                      return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} className="reticle-tick" />;
+                    })}
+                  </g>
+
+                  <g className="reticle-outer">
+                    <circle cx="50" cy="50" r={R.outer} className="reticle-line" strokeDasharray="0.8 2.4" />
+                    {[0, 1, 2, 3].map((i) => {
+                      const c = Math.PI / 4 + (i * Math.PI) / 2;
+                      const [x1, y1] = P(c - 0.24, R.bracket);
+                      const [x2, y2] = P(c + 0.24, R.bracket);
+                      return (
+                        <path
+                          key={i}
+                          d={`M ${x1} ${y1} A ${R.bracket} ${R.bracket} 0 0 1 ${x2} ${y2}`}
+                          className="reticle-line"
+                        />
+                      );
+                    })}
+                  </g>
+
+                  {BEARINGS.map((a, i) => {
+                    const [x1, y1] = P(a, R.traceIn);
+                    const [x2, y2] = P(a, R.traceOut);
+                    return (
+                      <line
+                        key={i}
+                        x1={x1}
+                        y1={y1}
+                        x2={x2}
+                        y2={y2}
+                        className={`reticle-trace${i === active ? ' is-live' : linked(i) ? ' is-lit' : ''}`}
+                      />
+                    );
+                  })}
+
+                  <circle cx="50" cy="50" r={R.nodes} className="reticle-line" strokeDasharray="0.6 2.8" />
                 </svg>
               )}
 
@@ -293,7 +340,7 @@ export function SystemMap() {
                 style={
                   field
                     ? { left: 0, top: 0, width: '13rem' }
-                    : { left: '50%', top: '50%', width: '13rem', transform: 'translate(-50%, -50%)' }
+                    : { left: '50%', top: '50%', width: '8.5rem', transform: 'translate(-50%, -50%)' }
                 }
               >
                 <p

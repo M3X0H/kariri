@@ -436,20 +436,54 @@
     min-block-size: 100svh;
   }
 
-  /* Phones: a cover. Image from the very top, edge to edge, and the
-     name climbing over its lower edge. */
+  /* Phones: an aperture, not a band.
+
+     The source photograph is a circular portrait on a black ground —
+     which is why the desktop plate already reads as a lens. Cover-
+     fitting that into a 38svh landscape band kept 68% of the frame and
+     spent the loss on the chin and the shoulders, so the phone was
+     getting a crop of a composition rather than the composition.
+
+     So the phone gets the shape the photograph actually is. A square
+     box puts the source circle's own centre on the box's centre at
+     `50% 37%` — that is where it lands once cover has scaled it — and a
+     round frame turns the black margin into the page, which it is
+     already the same colour as. Nothing is cropped: forehead, chin and
+     shoulders all survive. */
   .hero-plate {
     order: 1;
-    block-size: 38svh;
-    margin-inline: calc(var(--pad) * -1);
-    --fade-to: to top;
+    /* Sized off the height as well as the width. The lens plus the
+       navigation clearance plus the name plus the rail have to fit one
+       screen, and a circle sized only by viewport width pushed the
+       closing rail past the fold on a 390. The svh term is what keeps
+       the composition on one screen at every phone proportion. */
+    inline-size: min(64vw, 40svh, 18rem);
+    aspect-ratio: 1;
+    block-size: auto;
+    /* Clear of the navigation. The lens starting at the very top of the
+       viewport put the wordmark across the headdress, which is the one
+       thing on this screen that has to be nobody's background. */
+    margin-block-start: var(--rail);
+    margin-inline: auto;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--line);
+    --fade-to: to bottom;
+  }
+
+  .hero-plate img { object-position: 50% 37%; }
+
+  /* One fade, at the edge the name crosses. The stock two-gradient
+     dissolve is drawn for a rectangular plate bleeding off a screen
+     edge; on a lens it only dirties the rim. */
+  .hero-plate::after {
+    background: linear-gradient(to bottom, transparent 58%, rgb(7 8 10 / 0.9) 100%);
   }
 
   .hero-type {
     order: 2;
     position: relative;
     z-index: 10;
-    margin-block-start: -6svh;
+    margin-block-start: -4.5svh;
   }
 
   .hero-rail { order: 3; margin-block-start: auto; }
@@ -466,13 +500,28 @@
       min-block-size: 100svh;
     }
 
+    /* Back to a panel: the desktop composition is the plate bleeding off
+       the screen edge with the name crossing it, so the phone's round
+       frame and its single fade are both unwound here. */
     .hero-plate {
       grid-column: 8 / -1;
       grid-row: 1 / -1;
+      inline-size: auto;
+      aspect-ratio: auto;
       block-size: 100%;
       margin-block: 0;
       margin-inline: 0 calc(var(--pad) * -1);
+      border-radius: 0;
+      box-shadow: none;
       --fade-to: to left;
+    }
+
+    .hero-plate img { object-position: 50% 30%; }
+
+    .hero-plate::after {
+      background:
+        linear-gradient(var(--fade-to), var(--color-void) 0%, rgb(7 8 10 / 0.8) 20%, transparent 58%),
+        linear-gradient(to bottom, rgb(7 8 10 / 0.6) 0%, transparent 26%, transparent 58%, var(--color-void) 100%);
     }
 
     :root[lang="ar"] .hero-plate { --fade-to: to right; }
@@ -1333,26 +1382,116 @@
     will-change: transform;
   }
 
-  .map-node-ring {
-    position: absolute;
-    inset: 0.45rem;
-    border-radius: 9999px;
-    border: 1px solid var(--color-ink-3);
+  /* ── The flat instrument ────────────────────────────────────────
+     What a phone gets instead of the WebGL scene. Same object, two
+     dimensions: the core's rings and dial, registration brackets, and
+     a trace out to each module. Two slow counter-rotations give it the
+     mechanism the 3D core has, and they are CSS transforms on two
+     groups — no context, no per-frame work. */
+  .map-reticle { fill: none; }
+
+  .reticle-line {
+    stroke: var(--color-ink-3);
+    stroke-width: 0.22;
     opacity: 0.45;
-    transition: inset 0.35s var(--ease-signal), border-color 0.35s, opacity 0.35s, box-shadow 0.35s;
+  }
+
+  .reticle-bus {
+    stroke: var(--color-cyan);
+    stroke-width: 0.3;
+    opacity: 0.5;
+  }
+
+  .reticle-tick {
+    stroke: var(--color-cyan);
+    stroke-width: 0.22;
+    opacity: 0.34;
+  }
+
+  /* `transform-box` is not optional on an SVG child: without it the
+     percentage origin resolves against the element's own tight bounding
+     box and each group spins about a different point. */
+  .reticle-dial,
+  .reticle-outer {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+  }
+
+  .reticle-dial { animation: reticle-turn 120s linear infinite; }
+  .reticle-outer { animation: reticle-turn 200s linear infinite reverse; }
+
+  @keyframes reticle-turn { to { transform: rotate(360deg); } }
+
+  .reticle-trace {
+    stroke: var(--color-ink-3);
+    stroke-width: 0.3;
+    opacity: 0.5;
+    transition: stroke 0.35s, opacity 0.35s, stroke-width 0.35s;
+  }
+
+  .reticle-trace.is-lit {
+    stroke: var(--color-cyan);
+    opacity: 0.6;
+  }
+
+  /* The selected relationship carries a running dash — the same idea as
+     the charge on a live wire in the 3D scene, for the cost of one
+     keyframe. */
+  .reticle-trace.is-live {
+    stroke: var(--color-cyan);
+    stroke-width: 0.5;
+    opacity: 1;
+    stroke-dasharray: 1.4 2.2;
+    animation: reticle-run 1.6s linear infinite;
+  }
+
+  @keyframes reticle-run { to { stroke-dashoffset: -3.6; } }
+
+  /* The control's own mark, and it is a hexagon because the module
+     behind it is one. It used to be a circle, which put a round ring
+     inside a six-sided plate at every node — two frames disagreeing
+     about what shape a module is.
+
+     Drawn as a filled hexagon with a slightly smaller hexagon of ground
+     punched out of it, since a border cannot follow a clip path. The
+     inner shape inherits the same polygon, so the rule stays an even
+     weight whatever the node is scaled to. */
+  .map-node-ring {
+    --hex: polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
+    position: absolute;
+    inset: 0.42rem;
+    background: var(--color-ink-3);
+    clip-path: var(--hex);
+    opacity: 0.5;
+    transition: inset 0.35s var(--ease-signal), background-color 0.35s, opacity 0.35s;
+  }
+
+  .map-node-ring::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--color-void);
+    clip-path: var(--hex);
+    transition: background-color 0.35s;
   }
 
   .map-node[data-state="lit"] .map-node-ring {
-    border-color: var(--color-cyan);
-    opacity: 0.8;
+    background: var(--color-cyan);
+    opacity: 0.85;
     inset: 0.3rem;
   }
 
+  /* Selected: the plate fills, and the numeral over it goes to ground.
+     A knocked-out numeral is the one state that cannot be mistaken for
+     a brighter version of the others. */
   .map-node[data-state="on"] .map-node-ring {
-    inset: 0;
-    border-color: var(--color-cyan);
+    inset: 0.16rem;
+    background: var(--color-cyan);
     opacity: 1;
-    box-shadow: 0 0 18px rgb(92 225 230 / 0.3);
+  }
+
+  .map-node[data-state="on"] .map-node-ring::after {
+    background: color-mix(in oklab, var(--color-cyan) 82%, var(--color-void));
   }
 
   /* The ground under this is a moving 3D scene, so every mark on top of
@@ -1368,7 +1507,13 @@
   }
 
   .map-node[data-state="lit"] .map-node-num { color: var(--color-cyan); }
-  .map-node[data-state="on"] .map-node-num { color: var(--color-ink); }
+
+  /* On the filled plate the numeral is knocked out of it, so it takes
+     the ground's colour and drops the shadow it needed over the scene. */
+  .map-node[data-state="on"] .map-node-num {
+    color: var(--color-void);
+    text-shadow: none;
+  }
 
   /* Directly under its own control. The bodies move in three
      dimensions now, so a label pushed out along a fixed radius would
@@ -1462,6 +1607,9 @@
   .vel-lean { transform: none !important; }
 
   .signal-bars span,
+  .reticle-dial,
+  .reticle-outer,
+  .reticle-trace.is-live,
   .edge-run:hover::before { animation: none !important; }
 
   .plate-scan { display: none !important; }

@@ -1,4 +1,4 @@
-import{a as de,j as Fe}from"./motion-BTxF_OsE.js";import{W as ze,S as Ee,P as Pe,C as z,V as ke,B as E,a as u,c as ue,A as P,d as pe,F as k,f as we,L as fe,D as De,G as Te,e as Ge}from"./three-ipalrKx4.js";const Le=2,Re={full:{count:700,dpr:1.75,spokes:22,aa:!0},lite:{count:300,dpr:1.25,spokes:12,aa:!1}},x=.36,he=`
+import{a as de,j as Fe}from"./motion-BTxF_OsE.js";import{W as ze,S as Ee,P as Pe,C as z,V as ke,B as E,a as u,c as ue,A as P,d as pe,F as k,f as we,L as fe,D as De,G as Te,e as Ge}from"./three-Dj5mgqjs.js";const Le=2,Re={full:{count:700,dpr:1.75,spokes:22,aa:!0},lite:{count:300,dpr:1.25,spokes:12,aa:!1}},x=.36,he=`
   attribute vec3 aDir;
   attribute float aScale;
   attribute float aSeed;
