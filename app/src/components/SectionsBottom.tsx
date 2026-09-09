@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, FileText, Github, Linkedin, Mail, MessageCircle } from 'lucide-react';
 import { useLang } from '../lib/lang';
+import { Chapter } from './Chapter';
 import { LINKS } from '../content';
 import { gsap, ScrollTrigger, useScene, splitUnits, aura, EASE, isCoarse, prefersReduced } from '../lib/motion';
 import { arrive, depthPass, parallax } from '../lib/scenes';
@@ -150,7 +151,7 @@ export function Career() {
     <section
       ref={root}
       id="career"
-      className="chapter-edge relative flex scroll-mt-[var(--rail)] flex-col justify-center px-[max(1.25rem,5vw)] py-[clamp(4rem,9vh,7rem)] lg:min-h-[100svh] lg:py-0"
+      className="chapter-edge relative flex scroll-mt-[var(--rail)] flex-col justify-center px-[var(--pad)] py-[clamp(4rem,9vh,7rem)] lg:min-h-[100svh] lg:py-0"
       style={aura(234)}
     >
       <div className="aura" />
@@ -169,12 +170,7 @@ export function Career() {
 
       <div className="relative z-10 mx-auto w-full max-w-[88rem]">
         <div className="mb-10 flex flex-wrap items-baseline justify-between gap-4 lg:mb-12">
-          <h2 className="label">
-            <span aria-hidden="true">
-              <span className="text-cyan">03</span> —{' '}
-            </span>
-            {t.career.tag}
-          </h2>
+          <Chapter index="03" name={t.career.tag} className="min-w-[min(100%,22rem)] flex-1" />
 
           {/* Where you are in the track. It is the only affordance that
               says "this moves sideways", so it is not decoration. */}
@@ -337,14 +333,12 @@ export function Work() {
     <section
       ref={root}
       id="work"
-      className="chapter-edge relative scroll-mt-[var(--rail)] px-[max(1.25rem,5vw)] py-[clamp(4rem,9vh,7rem)]"
+      className="chapter-edge relative scroll-mt-[var(--rail)] px-[var(--pad)] py-[clamp(4rem,9vh,7rem)]"
       style={aura(246)}
     >
       <div className="aura" />
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <h2 className="label mb-12">
-          <span aria-hidden="true"><span className="text-cyan">04</span> — </span>{t.work.tag}
-        </h2>
+        <Chapter index="04" name={t.work.tag} className="mb-12" />
 
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
           <div data-visual className="lg:sticky lg:top-28 lg:self-start">
@@ -512,10 +506,8 @@ export function Credentials() {
     >
       <div className="aura" />
       <div data-stage className="relative z-10">
-        <div className="mx-auto w-full max-w-[88rem] px-[max(1.25rem,5vw)]">
-          <h2 className="label mb-12">
-            <span aria-hidden="true"><span className="text-cyan">05</span> — </span>{t.cred.tag}
-          </h2>
+        <div className="mx-auto w-full max-w-[88rem] px-[var(--pad)]">
+          <Chapter index="05" name={t.cred.tag} className="mb-12" />
 
           {/* The one credential that matters is the only object in this
               chapter, so it is the one that gets depth: the card turns to
@@ -620,7 +612,7 @@ export function Contact() {
     <section
       ref={root}
       id="contact"
-      className="chapter-edge relative scroll-mt-[var(--rail)] overflow-hidden px-[max(1.25rem,5vw)] pb-[clamp(3rem,8vh,6rem)] pt-[clamp(4rem,9vh,7rem)]"
+      className="chapter-edge relative scroll-mt-[var(--rail)] overflow-hidden px-[var(--pad)] pb-[clamp(3rem,8vh,6rem)] pt-[clamp(4rem,9vh,7rem)]"
       style={aura(264)}
     >
       {/* Indigo into violet, and no further: the page's spectrum ends here. */}
@@ -629,9 +621,7 @@ export function Contact() {
       <ParticleField count={64} speed={0.9} />
 
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <p className="label mb-10" aria-hidden="true">
-          <span aria-hidden="true"><span className="text-cyan">06</span> — </span>{t.contact.tag}
-        </p>
+        <Chapter index="06" name={t.contact.tag} as="p" className="mb-12" />
 
         <h2
           aria-label={`${t.contact.l1} ${t.contact.l2}`}
@@ -726,7 +716,7 @@ export function Footer() {
         </TextScrollMarquee>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[88rem] flex-wrap items-center justify-between gap-3 px-[max(1.25rem,5vw)] pb-[calc(2rem+env(safe-area-inset-bottom))] pt-2">
+      <div className="mx-auto flex w-full max-w-[88rem] flex-wrap items-center justify-between gap-3 px-[var(--pad)] pb-[calc(2rem+env(safe-area-inset-bottom))] pt-2">
         <p className="font-mono text-xs text-ink-3">
           © {new Date().getFullYear()} {t.footer.name}
         </p>

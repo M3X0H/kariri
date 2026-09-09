@@ -5,6 +5,7 @@ import { useSignals } from './lib/signals';
 import { gsap, prefersReduced } from './lib/motion';
 import { recede } from './lib/scenes';
 import { Loader, Nav } from './components/Chrome';
+import { Hud } from './components/Hud';
 import { SmoothCursor } from './components/lightswind/smooth-cursor';
 import { About, Fault, Hero } from './components/SectionsTop';
 import { SystemMap } from './components/SystemMap';
@@ -63,6 +64,7 @@ function Site() {
 
       <div className="grid-field" aria-hidden="true" />
       <div className="crosshair" aria-hidden="true" />
+      <Hud />
       <div className="grain" aria-hidden="true" />
 
       <SmoothCursor />

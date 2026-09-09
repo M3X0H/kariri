@@ -51,7 +51,12 @@ export function useSignals() {
        animates because of it. */
     const progress = () => {
       const span = root.scrollHeight - window.innerHeight;
-      set('--scroll', span > 0 ? window.scrollY / span : 0);
+      const p = span > 0 ? window.scrollY / span : 0;
+      set('--scroll', p);
+      /* A whole number as well, because the HUD prints it through a CSS
+         counter — which needs an <integer>, and gets one without this
+         module ever touching a text node. */
+      root.style.setProperty('--scroll-pct', String(Math.round(p * 100)));
     };
 
     if (prefersReduced()) {

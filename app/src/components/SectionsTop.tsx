@@ -1,10 +1,10 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { ArrowDown, ArrowUpRight, FileText, MessageCircle } from 'lucide-react';
 import { useLang } from '../lib/lang';
+import { Chapter } from './Chapter';
 import { LINKS } from '../content';
 import { gsap, useScene, splitUnits, aura, EASE, prefersReduced, isCoarse } from '../lib/motion';
 import { arrive, depthPass, drift, parallax } from '../lib/scenes';
-import { AuroraBackground } from './lightswind/aurora-background';
 import { CountUp } from './lightswind/count-up';
 import { MagneticButton } from './lightswind/magnetic-button';
 import { ScrollReveal } from './lightswind/scroll-reveal';
@@ -34,17 +34,26 @@ function useFieldQuality() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   HERO — one lockup, not three objects.
+   HERO — a plate, a name, and a rule.
 
-   The portrait is not a card beside the name: it is the core of the
-   network. The WebGL field is anchored to the aperture and blooms out
-   of it, its spokes running under the type, so the person, the diagram
-   and his name read as a single composition. Phones lead with the
-   aperture and stack the name beneath it; wide screens set the name
-   against it across the fold.
+   The portrait is no longer a card beside the type. It is a hard-edged
+   plate that runs off the edge of the screen and off the top and
+   bottom of the viewport, printed cold, with the network burning
+   through it and a scan register over it. The name crosses its inner
+   column, set in solid and hollow against each other.
 
-   Lightswind: AuroraBackground (ambience), ShinyText (availability),
-   MagneticButton + ShineButton (the two actions).
+   The two languages do not share a composition, because the two names
+   are not the same shape. "محمد كريري" stacks into a compact block, so
+   it holds the height beside a full-height plate. "MOHAMMED KARIRI" is
+   two wide words, so it runs as a band along the bottom and crosses
+   further in. Mirroring one arrangement would have given the wrong
+   answer in whichever language lost. See `.hero-*` in `index.css`.
+
+   Phones get a third arrangement, not a narrowed one: the plate takes
+   the top of the screen edge to edge, the name climbs over its lower
+   edge, and the data rail closes the fold.
+
+   Lightswind: ShinyText (availability), MagneticButton + ShineButton.
    ═══════════════════════════════════════════════════════════════ */
 export function Hero({ ready }: { ready: boolean }) {
   const { t, lang } = useLang();
@@ -58,99 +67,85 @@ export function Hero({ ready }: { ready: boolean }) {
 
     /* The name arrives one unit at a time out of its own clipping mask —
        letters in English, words in Arabic, because the script cannot be
-       cut finer than a word without breaking its joins. See `splitUnits`. */
+       cut finer than a word without breaking its joins. */
     const units = q('[data-name]').flatMap((n) => splitUnits(n as HTMLElement));
 
-    tl.from(q('[data-field]'), { opacity: 0, scale: 1.18, duration: 1.8, ease: 'power2.out' })
-      /* The portrait does not fade in; the aperture opens on it. The
-         element is already a circle, so the clip is invisible at rest
-         and the whole effect costs one animated property. */
+    tl
+      /* The plate is exposed rather than faded in: a wipe down its own
+         height, which is what a printed panel does and what a card
+         never does. */
       .fromTo(
-        q('[data-iris]'),
-        { clipPath: 'circle(0% at 50% 50%)' },
-        { clipPath: 'circle(75% at 50% 50%)', duration: 1.25, ease: 'power3.inOut' },
-        0.15
+        q('[data-plate]'),
+        { clipPath: 'inset(0 0 100% 0)' },
+        { clipPath: 'inset(0 0 0% 0)', duration: 1.25, ease: 'power3.inOut' }
       )
-      .from(q('[data-ring]'), { scale: 0.6, opacity: 0, duration: 1.1, stagger: 0.09 }, 0.25)
-      .from(units, { yPercent: 120, duration: 1.05, stagger: 0.045 }, 0.4)
-      .from(q('[data-meta]'), { opacity: 0, y: 18, duration: 0.8, stagger: 0.08 }, 0.72)
+      .from(q('[data-field]'), { opacity: 0, scale: 1.2, duration: 1.7, ease: 'power2.out' }, 0.1)
+      .from(units, { yPercent: 120, duration: 1.05, stagger: 0.045 }, 0.45)
+      .from(q('[data-meta]'), { opacity: 0, y: 18, duration: 0.8, stagger: 0.08 }, 0.75)
       .from(q('[data-act]'), { opacity: 0, y: 22, duration: 0.7, stagger: 0.09 }, 0.95)
+      .from(q('[data-float]'), { opacity: 0, scale: 0.4, duration: 0.9, stagger: 0.06 }, 0.7)
       .from(q('[data-cue]'), { opacity: 0, duration: 0.6 }, 1.2);
 
     // Leaving the hero: lift, fade, soften.
     gsap.to(q('[data-lift]'), {
-      yPercent: -14,
+      yPercent: -12,
       opacity: 0,
       filter: 'blur(6px)',
       ease: 'none',
       scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 0.6 }
     });
 
-    /* The exit is the aperture, not a fade: it swells past the edge of
-       the screen as the page leaves, so you read the next chapter as
-       having come through it rather than after it. The letters spread
-       apart underneath, which separates the planes on the way out. */
-    gsap.to(q('[data-aperture]'), {
-      scale: 2.6,
-      ease: 'power2.in',
-      scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 0.8 }
-    });
-
-    gsap.to(units, {
-      // Direction-agnostic: the run spreads from its own centre either way.
-      xPercent: (i: number) => (i - (units.length - 1) / 2) * 9,
-      ease: 'none',
-      scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 1 }
-    });
-
-    // Phones get the depth too, just shallower — there is no pointer to
-    // carry it, so scroll has to.
-    gsap.to(q('[data-field]'), {
-      yPercent: isCoarse() ? 8 : 18,
+    /* The plate holds while the type leaves over it — the two planes
+       separate on the way out instead of sliding as one sheet. */
+    gsap.to(q('[data-plate]'), {
+      scale: 1.12,
+      yPercent: 6,
       ease: 'none',
       scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 0.9 }
     });
 
-    /* Three planes, three speeds. The instrument marks sit furthest
-       back and travel most, the status rail sits between, the type
-       barely moves — which is what separates the composition into
-       depths rather than sliding it as one sheet. */
+    gsap.to(units, {
+      // Direction-agnostic: the run spreads from its own centre either way.
+      xPercent: (i: number) => (i - (units.length - 1) / 2) * 8,
+      ease: 'none',
+      scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 1 }
+    });
+
+    /* Three planes, three speeds: the marks sit furthest back and travel
+       most, the plate between, the type barely at all. */
     q('[data-float]').forEach((mark) => parallax(mark, 26, 1.1));
     drift(q('[data-float]'), isCoarse() ? 5 : 11);
-
-    tl.from(q('[data-float]'), { opacity: 0, scale: 0.4, duration: 0.9, stagger: 0.06 }, 0.7);
   }, [ready, lang]);
+
+  const spec: [string, string][] = [
+    [t.spec.role, t.spec.roleV],
+    [t.spec.base, t.spec.baseV],
+    [t.spec.since, t.spec.sinceV],
+    [t.spec.langs, t.spec.langsV]
+  ];
 
   return (
     <section
       ref={root}
       id="start"
-      className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden px-[max(1.25rem,5vw)] pb-[6vh] pt-[calc(var(--rail)+4vh)]"
+      className="relative overflow-hidden px-[var(--pad)]"
       style={aura(186)}
     >
-      {/* Cyan through blue into indigo — the page opens at the cool end. */}
-      <AuroraBackground hue={186} spread={62} intensity={0.24} />
       <div className="aura" />
 
-      {/* The furthest plane. Small marks that drift on their own, travel
-          most under scroll, and give the composition something to have
-          depth *against* — without them the hero is two planes and a
-          background. */}
+      {/* The furthest plane. Marks that drift on their own and travel
+          most under scroll, so the composition has something to have
+          depth against. Scroll-driven, so phones get them too. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[5]">
         {[
-          { t: '12%', l: '8%', k: 'tick' },
-          { t: '22%', l: '92%', k: 'dot' },
-          { t: '74%', l: '6%', k: 'dot' },
-          { t: '86%', l: '88%', k: 'tick' },
-          { t: '44%', l: '96%', k: 'cross' },
-          { t: '64%', l: '13%', k: 'cross' }
+          { t: '16%', l: '6%', k: 'tick' },
+          { t: '30%', l: '52%', k: 'dot' },
+          { t: '78%', l: '9%', k: 'dot' },
+          { t: '88%', l: '46%', k: 'tick' },
+          { t: '58%', l: '3%', k: 'cross' },
+          { t: '40%', l: '60%', k: 'cross' }
         ].map((m, i) => (
-          <span
-            key={i}
-            data-float
-            className="absolute"
-            style={{ top: m.t, left: m.l }}
-          >
+          <span key={i} data-float className="absolute" style={{ top: m.t, left: m.l }}>
             {m.k === 'tick' && <span className="block h-px w-8 bg-cyan/40" />}
             {m.k === 'dot' && <span className="block h-1 w-1 rounded-full bg-cyan/60" />}
             {m.k === 'cross' && (
@@ -163,151 +158,116 @@ export function Hero({ ready }: { ready: boolean }) {
         ))}
       </div>
 
-      <div data-lift className="relative z-10 mx-auto w-full max-w-[88rem]">
-        {/* Status rail. Everything here is a fact about right now: what he
-            does, where he is, whether he is available. */}
-        <div data-meta className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-2 md:mb-8">
-          <span className="label">{t.hero.role}</span>
-          <span aria-hidden="true" className="hidden h-3 w-px bg-[var(--line-2)] sm:block" />
-          <span className="label ltr hidden sm:inline">24°42′N 46°43′E · {t.hero.place}</span>
-          <span className="inline-flex items-center gap-2 sm:ms-auto">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-cyan shadow-[0_0_10px_2px_rgb(92_225_230/0.7)]" />
-            <ShinyText
-              className="label"
-              baseColor="var(--color-ink-2)"
-              shineColor="var(--color-cyan)"
-              rtl={lang === 'ar'}
-            >
-              {t.hero.open}
-            </ShinyText>
-          </span>
-        </div>
+      <div data-lift className="hero-grid relative z-10">
+        {/* ── the plate ─────────────────────────────────────────── */}
+        <figure data-plate className="hero-plate plate">
+          <img
+            src={LINKS.portrait}
+            alt={t.portraitAlt}
+            width={1062}
+            height={1280}
+            fetchPriority="high"
+            className="object-[50%_18%]"
+          />
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.06fr)_minmax(0,0.94fr)] lg:items-center lg:gap-10">
-          {/* ── the aperture ─────────────────────────────────────
-              Leads on a phone, where it is the first thing on screen and
-              introduces the face before the name. Moves to the far side
-              of the row from `lg`, where the name has somewhere to go. */}
+          {/* The network burns through the plate rather than floating
+              behind the page — the 3D is part of the picture now. */}
           <div
-            data-aperture
-            className="relative order-1 mx-auto w-[min(64vw,15.5rem)] sm:w-[min(42vw,17rem)] lg:order-2 lg:w-[min(31vw,23.5rem)]"
+            data-field
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-[1] opacity-80 mix-blend-screen"
           >
-            {/* GSAP owns the transform on `[data-aperture]` for the scroll
-                exit, so the pointer camera lives one level in. Only the
-                object turns with the pointer — the type stays put, which
-                is what makes it read as depth rather than as drift, and
-                keeps the largest text on the site off a composited
-                layer where it would lose subpixel antialiasing. */}
-            <div className="tilt-global relative aspect-square" style={{ ['--tilt' as string]: '8deg', ['--shift' as string]: '12px' }}>
-              {/* The network, centred on the face. It is far larger than
-                  the aperture and deliberately runs off the section, so
-                  the spokes pass under the name rather than stopping at a
-                  card edge. The section clips it. */}
-              <div
-                data-field
-                aria-hidden="true"
-                className="field-mask pointer-events-none absolute -inset-[105%] z-0 lg:-inset-[95%]"
-              >
-                <div className="absolute inset-[18%] rounded-full bg-[radial-gradient(circle,rgba(92,225,230,0.16),rgba(79,124,255,0.08)_46%,transparent_70%)] blur-2xl" />
-                {field && (
-                  <Suspense fallback={null}>
-                    <HeroField lite={field === 'lite'} />
-                  </Suspense>
-                )}
-              </div>
-
-              {/* Concentric rings put the face inside the instrument. */}
-              <div data-ring aria-hidden="true" className="aperture-ring z-10" style={{ inset: '-8%' }} />
-              <div data-ring aria-hidden="true" className="aperture-ring z-10" style={{ inset: '-19%', opacity: 0.6 }} />
-
-              <div data-iris className="tilt-lift relative z-10 h-full w-full overflow-hidden rounded-full border border-[var(--line-2)]" style={{ ['--lift' as string]: '34px' }}>
-                <img
-                  src={LINKS.portrait}
-                  alt={t.portraitAlt}
-                  width={1062}
-                  height={1280}
-                  fetchPriority="high"
-                  className="h-full w-full object-cover object-[50%_16%] grayscale contrast-[1.06]"
-                />
-                {/* A cool wash, so the portrait belongs to the palette
-                    instead of sitting in it as a grey cut-out. */}
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-[linear-gradient(200deg,rgba(92,225,230,0.16),transparent_45%,rgba(79,124,255,0.18))] mix-blend-screen"
-                />
-              </div>
-
-              <div aria-hidden="true" className="aperture-sweep z-10" />
-            </div>
-
+            {field && (
+              <Suspense fallback={null}>
+                <HeroField lite={field === 'lite'} />
+              </Suspense>
+            )}
           </div>
 
-          {/* ── the name ─────────────────────────────────────── */}
-          <div className="name-box relative z-10 order-2 lg:order-1">
-            {/* The name is split across two clipping masks so each line can
-                rise on its own. Without this the accessible name is the two
-                spans run together — "MOHAMMEDKARIRI". */}
-            <h1
-              aria-label={`${t.hero.first} ${t.hero.last}`}
-              className="mask-stack display-type display-xl display-hero text-[length:var(--hero-name)]"
-            >
-              <span className="mask-line">
-                <span data-name className="block">{t.hero.first}</span>
-              </span>
-              <span className="mask-line">
-                <span data-name className="block text-ink-2">{t.hero.last}</span>
-              </span>
-            </h1>
+          <span aria-hidden="true" className="plate-scan z-[2]" />
 
-            <p data-meta className="measure-sm mt-6 text-lg text-ink-2 md:text-xl">
-              {t.hero.claim}
-            </p>
+          <figcaption
+            lang="en"
+            className="label ltr measure-mark absolute bottom-4 z-[3]"
+            style={{ insetInlineStart: '1.1rem' }}
+          >
+            MK · 001
+          </figcaption>
+        </figure>
 
-            {/* Full-bleed and equal on a phone: two controls of different
-                widths stacked left-ragged read as an accident. They only
-                shrink to their content once there is a row to sit in. */}
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <div data-act className="w-full sm:w-auto">
-                <MagneticButton
-                  href={LINKS.whatsapp}
-                  external
-                  size="md"
-                  variant="solid"
-                  wrapperClassName="w-full sm:w-auto"
-                  className="w-full justify-center sm:w-auto"
-                >
-                  <MessageCircle size={17} aria-hidden />
-                  {t.hero.cta}
-                  <ArrowUpRight size={16} aria-hidden />
-                </MagneticButton>
-              </div>
-              <div data-act className="w-full sm:w-auto">
-                <ShineButton
-                  href={LINKS.cv}
-                  download
-                  rtl={lang === 'ar'}
-                  className="h-14 w-full justify-center px-6 sm:w-auto"
-                >
-                  <FileText size={16} aria-hidden />
-                  {t.hero.cv}
-                </ShineButton>
-              </div>
+        {/* ── the name ──────────────────────────────────────────── */}
+        <div className="hero-type name-box relative">
+          <div data-meta className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2">
+            <span className="label">{t.hero.role}</span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-cyan shadow-[0_0_10px_2px_rgb(92_225_230/0.7)]" />
+              <ShinyText
+                className="label"
+                baseColor="var(--color-ink-2)"
+                shineColor="var(--color-cyan)"
+                rtl={lang === 'ar'}
+              >
+                {t.hero.open}
+              </ShinyText>
+            </span>
+          </div>
+
+          {/* The name is split across two clipping masks so each line can
+              rise on its own. Without this the accessible name is the two
+              spans run together — "MOHAMMEDKARIRI". */}
+          <h1
+            aria-label={`${t.hero.first} ${t.hero.last}`}
+            className="mask-stack display-type display-xl display-hero text-[length:var(--hero-name)]"
+          >
+            <span className="mask-line">
+              <span data-name className="block">{t.hero.first}</span>
+            </span>
+            <span className="mask-line">
+              {/* Hollow against solid. It is a paint change, so Arabic
+                  shaping is untouched. */}
+              <span data-name className="type-outline block">{t.hero.last}</span>
+            </span>
+          </h1>
+
+          <p data-meta className="measure-sm mt-6 text-lg text-ink-2 md:text-xl">
+            {t.hero.claim}
+          </p>
+
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div data-act className="w-full sm:w-auto">
+              <MagneticButton
+                href={LINKS.whatsapp}
+                external
+                size="md"
+                variant="solid"
+                wrapperClassName="w-full sm:w-auto"
+                className="w-full justify-center sm:w-auto"
+              >
+                <MessageCircle size={17} aria-hidden />
+                {t.hero.cta}
+                <ArrowUpRight size={16} aria-hidden className="go-icon" />
+              </MagneticButton>
+            </div>
+            <div data-act className="w-full sm:w-auto">
+              <ShineButton
+                href={LINKS.cv}
+                download
+                rtl={lang === 'ar'}
+                className="h-14 w-full justify-center px-6 sm:w-auto"
+              >
+                <FileText size={16} aria-hidden />
+                {t.hero.cv}
+              </ShineButton>
             </div>
           </div>
         </div>
 
-        {/* The spec rail, hung off a live wire rather than a dead rule —
-            the same motif the capability map and the career spine use. */}
-        <div data-meta className="mt-9 md:mt-12">
+        {/* ── the rail ──────────────────────────────────────────── */}
+        <div data-meta className="hero-rail relative z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-8 lg:pt-0">
           <div aria-hidden="true" className="wire h-px w-full" />
-          <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-4">
-            {[
-              [t.spec.role, t.spec.roleV],
-              [t.spec.base, t.spec.baseV],
-              [t.spec.since, t.spec.sinceV],
-              [t.spec.langs, t.spec.langsV]
-            ].map(([k, v]) => (
-              <div key={k}>
+          <dl className="grid12 mt-5 gap-y-5">
+            {spec.map(([k, v]) => (
+              <div key={k} className="col-span-6 md:col-span-3">
                 <dt className="label">{k}</dt>
                 <dd className="mt-1.5 text-sm leading-relaxed text-ink">{v}</dd>
               </div>
@@ -317,11 +277,12 @@ export function Hero({ ready }: { ready: boolean }) {
       </div>
 
       {/* The cue only earns its place where the fold actually cuts the
-          composition. On a phone the spec grid already runs past it. */}
+          composition. On a phone the rail already closes it. */}
       <a
         data-cue
         href="#fault"
-        className="absolute inset-x-0 bottom-5 z-10 mx-auto hidden w-fit items-center gap-2 label hover:text-ink lg:flex"
+        className="label absolute bottom-5 z-20 hidden w-fit items-center gap-2 hover:text-ink lg:flex"
+        style={{ insetInlineEnd: 'var(--pad)' }}
       >
         {t.hero.cue}
         <ArrowDown size={13} aria-hidden className="animate-bounce" />
@@ -406,13 +367,13 @@ export function Fault() {
     <section
       ref={root}
       id="fault"
-      className="chapter-edge relative flex scroll-mt-[var(--rail)] flex-col justify-center overflow-hidden px-[max(1.25rem,5vw)] py-[clamp(4rem,10vh,7rem)] lg:min-h-[100svh] lg:py-0"
+      className="chapter-edge relative flex scroll-mt-[var(--rail)] flex-col justify-center overflow-hidden px-[var(--pad)] py-[clamp(4rem,10vh,7rem)] lg:min-h-[100svh] lg:py-0"
       style={aura(194)}
     >
       <div className="aura" />
 
       <div className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <h2 className="label mb-3">{t.fault.tag}</h2>
+        <Chapter index="00" name={t.fault.tag} count="06" ghost={false} className="mb-8" />
         <p className="measure mb-10 text-lg text-ink-2 md:mb-14 md:text-xl">{t.fault.lead}</p>
 
         <div className="relative ps-6 md:ps-10">
@@ -523,14 +484,14 @@ export function About() {
     <section
       ref={root}
       id="about"
-      className="chapter-edge relative scroll-mt-[var(--rail)] px-[max(1.25rem,5vw)] py-[clamp(4rem,9vh,7rem)]"
+      className="chapter-edge relative scroll-mt-[var(--rail)] px-[var(--pad)] py-[clamp(4rem,9vh,7rem)]"
       style={aura(218)}
     >
       <div className="aura" />
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <h2 data-tag className="label mb-10">
-          <span aria-hidden="true"><span className="text-cyan">02</span> — </span>{t.about.tag}
-        </h2>
+        <div data-tag>
+          <Chapter index="02" name={t.about.tag} className="mb-10 md:mb-14" />
+        </div>
 
         <div className="grid gap-10 md:grid-cols-[auto_1fr] md:gap-14">
           <span data-draw className="hidden w-px bg-gradient-to-b from-cyan via-violet to-transparent md:block" />

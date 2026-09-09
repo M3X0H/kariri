@@ -9,6 +9,7 @@ import {
   type PointerEvent as ReactPointerEvent
 } from 'react';
 import { useLang } from '../lib/lang';
+import { Chapter } from './Chapter';
 import { CAPABILITIES, STACK } from '../content';
 import { gsap, useScene, aura, EASE, prefersReduced, isCoarse } from '../lib/motion';
 
@@ -362,19 +363,14 @@ export function SystemMap() {
     <section
       ref={root}
       id="capabilities"
-      className="chapter-edge relative scroll-mt-[var(--rail)] px-[max(1.25rem,5vw)] py-[clamp(4rem,9vh,7rem)]"
+      className="chapter-edge relative scroll-mt-[var(--rail)] px-[var(--pad)] py-[clamp(4rem,9vh,7rem)]"
       style={aura(206)}
     >
       <div className="aura" />
 
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
         <div data-lead>
-          <h2 className="label mb-3">
-            <span aria-hidden="true">
-              <span className="text-cyan">01</span> —{' '}
-            </span>
-            {t.caps.tag}
-          </h2>
+          <Chapter index="01" name={t.caps.tag} className="mb-8" />
           <p className="measure mb-10 text-lg text-ink-2 md:mb-14 md:text-xl">{t.caps.lead}</p>
         </div>
 
