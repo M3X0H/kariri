@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { ArrowDown, ArrowUpRight, FileText, MessageCircle } from 'lucide-react';
 import { useLang } from '../lib/lang';
 import { LINKS } from '../content';
-import { gsap, useScene, splitWords, aura, EASE, prefersReduced, isCoarse } from '../lib/motion';
+import { gsap, useScene, splitUnits, aura, EASE, prefersReduced, isCoarse } from '../lib/motion';
 import { AuroraBackground } from './lightswind/aurora-background';
 import { CountUp } from './lightswind/count-up';
 import { MagneticButton } from './lightswind/magnetic-button';
@@ -55,35 +55,60 @@ export function Hero({ ready }: { ready: boolean }) {
     const q = gsap.utils.selector(el);
     const tl = gsap.timeline({ defaults: { ease: EASE } });
 
-    // The name arrives word by word out of its own clipping mask, and the
-    // aperture opens under it rather than fading in as a flat rectangle.
-    const words = q('[data-name]').flatMap((n) => splitWords(n as HTMLElement));
+    /* The name arrives one unit at a time out of its own clipping mask —
+       letters in English, words in Arabic, because the script cannot be
+       cut finer than a word without breaking its joins. See `splitUnits`. */
+    const units = q('[data-name]').flatMap((n) => splitUnits(n as HTMLElement));
 
-    tl.from(q('[data-field]'), { opacity: 0, scale: 1.16, duration: 1.7, ease: 'power2.out' })
-      .from(q('[data-aperture]'), { opacity: 0, scale: 0.82, duration: 1.2 }, 0.1)
-      .from(words, { yPercent: 118, duration: 1.15, stagger: 0.07 }, 0.3)
-      .from(q('[data-meta]'), { opacity: 0, y: 18, duration: 0.8, stagger: 0.08 }, 0.6)
-      .from(q('[data-act]'), { opacity: 0, y: 22, duration: 0.7, stagger: 0.09 }, 0.85)
-      .from(q('[data-cue]'), { opacity: 0, duration: 0.6 }, 1.1);
+    tl.from(q('[data-field]'), { opacity: 0, scale: 1.18, duration: 1.8, ease: 'power2.out' })
+      /* The portrait does not fade in; the aperture opens on it. The
+         element is already a circle, so the clip is invisible at rest
+         and the whole effect costs one animated property. */
+      .fromTo(
+        q('[data-iris]'),
+        { clipPath: 'circle(0% at 50% 50%)' },
+        { clipPath: 'circle(75% at 50% 50%)', duration: 1.25, ease: 'power3.inOut' },
+        0.15
+      )
+      .from(q('[data-ring]'), { scale: 0.6, opacity: 0, duration: 1.1, stagger: 0.09 }, 0.25)
+      .from(units, { yPercent: 120, duration: 1.05, stagger: 0.045 }, 0.4)
+      .from(q('[data-meta]'), { opacity: 0, y: 18, duration: 0.8, stagger: 0.08 }, 0.72)
+      .from(q('[data-act]'), { opacity: 0, y: 22, duration: 0.7, stagger: 0.09 }, 0.95)
+      .from(q('[data-cue]'), { opacity: 0, duration: 0.6 }, 1.2);
 
     // Leaving the hero: lift, fade, soften.
     gsap.to(q('[data-lift]'), {
-      yPercent: -16,
+      yPercent: -14,
       opacity: 0,
       filter: 'blur(6px)',
       ease: 'none',
       scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 0.6 }
     });
 
-    // The aperture rides out slower than the type beside it, so the two
-    // planes separate on the way up rather than leaving as one block.
-    if (!isCoarse()) {
-      gsap.to(q('[data-aperture]'), {
-        yPercent: 22,
-        ease: 'none',
-        scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 0.9 }
-      });
-    }
+    /* The exit is the aperture, not a fade: it swells past the edge of
+       the screen as the page leaves, so you read the next chapter as
+       having come through it rather than after it. The letters spread
+       apart underneath, which separates the planes on the way out. */
+    gsap.to(q('[data-aperture]'), {
+      scale: 2.6,
+      ease: 'power2.in',
+      scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 0.8 }
+    });
+
+    gsap.to(units, {
+      // Direction-agnostic: the run spreads from its own centre either way.
+      xPercent: (i: number) => (i - (units.length - 1) / 2) * 9,
+      ease: 'none',
+      scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 1 }
+    });
+
+    // Phones get the depth too, just shallower — there is no pointer to
+    // carry it, so scroll has to.
+    gsap.to(q('[data-field]'), {
+      yPercent: isCoarse() ? 8 : 18,
+      ease: 'none',
+      scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 0.9 }
+    });
   }, [ready, lang]);
 
   return (
@@ -124,9 +149,15 @@ export function Hero({ ready }: { ready: boolean }) {
               of the row from `lg`, where the name has somewhere to go. */}
           <div
             data-aperture
-            className="relative order-1 mx-auto w-[min(56vw,13.5rem)] sm:w-[min(40vw,16rem)] lg:order-2 lg:w-[min(31vw,23.5rem)]"
+            className="relative order-1 mx-auto w-[min(64vw,15.5rem)] sm:w-[min(42vw,17rem)] lg:order-2 lg:w-[min(31vw,23.5rem)]"
           >
-            <div className="relative aspect-square">
+            {/* GSAP owns the transform on `[data-aperture]` for the scroll
+                exit, so the pointer camera lives one level in. Only the
+                object moves with the pointer — the type stays put, which
+                is what makes it read as depth rather than as drift, and
+                keeps the largest text on the site off a composited
+                layer where it would lose subpixel antialiasing. */}
+            <div className="hero-camera relative aspect-square">
               {/* The network, centred on the face. It is far larger than
                   the aperture and deliberately runs off the section, so
                   the spokes pass under the name rather than stopping at a
@@ -145,10 +176,10 @@ export function Hero({ ready }: { ready: boolean }) {
               </div>
 
               {/* Concentric rings put the face inside the instrument. */}
-              <div aria-hidden="true" className="aperture-ring z-10" style={{ inset: '-8%' }} />
-              <div aria-hidden="true" className="aperture-ring z-10" style={{ inset: '-19%', opacity: 0.6 }} />
+              <div data-ring aria-hidden="true" className="aperture-ring z-10" style={{ inset: '-8%' }} />
+              <div data-ring aria-hidden="true" className="aperture-ring z-10" style={{ inset: '-19%', opacity: 0.6 }} />
 
-              <div className="relative z-10 h-full w-full overflow-hidden rounded-full border border-[var(--line-2)]">
+              <div data-iris className="relative z-10 h-full w-full overflow-hidden rounded-full border border-[var(--line-2)]">
                 <img
                   src={LINKS.portrait}
                   alt={t.portraitAlt}
@@ -375,7 +406,7 @@ export function Fault() {
         </div>
 
         {/* The close. Two lines that say where the fix comes from. */}
-        <div data-closing className="mask-stack mt-12 md:mt-16">
+        <div data-closing className="vel-lean mask-stack mt-12 md:mt-16">
           <p className="mask-line">
             <span data-close className="block display-type display-xl text-[clamp(1.6rem,5.6vw,4.4rem)]">
               {t.statement.l1}
@@ -480,7 +511,7 @@ export function About() {
                   key={s.k}
                   className="flex items-baseline gap-4 border-t border-[var(--line)] pt-4 sm:flex-col-reverse sm:items-start sm:gap-0 sm:border-0 sm:pt-0"
                 >
-                  <dt className="label flex-1 leading-relaxed sm:mt-2 sm:max-w-[16ch] sm:flex-none">
+                  <dt className="label flex-1 leading-relaxed sm:mt-2 sm:max-w-[19ch] sm:flex-none">
                     {s.k}
                   </dt>
                   <dd className="display-type order-first shrink-0 text-[clamp(2.4rem,7vw,4.5rem)] leading-none text-ink sm:order-none">

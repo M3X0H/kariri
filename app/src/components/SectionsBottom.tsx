@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowUpRight, FileText, Github, Linkedin, Mail, MessageCircle } from 'lucide-react';
 import { useLang } from '../lib/lang';
 import { LINKS } from '../content';
-import { gsap, ScrollTrigger, useScene, aura, EASE, isCoarse } from '../lib/motion';
+import { gsap, ScrollTrigger, useScene, splitUnits, aura, EASE, isCoarse, prefersReduced } from '../lib/motion';
 import { AuroraBackground } from './lightswind/aurora-background';
 import { BorderBeam } from './lightswind/border-beam';
 import { MagneticButton } from './lightswind/magnetic-button';
@@ -13,153 +13,241 @@ import { TiltCard } from './lightswind/tilt-card';
 import { VelocityRow, VelocityRows } from './lightswind/velocity-rows';
 
 /* ═══════════════════════════════════════════════════════════════
-   CAREER — the spine draws itself as you descend, the year pins to
-   the side and swaps as entries pass, and whichever entry owns the
-   middle of the screen carries a running beam.
+   CAREER — the page turns sideways.
 
-   Lightswind: BorderBeam on the live entry.
+   Three entries is too few for a vertical timeline to earn its
+   scrollbar and too many to sit in a row, so on a wide screen the
+   section pins and the track travels horizontally under it: each post
+   arrives, holds the middle of the screen at full weight, and recedes
+   as the next takes it. The year behind the track changes with it.
+
+   The horizontal layout is opt-in, added by the scene itself. Without
+   script — or under reduced motion, where the scene never runs — the
+   track stays a plain vertical list, because a `width: max-content`
+   row inside a clipped viewport with nothing to move it would simply
+   hide two thirds of his career.
+
+   Phones keep the vertical list and get the same idea through depth
+   instead: cards arrive small and soft and resolve as they reach the
+   middle of the screen.
+
+   Lightswind: BorderBeam on whichever entry currently owns the screen.
    ═══════════════════════════════════════════════════════════════ */
 export function Career() {
   const { t, lang } = useLang();
   const [live, setLive] = useState(0);
+  const n = t.career.entries.length;
+
+  /* Which layout the track is in, held in React rather than toggled from
+     inside the GSAP scene. The failure this avoids is not hypothetical in
+     kind: if the class that makes the row `width: max-content` ever
+     outlives the breakpoint that justified it, a clipped viewport hides
+     two of the three posts with nothing to scroll them into view. Owning
+     it in render means it can only disagree with the viewport for a
+     single frame, and it cannot survive a scene teardown at all.
+
+     Reduced motion never gets the horizontal layout: nothing would be
+     moving the track, so it would be a clipped row with no way through. */
+  const [horizontal, setHorizontal] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const sync = () => setHorizontal(mq.matches && !prefersReduced());
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   const root = useScene<HTMLElement>((el) => {
     const q = gsap.utils.selector(el);
 
-    gsap.from(q('[data-spine]'), {
-      scaleY: 0,
-      transformOrigin: 'top',
-      ease: 'none',
-      scrollTrigger: { trigger: q('[data-track]')[0], start: 'top 78%', end: 'bottom 80%', scrub: 0.6 }
-    });
+    if (horizontal) {
+      const view = q('[data-viewport]')[0] as HTMLElement;
+      const track = q('[data-track]')[0] as HTMLElement;
+      const cards = q('[data-entry]');
 
-    /* The alternating side-entrance needs two things: two actual sides,
-       and enough gutter to travel through. The travel has to stay inside
-       the container padding (5vw), or an entry parks off-page until its
-       trigger fires and reads as cropped on the way in. */
-    const mm = gsap.matchMedia();
-    const entrance = (sideways: boolean) => () => {
-      q('[data-entry]').forEach((entry, i) => {
-        const dir = i % 2 === 0 ? 1 : -1;
-        gsap.from(entry, {
-          opacity: 0,
-          x: sideways ? (lang === 'ar' ? -dir : dir) * 40 : 0,
-          // Shorter and shallower without two sides to travel between:
-          // a long slow rise on a full-width card just feels sluggish.
-          y: sideways ? 0 : 22,
-          scale: 0.97,
-          duration: sideways ? 0.9 : 0.55,
-          ease: EASE,
-          scrollTrigger: { trigger: entry, start: 'top 82%' }
-        });
+      // The class is already on from the render that set `horizontal`,
+      // so this measures the row it is actually going to move.
+      const distance = () => Math.max(0, track.scrollWidth - view.clientWidth);
+
+      /* In RTL the row is laid from the right edge and overflows to the
+         left, so the track travels the other way to reveal it. */
+      const dir = lang === 'ar' ? 1 : -1;
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: el,
+          start: 'top top',
+          end: () => '+=' + Math.max(distance(), 1),
+          pin: true,
+          scrub: 0.75,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            el.style.setProperty('--track', String(self.progress));
+            setLive(Math.min(n - 1, Math.round(self.progress * (n - 1))));
+          }
+        }
       });
-    };
-    mm.add('(min-width: 1024px)', entrance(true));
-    mm.add('(max-width: 1023px)', entrance(false));
 
-    // Whichever entry currently owns the middle of the screen is "live":
-    // the marker glows, the pinned year swaps to it, and the beam moves.
-    q('[data-entry]').forEach((entry, i) => {
+      // One timeline unit per card, so a card's own beats can be placed
+      // at its index without arithmetic against pixel distances.
+      tl.to(track, { x: () => dir * distance(), ease: 'none', duration: n - 1 }, 0);
+
+      cards.forEach((card, i) => {
+        tl.fromTo(
+          card,
+          { scale: 0.9, opacity: 0.35, filter: 'blur(5px)' },
+          { scale: 1, opacity: 1, filter: 'blur(0px)', ease: 'none', duration: 0.55 },
+          Math.max(0, i - 0.55)
+        );
+        if (i < n - 1) {
+          tl.to(
+            card,
+            { scale: 0.9, opacity: 0.35, filter: 'blur(5px)', ease: 'none', duration: 0.55 },
+            i + 0.45
+          );
+        }
+      });
+
+      return;
+    }
+
+    gsap.fromTo(
+      q('[data-spine]'),
+      { scaleY: 0 },
+      {
+        scaleY: 1,
+        transformOrigin: 'top',
+        ease: 'none',
+        scrollTrigger: { trigger: q('[data-track]')[0], start: 'top 82%', end: 'bottom 80%', scrub: 0.6 }
+      }
+    );
+
+    q('[data-entry]').forEach((card, i) => {
+      gsap.fromTo(
+        card,
+        { scale: 0.94, opacity: 0.4, y: 34 },
+        {
+          scale: 1,
+          opacity: 1,
+          y: 0,
+          ease: 'none',
+          scrollTrigger: { trigger: card, start: 'top 90%', end: 'top 45%', scrub: 0.6 }
+        }
+      );
       ScrollTrigger.create({
-        trigger: entry,
+        trigger: card,
         start: 'top 62%',
         end: 'bottom 45%',
-        toggleClass: { targets: entry, className: 'is-live' },
         onToggle: ({ isActive }) => isActive && setLive(i)
       });
     });
-
-    return () => mm.revert();
-  }, [lang]);
+  }, [lang, n, horizontal]);
 
   return (
     <section
       ref={root}
       id="career"
-      className="chapter-edge relative scroll-mt-[var(--rail)] px-[max(1.25rem,5vw)] py-[clamp(4rem,9vh,7rem)]"
+      className="chapter-edge relative flex scroll-mt-[var(--rail)] flex-col justify-center px-[max(1.25rem,5vw)] py-[clamp(4rem,9vh,7rem)] lg:min-h-[100svh] lg:py-0"
       style={aura(234)}
     >
       <div className="aura" />
-      <div className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <h2 className="label mb-12">
-          <span aria-hidden="true"><span className="text-cyan">03</span> — </span>{t.career.tag}
-        </h2>
 
-        <div data-track className="relative">
+      {/* The year the page is standing in, behind everything, changing as
+          the track moves. On a phone it would eat the card, so it stays
+          on the screens with room for it. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0 hidden items-center justify-center overflow-hidden lg:flex"
+      >
+        <span className="vel-lean display-type text-[clamp(9rem,26vw,26rem)] leading-none tabular-nums text-ink/[0.05]">
+          {t.career.entries[live].year}
+        </span>
+      </div>
+
+      <div className="relative z-10 mx-auto w-full max-w-[88rem]">
+        <div className="mb-10 flex flex-wrap items-baseline justify-between gap-4 lg:mb-12">
+          <h2 className="label">
+            <span aria-hidden="true">
+              <span className="text-cyan">03</span> —{' '}
+            </span>
+            {t.career.tag}
+          </h2>
+
+          {/* Where you are in the track. It is the only affordance that
+              says "this moves sideways", so it is not decoration. */}
+          <div className="hidden items-center gap-3 lg:flex" aria-hidden="true">
+            <span className="label ltr tabular-nums">
+              {String(live + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}
+            </span>
+            <span className="relative h-px w-32 bg-[var(--line-2)]">
+              <span
+                className="absolute inset-y-0 start-0 bg-cyan"
+                style={{ width: 'calc(var(--track, 0) * 100%)' }}
+              />
+            </span>
+          </div>
+        </div>
+
+        <div
+          data-viewport
+          className={['career-viewport relative', horizontal ? 'is-horizontal' : ''].join(' ')}
+        >
+          {/* The vertical spine only exists in the stacked layout. */}
           <span
             data-spine
             aria-hidden="true"
-            className="absolute inset-y-0 start-[7px] w-px bg-gradient-to-b from-cyan via-violet to-transparent md:start-1/2"
+            className="absolute inset-y-0 start-[7px] w-px origin-top bg-gradient-to-b from-cyan via-violet to-transparent lg:hidden"
           />
 
-          {/* The year the page is currently standing in, pinned behind the
-              track so the timeline keeps a fixed reference while entries
-              move past it. Centred and clipped rather than parked in the
-              gutter — a 7rem number in 5vw of padding overflows the page. */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 hidden justify-center overflow-hidden md:flex"
-          >
-            <span className="sticky top-1/2 h-fit -translate-y-1/2 display-type text-[clamp(6rem,16vw,15rem)] leading-none tabular-nums text-ink/[0.045]">
-              {t.career.entries[live].year}
-            </span>
-          </div>
-
-          <ol className="space-y-12 md:space-y-20">
+          <ol data-track className="career-track ps-8 lg:ps-0">
             {t.career.entries.map((e, i) => (
-              <li
-                data-entry
-                key={`${e.role}-${e.year}`}
-                className={[
-                  'relative ps-8 md:w-[calc(50%-3rem)] md:ps-0',
-                  i % 2 === 0 ? 'md:ms-auto md:ps-14' : 'md:pe-14 md:text-end'
-                ].join(' ')}
-              >
-                {/* Entries stop 3rem short of the spine, so the marker has
-                    to clear that gap plus half its own width to actually
-                    sit on the line rather than float beside it. */}
+              <li data-entry key={`${e.role}-${e.year}`} className="career-card relative">
                 <span
                   aria-hidden="true"
-                  className={[
-                    'live-marker absolute top-8 z-10 h-3.5 w-3.5 rounded-full border-2 border-cyan bg-void transition-shadow duration-500',
-                    'start-0 md:start-auto',
-                    i % 2 === 0 ? 'md:-start-[55px]' : 'md:-end-[55px]'
-                  ].join(' ')}
+                  className="live-marker absolute -start-8 top-8 z-10 h-3.5 w-3.5 rounded-full border-2 border-cyan bg-void transition-shadow duration-500 lg:hidden"
                 />
 
                 <div
                   className={[
-                    'relative overflow-hidden border p-6 transition-colors duration-500 md:p-8',
+                    'relative h-full overflow-hidden border p-6 transition-colors duration-500 md:p-8 lg:p-10',
                     live === i ? 'border-[var(--line-2)] bg-panel/50' : 'border-[var(--line)] bg-graphite/30'
                   ].join(' ')}
                 >
                   {live === i && (
                     <BorderBeam
-                      size={52}
-                      className="[--beam-w:26px] md:[--beam-w:52px]"
-                      duration={6.5}
-                      glowIntensity={0.6}
+                      size={64}
+                      className="[--beam-w:30px] md:[--beam-w:64px]"
+                      duration={7}
+                      glowIntensity={0.55}
                       colorFrom="var(--color-cyan)"
                       colorTo="var(--color-violet)"
                     />
                   )}
 
-                  <p className="font-mono text-xs text-cyan">{e.kind}</p>
-                  <h3 className="display-soft mt-2 text-[clamp(1.3rem,3.2vw,2.1rem)]">{e.role}</h3>
+                  <div className="flex items-baseline justify-between gap-4">
+                    <p className="font-mono text-xs text-cyan">{e.kind}</p>
+                    <p aria-hidden="true" className="font-mono text-xs tabular-nums text-ink-3 lg:text-sm">
+                      {e.year}
+                    </p>
+                  </div>
+
+                  <h3 className="display-soft mt-3 text-[clamp(1.4rem,3.4vw,2.4rem)]">{e.role}</h3>
                   <p className="mt-2 text-base text-ink-2">{e.org}</p>
                   <p className="mt-1 font-mono text-xs text-ink-3">{e.span}</p>
 
-                  <ul className={['mt-5 space-y-2', i % 2 === 0 ? '' : 'md:[&_li]:flex-row-reverse'].join(' ')}>
-                    {e.points.map((p) => (
-                      <li key={p} className="flex gap-3 text-sm text-ink-2">
+                  <ul className="mt-6 space-y-2.5">
+                    {e.points.map((pt) => (
+                      <li key={pt} className="flex gap-3 text-sm text-ink-2">
                         <span aria-hidden="true" className="mt-2.5 h-px w-3 shrink-0 bg-cyan/60" />
-                        <span className="measure-sm">{p}</span>
+                        <span className="measure-sm">{pt}</span>
                       </li>
                     ))}
                   </ul>
 
                   {e.impact && (
-                    <p className="measure-sm mt-5 border-s-2 border-cyan/40 ps-4 text-sm text-ink-3 md:ms-auto">
+                    <p className="measure-sm mt-6 border-s-2 border-cyan/40 ps-4 text-sm text-ink-3">
                       {e.impact}
                     </p>
                   )}
@@ -415,24 +503,30 @@ export function Credentials() {
             <span aria-hidden="true"><span className="text-cyan">05</span> — </span>{t.cred.tag}
           </h2>
 
-          <div
-            data-lead
-            className="glass relative overflow-hidden p-8 md:p-12"
-            style={{ background: 'linear-gradient(135deg, rgb(92 225 230 / 0.09), transparent 55%), rgb(16 19 25 / 0.6)' }}
-          >
-            <BorderBeam
-              size={58}
-              className="[--beam-w:32px] md:[--beam-w:58px]"
-              duration={9}
-              glowIntensity={0.55}
-              colorFrom="var(--color-cyan)"
-              colorTo="var(--color-violet)"
-            />
-            <p className="font-mono text-xs text-cyan">2025</p>
-            <h3 lang="en" className="display-type mt-3 text-[clamp(1.6rem,5vw,3.2rem)]">
-              {t.cred.lead}
-            </h3>
-            <p className="mt-3 text-ink-2">{t.cred.leadBy}</p>
+          {/* The one credential that matters is the only object in this
+              chapter, so it is the one that gets depth: the card turns to
+              face the pointer and its type lifts off the surface. */}
+          <div data-lead>
+            <TiltCard maxTilt={6} float={7} shine={0.18} perspective={1500}>
+              <div
+                className="glass relative overflow-hidden p-8 md:p-12"
+                style={{ background: 'linear-gradient(135deg, rgb(92 225 230 / 0.09), transparent 55%), rgb(16 19 25 / 0.6)' }}
+              >
+                <BorderBeam
+                  size={58}
+                  className="[--beam-w:32px] md:[--beam-w:58px]"
+                  duration={9}
+                  glowIntensity={0.55}
+                  colorFrom="var(--color-cyan)"
+                  colorTo="var(--color-violet)"
+                />
+                <p className="lift-1 relative font-mono text-xs text-cyan">2025</p>
+                <h3 lang="en" className="lift-3 relative display-type mt-3 text-[clamp(1.6rem,5vw,3.2rem)]">
+                  {t.cred.lead}
+                </h3>
+                <p className="lift-2 relative mt-3 text-ink-2">{t.cred.leadBy}</p>
+              </div>
+            </TiltCard>
           </div>
 
           <p className="label mb-5 mt-12">{t.cred.all}</p>
@@ -481,12 +575,30 @@ export function Contact() {
 
   const root = useScene<HTMLElement>((el) => {
     const q = gsap.utils.selector(el);
+
+    /* The last thing the page says, said one unit at a time — letters in
+       English, words in Arabic. It is the same cascade the name opens
+       on, which is what makes the close read as an answer to it. */
+    const units = q('[data-line]').flatMap((n) => splitUnits(n as HTMLElement));
+
     gsap
       .timeline({ scrollTrigger: { trigger: el, start: 'top 68%' } })
-      .from(q('[data-line]'), { yPercent: 115, duration: 1, stagger: 0.1, ease: EASE })
-      .from(q('[data-say]'), { opacity: 0, y: 20, duration: 0.7, ease: EASE }, 0.35)
-      .from(q('[data-cta]'), { opacity: 0, scale: 0.94, duration: 0.6, ease: 'back.out(1.6)' }, 0.5)
-      .from(q('[data-way]'), { opacity: 0, y: 18, duration: 0.5, stagger: 0.06, ease: EASE }, 0.55);
+      .from(units, { yPercent: 118, duration: 0.85, stagger: 0.026, ease: EASE })
+      .from(q('[data-say]'), { opacity: 0, y: 20, duration: 0.7, ease: EASE }, 0.45)
+      .from(q('[data-cta]'), { opacity: 0, scale: 0.94, duration: 0.6, ease: 'back.out(1.6)' }, 0.6)
+      .from(q('[data-way]'), { opacity: 0, y: 18, duration: 0.5, stagger: 0.06, ease: EASE }, 0.65);
+
+    /* Each route lifts off the list as the pointer reaches it. A row of
+       plain links is the one place on this page where nothing was
+       responding to anything. */
+    if (!isCoarse()) {
+      q('[data-way] a').forEach((row) => {
+        const to = (vars: gsap.TweenVars) =>
+          gsap.to(row, { duration: 0.35, ease: 'power2.out', overwrite: 'auto', ...vars });
+        row.addEventListener('pointerenter', () => to({ x: 10, opacity: 1 }));
+        row.addEventListener('pointerleave', () => to({ x: 0 }));
+      });
+    }
   }, [lang]);
 
   const ways = [
@@ -516,7 +628,7 @@ export function Contact() {
 
         <h2
           aria-label={`${t.contact.l1} ${t.contact.l2}`}
-          className="mask-stack display-type display-xl text-[clamp(2.2rem,8.4vw,6.6rem)]"
+          className="vel-lean mask-stack display-type display-xl text-[clamp(2.2rem,8.4vw,6.6rem)]"
         >
           <span className="mask-line">
             <span data-line className="block">{t.contact.l1}</span>
@@ -546,7 +658,8 @@ export function Contact() {
           </MagneticButton>
         </div>
 
-        <ul className="rule mt-16">
+        <div aria-hidden="true" className="wire mt-16 h-px w-full" />
+        <ul className="mt-0">
           {t.contact.ways.map((w, i) => {
             const route = ways[i];
             const Icon = route.icon;

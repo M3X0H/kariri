@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { LazyMotion, domAnimation } from 'framer-motion';
 import { LangProvider, useLang } from './lib/lang';
+import { useSignals } from './lib/signals';
 import { Loader, Nav } from './components/Chrome';
 import { SmoothCursor } from './components/lightswind/smooth-cursor';
 import { About, Fault, Hero } from './components/SectionsTop';
@@ -24,6 +25,11 @@ function Site() {
   const [ready, setReady] = useState(false);
   const done = useCallback(() => setReady(true), []);
 
+  // One pointer listener, one scroll listener and one rAF for the whole
+  // site. Everything that reacts to you reads the properties this
+  // publishes — see `lib/signals.ts`.
+  useSignals();
+
   return (
     <>
       {!ready && <Loader onDone={done} />}
@@ -36,6 +42,7 @@ function Site() {
       </a>
 
       <div className="grid-field" aria-hidden="true" />
+      <div className="pointer-light" aria-hidden="true" />
       <div className="grain" aria-hidden="true" />
 
       <SmoothCursor />

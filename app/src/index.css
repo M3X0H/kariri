@@ -48,6 +48,18 @@
     --aura: 186;
     /* Height of the fixed navigation, so sections can clear it. */
     --rail: 5rem;
+
+    /* Neutral values for the two signals in `lib/signals.ts`. They are
+       declared here rather than only written from script so that every
+       consumer resolves on the first paint — and so the page is still
+       correct if the loop never starts at all, which is exactly what
+       happens under reduced motion. */
+    --px: 0.5;
+    --py: 0.5;
+    --pxc: 0;
+    --pyc: 0;
+    --vel: 0;
+    --scroll: 0;
     color-scheme: dark;
   }
 
@@ -243,18 +255,55 @@
     transition: background 1.2s var(--ease-signal);
   }
 
-  /* Fine technical grid, fixed so it never repaints on scroll. */
+  /* Fine technical grid, fixed so it never repaints on scroll. It
+     parallaxes against the pointer and stretches a little with reading
+     speed — both by transform, so the repeating background is never
+     re-rasterised. */
   .grid-field {
     position: fixed;
-    inset: 0;
+    inset: -2rem;
     z-index: 0;
     pointer-events: none;
+    transform:
+      translate3d(calc(var(--pxc) * -12px), calc(var(--pyc) * -9px), 0)
+      scaleY(calc(1 + var(--vel) * 0.018));
+    will-change: transform;
     background-image:
       linear-gradient(rgb(245 247 250 / 0.028) 1px, transparent 1px),
       linear-gradient(90deg, rgb(245 247 250 / 0.028) 1px, transparent 1px);
     background-size: 72px 72px;
     mask-image: radial-gradient(120% 90% at 50% 30%, #000 35%, transparent 78%);
     -webkit-mask-image: radial-gradient(120% 90% at 50% 30%, #000 35%, transparent 78%);
+  }
+
+  /* One soft light for the whole document, following the pointer. It is
+     a single fixed element moved by transform — no gradient is ever
+     re-painted — which is why the page can respond to the pointer
+     everywhere at once for the price of one composited layer. */
+  .pointer-light {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 74vmax;
+    height: 74vmax;
+    margin: -37vmax 0 0 -37vmax;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle,
+      rgb(92 225 230 / 0.055),
+      rgb(79 124 255 / 0.035) 42%,
+      transparent 68%
+    );
+    transform: translate3d(calc(var(--pxc) * 24vw), calc(var(--pyc) * 22vh), 0);
+    will-change: transform;
+  }
+
+  /* It is a pointer affordance. There is no pointer on a phone, and the
+     layer is pure cost there. */
+  @media (hover: none), (max-width: 767px) {
+    .pointer-light { display: none; }
   }
 
   .grain {
@@ -393,6 +442,29 @@
     .field-mask { --field-fade: 76%; }
   }
 
+  /* The hero's object plane tracks the pointer while its type plane
+     stays still. Small numbers on purpose: this is a camera settling,
+     not an element sliding around. */
+  .hero-camera {
+    transform: translate3d(calc(var(--pxc) * 16px), calc(var(--pyc) * 13px), 0);
+    will-change: transform;
+  }
+
+  @media (hover: none) {
+    .hero-camera { transform: none; }
+  }
+
+  /* Display type leans into the direction of travel. Signed, so it
+     returns through zero and out the other side when you scroll back —
+     the page feels like it has weight rather than like it is animating.
+     Only ever on a wrapper: GSAP owns `transform` on the elements it
+     tweens, and the two would overwrite each other. */
+  .vel-lean {
+    transform: skewY(calc(var(--vel) * 0.5deg));
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+
   /* The portrait aperture: the person sits at the centre of the network
      rather than beside it, so the rings are part of the diagram. */
   .aperture-ring {
@@ -422,6 +494,126 @@
 
   @keyframes aperture-spin {
     to { transform: rotate(360deg); }
+  }
+
+  /* Progress, drawn around the control that opens the page's index.
+     `--scroll` is published even under reduced motion, so this stays
+     truthful when nothing else is moving. */
+  .menu-ring {
+    position: absolute;
+    inset: 1px;
+    border-radius: 9999px;
+    pointer-events: none;
+    background: conic-gradient(
+      from -90deg,
+      var(--color-cyan) calc(var(--scroll) * 360deg),
+      rgb(245 247 250 / 0.14) 0
+    );
+    mask: radial-gradient(circle, transparent 63%, #000 64%);
+    -webkit-mask: radial-gradient(circle, transparent 63%, #000 64%);
+  }
+
+  /* ── The capability map ─────────────────────────────────────────
+     The instrument turns: two rings, opposite directions, slow enough
+     to read as drift. Everything else here is state on one element —
+     the node button carries the disc, the numeral, the hit area and
+     the lean, so nothing has to be kept in step with anything else. */
+  @keyframes map-spin { to { transform: rotate(360deg); } }
+
+  .map-spin { animation: map-spin 64s linear infinite; }
+  .map-spin-slow { animation: map-spin 116s linear infinite reverse; }
+
+  .map-node {
+    /* Written by the proximity loop, 0…1 as the pointer approaches. */
+    --near: 0;
+    will-change: transform;
+  }
+
+  .map-node-disc {
+    display: grid;
+    place-items: center;
+    inline-size: 1.9rem;
+    block-size: 1.9rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-ink-3);
+    background: var(--color-void);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    line-height: 1;
+    color: var(--color-ink-3);
+    transform: scale(calc(1 + var(--near) * 0.16));
+    box-shadow: 0 0 0 calc(var(--near) * 10px) rgb(92 225 230 / calc(var(--near) * 0.1));
+    transition: border-color 0.35s, color 0.35s, background-color 0.35s;
+  }
+
+  /* Wide screens carry the name beside the node, so the disc itself can
+     step back down to a marker. */
+  @media (min-width: 1024px) {
+    .map-node-disc {
+      inline-size: 1.6rem;
+      block-size: 1.6rem;
+      font-size: 0.58rem;
+    }
+  }
+
+  .map-node[data-state="lit"] .map-node-disc {
+    border-color: var(--color-cyan);
+    color: var(--color-cyan);
+  }
+
+  .map-node[data-state="on"] .map-node-disc {
+    border-color: var(--color-cyan);
+    background: var(--color-cyan);
+    color: var(--color-void);
+    transform: scale(calc(1.16 + var(--near) * 0.14));
+    box-shadow: 0 0 0 9px rgb(92 225 230 / 0.14), 0 0 26px rgb(92 225 230 / 0.45);
+  }
+
+  /* Six names around a 23rem circle collide. They only appear once the
+     ring is wide enough to hold them. */
+  .map-node-label {
+    position: absolute;
+    display: none;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    color: var(--color-ink-3);
+    transition: color 0.35s;
+  }
+
+  @media (min-width: 1024px) {
+    .map-node-label { display: block; }
+  }
+
+  .map-node[data-state="lit"] .map-node-label { color: var(--color-ink-2); }
+  .map-node[data-state="on"] .map-node-label { color: var(--color-ink); }
+
+  /* ── The career track ───────────────────────────────────────────
+     Vertical by default. The scene adds `.is-horizontal` on wide
+     screens once it has something to move the row with; until then a
+     clipped `max-content` row would just hide two thirds of it. */
+  .career-track {
+    display: grid;
+    gap: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .career-viewport.is-horizontal {
+    overflow: hidden;
+  }
+
+  .career-viewport.is-horizontal .career-track {
+    display: flex;
+    width: max-content;
+    align-items: stretch;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    /* Room for the cards to scale up to 1 without clipping their own
+       edge against the viewport, and for the beam's bloom. */
+    padding-block: 2.5rem;
+  }
+
+  .career-viewport.is-horizontal .career-card {
+    flex: 0 0 auto;
+    width: min(72vw, 42rem);
+    will-change: transform, opacity, filter;
   }
 
   /* The career entry that currently owns the middle of the screen. */
@@ -454,5 +646,18 @@
      decoration that has simply stopped. */
   .wire::after,
   .edge-pulse,
-  .aperture-sweep { display: none !important; }
+  .aperture-sweep,
+  .pointer-light { display: none !important; }
+
+  /* The signal loop never starts, so these would sit frozen at whatever
+     the neutral values compute to. Stating it is cheaper than trusting
+     that every consumer's neutral pose is the identity transform. */
+  .grid-field,
+  .hero-camera,
+  .vel-lean { transform: none !important; }
+
+  .map-spin,
+  .map-spin-slow { animation: none !important; }
+
+  .map-node-disc { transform: none !important; box-shadow: none !important; }
 }

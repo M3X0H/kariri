@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Globe, Menu, X } from 'lucide-react';
 import { m, useScroll, useSpring } from 'framer-motion';
 import { useLang } from '../lib/lang';
-import { gsap, prefersReduced } from '../lib/motion';
+import { gsap, prefersReduced, EASE } from '../lib/motion';
 
 /* The chapters that carry a number on the page, in page order. The hero
    is not one of them: it is reached through the wordmark, which every
@@ -107,6 +107,21 @@ export function Nav() {
   const [active, setActive] = useState<string>('start');
   const lastHash = useRef({ hash: '', at: 0 });
 
+  /* One underline that travels between the chapters rather than six
+     that scale in and out on the spot. The bar is measured from the
+     link the spy has marked current, so it stays correct through a
+     language flip, a resize and the bar's own collapse into a pill. */
+  const bar = useRef<HTMLElement>(null);
+  const [ind, setInd] = useState({ x: 0, w: 0, on: false });
+
+  /* The sheet outlives `open` by the length of its own exit, or it
+     would vanish mid-animation the moment the state flips back. */
+  const sheet = useRef<HTMLDivElement>(null);
+  const toggleBtn = useRef<HTMLButtonElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const isMounted = useRef(false);
+  isMounted.current = mounted;
+
   const labels: Record<string, string> = {
     capabilities: t.nav.caps,
     about: t.nav.about,
@@ -115,6 +130,36 @@ export function Nav() {
     credentials: t.cred.tag,
     contact: t.nav.contact
   };
+
+  useLayoutEffect(() => {
+    const nav = bar.current;
+    if (!nav) return;
+
+    /* Returns the *same* state object when nothing has moved. This
+       effect is allowed to run after any render, and handing back a
+       fresh object every time would schedule another render from
+       inside a layout effect — which is an infinite loop, not a
+       re-measure. */
+    const measure = () => {
+      const el = nav.querySelector<HTMLElement>('[aria-current="page"]');
+      setInd((v) => {
+        if (!el) return v.on ? { ...v, on: false } : v;
+        const x = el.offsetLeft;
+        const w = el.offsetWidth;
+        return v.on && v.x === x && v.w === w ? v : { x, w, on: true };
+      });
+    };
+
+    measure();
+    // The pill animates its own width for half a second after `compact`
+    // flips, so one late reading catches up with where the links landed.
+    const t = window.setTimeout(measure, 520);
+    window.addEventListener('resize', measure);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('resize', measure);
+    };
+  }, [active, lang, compact]);
 
   const goTo = useCallback((id: string, smooth: boolean) => {
     const el = document.getElementById(id);
@@ -209,6 +254,69 @@ export function Nav() {
     };
   }, [open]);
 
+  /* Opening wipes the sheet down and deals the chapters out under it.
+     Closing runs the same thing backwards and only then unmounts, which
+     is the whole reason `mounted` exists as separate state. */
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      return;
+    }
+    if (!isMounted.current) return;
+
+    const el = sheet.current;
+    if (!el || prefersReduced()) {
+      setMounted(false);
+      return;
+    }
+
+    const tl = gsap
+      .timeline({ onComplete: () => setMounted(false) })
+      .to(el.querySelectorAll('[data-sheet-link]'), {
+        opacity: 0,
+        y: -16,
+        duration: 0.2,
+        stagger: 0.03,
+        ease: 'power2.in'
+      })
+      .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.4, ease: 'power4.inOut' }, 0.08);
+
+    return () => {
+      tl.kill();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    const el = sheet.current;
+    if (!open || !mounted || !el) return;
+
+    // Focus moves into the sheet, and back to the control that opened it.
+    const first = el.querySelector<HTMLAnchorElement>('a');
+    if (prefersReduced()) {
+      first?.focus();
+      return () => toggleBtn.current?.focus();
+    }
+
+    const tl = gsap
+      .timeline({ onComplete: () => first?.focus() })
+      .fromTo(
+        el,
+        { clipPath: 'inset(0 0 100% 0)' },
+        { clipPath: 'inset(0 0 0% 0)', duration: 0.5, ease: 'power4.inOut' }
+      )
+      .fromTo(
+        el.querySelectorAll('[data-sheet-link]'),
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.055, ease: EASE },
+        0.18
+      );
+
+    return () => {
+      tl.kill();
+      toggleBtn.current?.focus();
+    };
+  }, [open, mounted]);
+
   return (
     <>
       {/* How far through the page you are, as one hairline. */}
@@ -246,14 +354,18 @@ export function Nav() {
             </span>
           </a>
 
-          <nav aria-label={t.nav.menu} className="ms-auto hidden items-center gap-0.5 lg:flex">
+          <nav
+            ref={bar}
+            aria-label={t.nav.menu}
+            className="relative ms-auto hidden items-center gap-0.5 lg:flex"
+          >
             {NAV.map((id, i) => (
               <a
                 key={id}
                 href={`#${id}`}
                 aria-current={active === id ? 'page' : undefined}
                 className={[
-                  'group relative px-3 py-2 text-sm transition-colors duration-300',
+                  'relative px-3 py-2 text-sm transition-colors duration-300',
                   active === id ? 'text-ink' : 'text-ink-3 hover:text-ink'
                 ].join(' ')}
               >
@@ -261,16 +373,19 @@ export function Nav() {
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {labels[id]}
-                <span
-                  aria-hidden="true"
-                  className={[
-                    'absolute inset-x-2 bottom-1 h-px bg-cyan transition-transform duration-500',
-                    active === id ? 'scale-x-100' : 'scale-x-0'
-                  ].join(' ')}
-                  style={{ transformOrigin: lang === 'ar' ? 'right' : 'left' }}
-                />
               </a>
             ))}
+
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-1 h-px bg-cyan"
+              style={{
+                left: ind.x + 12,
+                width: Math.max(0, ind.w - 24),
+                opacity: ind.on ? 1 : 0,
+                transition: 'left .5s var(--ease-signal), width .5s var(--ease-signal), opacity .3s'
+              }}
+            />
           </nav>
 
           <div className="ms-auto flex items-center gap-1 lg:ms-0">
@@ -283,12 +398,17 @@ export function Nav() {
               <span className="font-mono text-[0.65rem]">{lang === 'ar' ? 'EN' : 'ع'}</span>
             </button>
             <button
+              ref={toggleBtn}
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
               aria-controls="menu-sheet"
               aria-label={t.nav.menu}
-              className="grid h-10 w-10 place-items-center text-ink-2 transition-colors hover:text-ink lg:hidden"
+              className="relative grid h-10 w-10 place-items-center text-ink-2 transition-colors hover:text-ink lg:hidden"
             >
+              {/* How far down the page you are, drawn around the control
+                  that opens the page's index. There is no room for a
+                  progress bar on a phone, and this needs none. */}
+              <span aria-hidden="true" className="menu-ring" />
               {open ? <X size={18} aria-hidden /> : <Menu size={18} aria-hidden />}
             </button>
           </div>
@@ -298,19 +418,29 @@ export function Nav() {
       {/* Sheet: full bleed, large type, one chapter per line. */}
       <div
         id="menu-sheet"
-        hidden={!open}
+        ref={sheet}
+        hidden={!mounted}
         className="fixed inset-0 z-[110] flex flex-col justify-center gap-1 bg-void/95 px-[6vw] backdrop-blur-xl lg:hidden"
       >
+        <div className="pointer-light" aria-hidden="true" />
         {NAV.map((id, i) => (
           <a
             key={id}
+            data-sheet-link
             href={`#${id}`}
-            className="flex items-baseline gap-4 border-b border-[var(--line)] py-4 font-display text-[clamp(1.6rem,7.5vw,2.6rem)] leading-none"
+            aria-current={active === id ? 'page' : undefined}
+            className="relative flex items-baseline gap-4 border-b border-[var(--line)] py-4 font-display text-[clamp(1.6rem,7.5vw,2.6rem)] leading-none"
           >
             <span aria-hidden="true" className="font-mono text-[0.7rem] text-cyan">
               {String(i + 1).padStart(2, '0')}
             </span>
             <span className={active === id ? 'text-cyan' : 'text-ink'}>{labels[id]}</span>
+            {active === id && (
+              <span
+                aria-hidden="true"
+                className="ms-auto h-1.5 w-1.5 self-center rounded-full bg-cyan shadow-[0_0_10px_2px_rgb(92_225_230/0.6)]"
+              />
+            )}
           </a>
         ))}
       </div>

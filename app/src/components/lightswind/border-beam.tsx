@@ -74,8 +74,12 @@ export function BorderBeam({
         )}
         style={
           {
-            '--beam-w': `${size}px`,
-            width: 'var(--beam-w)',
+            /* `size` is the fallback, not the value. Setting `--beam-w`
+               inline would outrank any class that sets it — which is
+               what silently killed every `[--beam-w:…]` breakpoint
+               override at the call sites, leaving phones carrying a
+               beam tuned for a desktop panel. */
+            width: `var(--beam-w, ${size}px)`,
             offsetPath: `rect(0 auto auto 0 round ${beamBorderRadius}px)`,
             '--beam-from': colorFrom,
             '--beam-to': colorTo,

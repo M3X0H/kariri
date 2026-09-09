@@ -90,4 +90,44 @@ export function splitWords(el: HTMLElement): HTMLElement[] {
   return inners;
 }
 
+/* Splits into the smallest unit each script can safely be moved in.
+
+   Latin gets characters. Arabic does not, and this is not a tuning
+   choice: the script is cursive, every letter has initial, medial,
+   final and isolated forms chosen by its neighbours, and putting each
+   one in its own element severs those joins — "محمد" comes apart into
+   four unconnected shapes. So Arabic falls back to words, which is the
+   smallest run that still shapes correctly.
+
+   The upshot is that the same call site gives a letter cascade in
+   English and a word cascade in Arabic, which is the right answer in
+   both rather than a compromise in either. */
+export function splitUnits(el: HTMLElement): HTMLElement[] {
+  const arabic = document.documentElement.lang === 'ar';
+  if (arabic) return splitWords(el);
+
+  const text = el.textContent ?? '';
+  el.textContent = '';
+  const inners: HTMLElement[] = [];
+
+  for (const ch of Array.from(text)) {
+    if (ch === ' ') {
+      el.appendChild(document.createTextNode(' '));
+      continue;
+    }
+    const mask = document.createElement('span');
+    mask.style.cssText = 'display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:0.12em;';
+
+    const inner = document.createElement('span');
+    inner.style.display = 'inline-block';
+    inner.textContent = ch;
+
+    mask.appendChild(inner);
+    el.appendChild(mask);
+    inners.push(inner);
+  }
+
+  return inners;
+}
+
 export { gsap, ScrollTrigger };

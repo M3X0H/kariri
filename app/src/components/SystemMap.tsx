@@ -5,7 +5,8 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type KeyboardEvent
+  type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent
 } from 'react';
 import { useLang } from '../lib/lang';
 import { CAPABILITIES, STACK } from '../content';
@@ -20,21 +21,29 @@ import { gsap, useScene, aura, EASE, prefersReduced } from '../lib/motion';
    node is reached through systems, networking and hardware, which is
    what `CAPABILITIES[].links` records.
 
-   Choosing a node lights it, lights everything it touches, and runs a
-   pulse down each live wire. The detail panel is the readable half; the
-   diagram is the memorable one.
+   The diagram is never quite still. Its instrument rings turn, live
+   wires carry a pulse, and on a fine pointer the nodes lean toward the
+   cursor and brighten as it approaches — so the map reads as something
+   running rather than something drawn. Choosing a node lights what it
+   touches and the panel beside it resolves out of blur.
 
-   Mobile is not this diagram shrunk: the labels come off the ring, the
-   dots grow into real tap targets, and the panel moves underneath.
+   The discs are HTML, not SVG. That is deliberate: one element then
+   carries the hit area, the focus ring, the accessible name, the
+   numeral and the lean, instead of a `<circle>` and a button that have
+   to be kept in step every frame.
+
+   Mobile is not this diagram shrunk: the ring grows into real tap
+   targets, the labels come off it, the panel moves underneath, and a
+   swipe across the map walks the ring.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Geometry, in viewBox units. The box is square and the ring leaves room
-   outside itself for labels on wide screens. */
+/* Geometry, in viewBox units. The box is square and the ring leaves
+   room outside itself for labels on wide screens. */
 const BOX = 400;
 const C = BOX / 2;
 const RING = 140;
 const CORE_R = 54;
-const NODE_R = 13;
+const NODE_R = 15;
 
 type Pt = { x: number; y: number; ux: number; uy: number };
 
@@ -100,6 +109,13 @@ const TICKS = Array.from({ length: 48 }, (_, i) => {
 
 const CYCLE_MS = 3600;
 
+/* How far a node leans toward the pointer, and how close the pointer
+   has to get before it does. Both as fractions of the map's own width,
+   so the effect is identical at every breakpoint. */
+const LEAN = 0.035;
+const REACH = 0.42;
+const SWIPE = 44;
+
 export function SystemMap() {
   const { t, lang } = useLang();
   const [active, setActive] = useState(0);
@@ -110,6 +126,9 @@ export function SystemMap() {
   const [held, setHeld] = useState(false);
   const btns = useRef<(HTMLButtonElement | null)[]>([]);
   const wrap = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+
+  const n = CAPABILITIES.length;
 
   const linked = useCallback(
     (i: number) => i === active || (CAPABILITIES[active].links as readonly number[]).includes(i),
@@ -136,7 +155,7 @@ export function SystemMap() {
       ([entry]) => {
         window.clearInterval(timer);
         if (entry.isIntersecting) {
-          timer = window.setInterval(() => setActive((i) => (i + 1) % CAPABILITIES.length), CYCLE_MS);
+          timer = window.setInterval(() => setActive((i) => (i + 1) % n), CYCLE_MS);
         }
       },
       { threshold: 0.4 }
@@ -147,7 +166,83 @@ export function SystemMap() {
       window.clearInterval(timer);
       io.disconnect();
     };
-  }, [claimed, held]);
+  }, [claimed, held, n]);
+
+  /* Proximity. The nodes lean toward the pointer and brighten as it
+     nears them — the diagram acknowledges the cursor before anything is
+     clicked, which is most of what makes it read as an instrument
+     rather than a picture.
+
+     Local coordinates, because the global pointer signal is
+     viewport-relative and this needs to know where the cursor is
+     inside the map. One rAF, and only where there is a pointer. */
+  useEffect(() => {
+    if (prefersReduced()) return;
+    const el = wrap.current;
+    if (!el) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    let raf = 0;
+    let px = 0;
+    let py = 0;
+    let inside = false;
+
+    const rest = (b: HTMLButtonElement) => {
+      b.style.transform = 'translate(-50%, -50%)';
+      b.style.setProperty('--near', '0');
+    };
+
+    const apply = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      if (!r.width) return;
+
+      NODES.forEach((node, i) => {
+        const b = btns.current[i];
+        if (!b) return;
+        if (!inside) return rest(b);
+
+        const nx = r.left + (node.x / BOX) * r.width;
+        const ny = r.top + (node.y / BOX) * r.height;
+        const dist = Math.hypot(px - nx, py - ny);
+        const near = Math.max(0, 1 - dist / (REACH * r.width));
+
+        // Squared, so the lean stays subtle until the pointer is close.
+        const pull = near * near * LEAN * r.width;
+        const ax = dist > 0 ? ((px - nx) / dist) * pull : 0;
+        const ay = dist > 0 ? ((py - ny) / dist) * pull : 0;
+
+        b.style.transform = `translate(-50%, -50%) translate3d(${ax.toFixed(2)}px, ${ay.toFixed(2)}px, 0)`;
+        b.style.setProperty('--near', near.toFixed(3));
+      });
+    };
+
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
+      px = e.clientX;
+      py = e.clientY;
+      inside = true;
+      schedule();
+    };
+    const onLeave = () => {
+      inside = false;
+      schedule();
+    };
+
+    el.addEventListener('pointermove', onMove, { passive: true });
+    el.addEventListener('pointerleave', onLeave, { passive: true });
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerleave', onLeave);
+      btns.current.forEach((b) => b && rest(b));
+    };
+  }, []);
 
   const choose = useCallback((i: number) => {
     setActive(i);
@@ -159,7 +254,6 @@ export function SystemMap() {
      reading direction; up and down are always previous and next. */
   const onKey = useCallback(
     (e: KeyboardEvent) => {
-      const n = CAPABILITIES.length;
       const rtl = lang === 'ar';
       let next: number | null = null;
 
@@ -173,8 +267,50 @@ export function SystemMap() {
       choose(next);
       btns.current[next]?.focus();
     },
-    [active, choose, lang]
+    [active, choose, lang, n]
   );
+
+  /* Touch: a swipe across the diagram walks the ring. There is no hover
+     on a phone, so without this the map's only affordance is six small
+     taps — and a ring is a thing you expect to be able to spin. */
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+
+  const onDown = (e: ReactPointerEvent) => {
+    if (e.pointerType === 'mouse') return;
+    swipe.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const onUp = (e: ReactPointerEvent) => {
+    const s = swipe.current;
+    swipe.current = null;
+    if (!s || e.pointerType === 'mouse') return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    // Vertical wins ties, so a scroll that drifts sideways is still a scroll.
+    if (Math.abs(dx) < SWIPE || Math.abs(dx) < Math.abs(dy)) return;
+    const forward = lang === 'ar' ? dx > 0 : dx < 0;
+    setActive((i) => (i + (forward ? 1 : -1) + n) % n);
+    setClaimed(true);
+  };
+
+  /* The panel does not swap, it resolves. React has already replaced the
+     copy by the time this runs, so the new text arrives out of blur
+     instead of appearing between two frames. */
+  useEffect(() => {
+    if (prefersReduced()) return;
+    const el = panel.current;
+    if (!el) return;
+    const rows = el.querySelectorAll('[data-morph]');
+    const tw = gsap.fromTo(
+      rows,
+      { opacity: 0, y: 14, filter: 'blur(6px)' },
+      { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.5, stagger: 0.05, ease: EASE, overwrite: true }
+    );
+    return () => {
+      tw.kill();
+      gsap.set(rows, { clearProps: 'opacity,transform,filter' });
+    };
+  }, [active]);
 
   const root = useScene<HTMLElement>((el) => {
     const q = gsap.utils.selector(el);
@@ -187,13 +323,25 @@ export function SystemMap() {
       scrollTrigger: { trigger: el, start: 'top 74%' }
     });
 
-    gsap.from(q('[data-panel-row]'), {
+    /* A slow camera across the section, so the diagram is never sitting
+       at exactly the same angle twice. */
+    gsap.fromTo(
+      q('[data-camera]'),
+      { rotate: -3.5, scale: 0.95 },
+      {
+        rotate: 3.5,
+        scale: 1.02,
+        ease: 'none',
+        scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 1.1 }
+      }
+    );
+
+    gsap.from(q('[data-lead]'), {
       opacity: 0,
-      y: 22,
-      duration: 0.7,
-      stagger: 0.09,
+      y: 24,
+      duration: 0.8,
       ease: EASE,
-      scrollTrigger: { trigger: el, start: 'top 70%' }
+      scrollTrigger: { trigger: el, start: 'top 78%' }
     });
 
     gsap.from(q('[data-chip]'), {
@@ -219,224 +367,175 @@ export function SystemMap() {
       <div className="aura" />
 
       <div className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <h2 className="label mb-3">
-          <span aria-hidden="true"><span className="text-cyan">01</span> — </span>{t.caps.tag}
-        </h2>
-        <p className="measure mb-10 text-lg text-ink-2 md:mb-14 md:text-xl">{t.caps.lead}</p>
+        <div data-lead>
+          <h2 className="label mb-3">
+            <span aria-hidden="true">
+              <span className="text-cyan">01</span> —{' '}
+            </span>
+            {t.caps.tag}
+          </h2>
+          <p className="measure mb-10 text-lg text-ink-2 md:mb-14 md:text-xl">{t.caps.lead}</p>
+        </div>
 
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:gap-16">
           {/* ── the diagram ──────────────────────────────────── */}
           <div
             ref={wrap}
             data-map
-            className="relative mx-auto aspect-square w-full max-w-[22rem] sm:max-w-[26rem] lg:mx-0 lg:max-w-[34rem]"
+            className="relative mx-auto aspect-square w-full max-w-[23rem] touch-pan-y sm:max-w-[27rem] lg:mx-0 lg:max-w-[34rem]"
             onPointerEnter={() => setHeld(true)}
             onPointerLeave={() => setHeld(false)}
             onFocusCapture={() => setHeld(true)}
             onBlurCapture={() => setHeld(false)}
+            onPointerDown={onDown}
+            onPointerUp={onUp}
           >
-            <svg
-              viewBox={`0 0 ${BOX} ${BOX}`}
-              className="absolute inset-0 h-full w-full overflow-visible"
-              aria-hidden="true"
-              focusable="false"
-            >
-              {/* The ring the nodes sit on. */}
-              <circle
-                cx={C}
-                cy={C}
-                r={RING}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={0.6}
-                strokeDasharray="2 7"
-                className="text-ink-3/55"
-              />
+            <div data-camera className="absolute inset-0">
+              <svg
+                viewBox={`0 0 ${BOX} ${BOX}`}
+                className="absolute inset-0 h-full w-full overflow-visible"
+                aria-hidden="true"
+                focusable="false"
+              >
+                {/* Two rings, opposite directions, slow enough to read as
+                    drift rather than as spin. */}
+                <g className="map-spin-slow" style={{ transformOrigin: `${C}px ${C}px` }}>
+                  <circle
+                    cx={C}
+                    cy={C}
+                    r={RING}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={0.6}
+                    strokeDasharray="2 7"
+                    className="text-ink-3/55"
+                  />
+                </g>
 
-              {TICKS.map((tk, i) => (
-                <line
-                  key={i}
-                  x1={tk.x1}
-                  y1={tk.y1}
-                  x2={tk.x2}
-                  y2={tk.y2}
-                  stroke="currentColor"
-                  strokeWidth={tk.major ? 1 : 0.6}
-                  className={tk.major ? 'text-cyan/55' : 'text-ink-3/40'}
-                />
-              ))}
-
-              {EDGES.map((e) => {
-                const live = liveEdge(e);
-                return (
-                  <g key={e.key}>
+                <g className="map-spin" style={{ transformOrigin: `${C}px ${C}px` }}>
+                  {TICKS.map((tk, i) => (
                     <line
-                      x1={e.x1}
-                      y1={e.y1}
-                      x2={e.x2}
-                      y2={e.y2}
+                      key={i}
+                      x1={tk.x1}
+                      y1={tk.y1}
+                      x2={tk.x2}
+                      y2={tk.y2}
                       stroke="currentColor"
-                      strokeWidth={live ? 1.2 : 0.8}
-                      className={live ? 'text-cyan' : 'text-ink-3'}
-                      opacity={live ? 0.8 : 0.32}
-                      style={{ transition: 'opacity .45s, stroke-width .45s' }}
+                      strokeWidth={tk.major ? 1 : 0.6}
+                      className={tk.major ? 'text-cyan/55' : 'text-ink-3/40'}
                     />
-                    {/* The travelling signal, on live wires only. */}
-                    {live && (
+                  ))}
+                </g>
+
+                {EDGES.map((e) => {
+                  const live = liveEdge(e);
+                  return (
+                    <g key={e.key}>
                       <line
                         x1={e.x1}
                         y1={e.y1}
                         x2={e.x2}
                         y2={e.y2}
-                        stroke="var(--color-cyan)"
-                        strokeWidth={2.4}
-                        strokeLinecap="round"
-                        className="edge-pulse"
-                        style={
-                          {
-                            '--edge-len': e.len,
-                            '--edge-dur': `${(e.len / 120).toFixed(2)}s`,
-                            '--edge-delay': `${(e.b % 3) * 0.22}s`
-                          } as CSSProperties
-                        }
+                        stroke="currentColor"
+                        strokeWidth={live ? 1.2 : 0.8}
+                        className={live ? 'text-cyan' : 'text-ink-3'}
+                        opacity={live ? 0.8 : 0.32}
+                        style={{ transition: 'opacity .45s, stroke-width .45s' }}
                       />
-                    )}
-                  </g>
-                );
-              })}
+                      {/* The travelling signal, on live wires only. */}
+                      {live && (
+                        <line
+                          x1={e.x1}
+                          y1={e.y1}
+                          x2={e.x2}
+                          y2={e.y2}
+                          stroke="var(--color-cyan)"
+                          strokeWidth={2.4}
+                          strokeLinecap="round"
+                          className="edge-pulse"
+                          style={
+                            {
+                              '--edge-len': e.len,
+                              '--edge-dur': `${(e.len / 120).toFixed(2)}s`,
+                              '--edge-delay': `${(e.b % 3) * 0.22}s`
+                            } as CSSProperties
+                          }
+                        />
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
 
-              {/* Node discs. The buttons that drive them are real HTML on
-                  top of this, so hit areas, focus rings and screen-reader
-                  names are the platform's rather than re-invented in SVG. */}
-              {/* Three states, and the numeral has to stay legible in all
-                  of them: unlit is an outlined disc on the ground, linked
-                  is the same disc washed cyan, and the active one is a
-                  solid cyan disc with the numeral knocked out of it. A
-                  cyan numeral on a cyan fill — which is what "linked" used
-                  to be — is simply invisible. */}
-              {NODES.map((n, i) => {
-                const lit = linked(i);
-                const on = i === active;
-                return (
-                  <g key={i}>
-                    {lit && (
-                      <circle
-                        cx={n.x}
-                        cy={n.y}
-                        r={on ? 28 : 20}
-                        className="fill-cyan"
-                        opacity={on ? 0.16 : 0.08}
-                        style={{ transition: 'r .4s, opacity .4s' }}
-                      />
-                    )}
-                    <circle
-                      cx={n.x}
-                      cy={n.y}
-                      r={on ? 13 : 11}
-                      className={on ? 'fill-cyan' : 'fill-void'}
-                      style={{ transition: 'r .35s' }}
-                    />
-                    <circle
-                      cx={n.x}
-                      cy={n.y}
-                      r={on ? 13 : 11}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={1.2}
-                      className={lit ? 'text-cyan' : 'text-ink-3'}
-                      opacity={lit ? 1 : 0.7}
-                      style={{ transition: 'r .35s, opacity .35s' }}
-                    />
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* ── the core ─────────────────────────────────────
-                He is the centre of the diagram, set in real HTML so the
-                Arabic types with the page's own display face. */}
-            <div
-              className="pointer-events-none absolute left-1/2 top-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-[var(--line-2)] bg-void/80 text-center backdrop-blur-sm"
-              style={{ width: `${(CORE_R * 2 * 100) / BOX}%`, height: `${(CORE_R * 2 * 100) / BOX}%` }}
-            >
-              <div className="aperture-sweep" />
-              <div className="px-2">
-                <p className="font-display text-[clamp(0.62rem,1.9vw,0.9rem)] font-bold leading-tight text-ink">
-                  {t.caps.core}
-                </p>
-                <p className="mt-1 text-[clamp(0.5rem,1.35vw,0.62rem)] leading-tight text-cyan">
-                  {t.caps.coreRole}
-                </p>
-              </div>
-            </div>
-
-            {/* ── the controls ─────────────────────────────────
-                One button per node, positioned over its disc. The label
-                is pushed outward along the node's own radius, so it
-                never crosses the ring — and it comes off entirely below
-                `lg`, where six labels around a 22rem circle collide. */}
-            {NODES.map((n, i) => (
-              <button
-                key={i}
-                ref={(el) => { btns.current[i] = el; }}
-                type="button"
-                onClick={() => choose(i)}
-                onPointerEnter={() => setActive(i)}
-                onFocus={() => setActive(i)}
-                onKeyDown={onKey}
-                aria-pressed={active === i}
-                aria-controls="capability-detail"
-                className="absolute grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full"
-                style={{ left: `${(n.x / BOX) * 100}%`, top: `${(n.y / BOX) * 100}%` }}
+              {/* ── the core ───────────────────────────────────── */}
+              <div
+                className="pointer-events-none absolute left-1/2 top-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-[var(--line-2)] bg-void/80 text-center backdrop-blur-sm"
+                style={{ width: `${(CORE_R * 2 * 100) / BOX}%`, height: `${(CORE_R * 2 * 100) / BOX}%` }}
               >
-                <span className="sr-only">{t.caps.items[i].name}</span>
-                <span
-                  aria-hidden="true"
-                  className={[
-                    'font-mono text-[0.58rem] leading-none transition-colors duration-300',
-                    active === i ? 'text-void' : linked(i) ? 'text-cyan' : 'text-ink-3'
-                  ].join(' ')}
-                >
-                  {String(i + 1).padStart(2, '0')}
-                </span>
+                <div className="aperture-sweep" />
+                <div className="px-2">
+                  <p className="font-display text-[clamp(0.62rem,1.9vw,0.9rem)] font-bold leading-tight text-ink">
+                    {t.caps.core}
+                  </p>
+                  <p className="mt-1 text-[clamp(0.5rem,1.35vw,0.62rem)] leading-tight text-cyan">
+                    {t.caps.coreRole}
+                  </p>
+                </div>
+              </div>
 
-                <span
-                  aria-hidden="true"
-                  className={[
-                    'pointer-events-none absolute hidden whitespace-nowrap text-xs transition-colors duration-300 lg:block',
-                    active === i ? 'text-ink' : linked(i) ? 'text-ink-2' : 'text-ink-3'
-                  ].join(' ')}
-                  style={{ transform: `translate(${n.ux * 3.2}rem, ${n.uy * 2.6}rem)` }}
+              {/* ── the nodes ──────────────────────────────────
+                  Disc, numeral, hit area, focus ring and lean all on one
+                  element. `--near` is written by the proximity loop and
+                  drives the glow from CSS. */}
+              {NODES.map((node, i) => (
+                <button
+                  key={i}
+                  ref={(el) => {
+                    btns.current[i] = el;
+                  }}
+                  type="button"
+                  onClick={() => choose(i)}
+                  onPointerEnter={(e) => e.pointerType === 'mouse' && setActive(i)}
+                  onFocus={() => setActive(i)}
+                  onKeyDown={onKey}
+                  aria-pressed={active === i}
+                  aria-controls="capability-detail"
+                  data-state={active === i ? 'on' : linked(i) ? 'lit' : 'off'}
+                  className="map-node absolute grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full"
+                  style={{ left: `${(node.x / BOX) * 100}%`, top: `${(node.y / BOX) * 100}%` }}
                 >
-                  {t.caps.items[i].name}
-                </span>
-              </button>
-            ))}
+                  <span className="sr-only">{t.caps.items[i].name}</span>
+                  <span aria-hidden="true" className="map-node-disc">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+
+                  <span
+                    aria-hidden="true"
+                    className="map-node-label"
+                    style={{ transform: `translate(${node.ux * 3.2}rem, ${node.uy * 2.6}rem)` }}
+                  >
+                    {t.caps.items[i].name}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ── the readable half ────────────────────────────── */}
-          <div
-            id="capability-detail"
-            aria-live="polite"
-            className="lg:min-h-[19rem]"
-          >
-            <p data-panel-row className="label ltr">
-              {String(active + 1).padStart(2, '0')} / {String(CAPABILITIES.length).padStart(2, '0')}
+          <div ref={panel} id="capability-detail" aria-live="polite" className="lg:min-h-[19rem]">
+            <p data-morph className="label ltr">
+              {String(active + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}
             </p>
 
-            <h3
-              data-panel-row
-              key={`${cap.name}-h`}
-              className="display-type mt-3 text-[clamp(1.7rem,5vw,3rem)]"
-            >
+            <h3 data-morph className="display-type mt-3 text-[clamp(1.7rem,5vw,3rem)]">
               {cap.name}
             </h3>
 
-            <p data-panel-row key={`${cap.name}-d`} className="measure mt-5 text-base text-ink-2 md:text-lg">
+            <p data-morph className="measure mt-5 text-base text-ink-2 md:text-lg">
               {cap.desc}
             </p>
 
-            <ul data-panel-row className="mt-7 flex flex-wrap gap-1.5">
+            <ul data-morph className="mt-7 flex flex-wrap gap-1.5">
               {tech.map((x) => (
                 <li
                   key={x}
@@ -448,16 +547,14 @@ export function SystemMap() {
               ))}
             </ul>
 
-            <p data-panel-row className="label mt-8 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan" />
+            <p className="label mt-8 flex items-center gap-2">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-cyan" />
               {t.caps.hint}
             </p>
           </div>
         </div>
 
-        {/* The working stack, stated once and plainly. It used to run past
-            on a marquee, which was the third scrolling strip on one page —
-            the repetition was reading as a tic rather than a motif. */}
+        {/* The working stack, stated once and plainly. */}
         <div data-stack className="rule mt-14 pt-7 md:mt-20">
           <p className="label mb-4">{t.stackTag}</p>
           <ul className="flex flex-wrap gap-x-2 gap-y-2">
