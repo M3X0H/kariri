@@ -1158,92 +1158,66 @@
   :root[lang="ar"] .group:hover .go-icon { transform: translate(-0.28rem, -0.28rem); }
 
   /* ── The capability map ─────────────────────────────────────────
-     The instrument turns: two rings, opposite directions, slow enough
-     to read as drift. Everything else here is state on one element —
-     the node button carries the disc, the numeral, the hit area and
-     the lean, so nothing has to be kept in step with anything else. */
-  @keyframes map-spin { to { transform: rotate(360deg); } }
+     The diagram itself is WebGL now (`CapabilityField`). What is left
+     here is the instrument furniture drawn over it: a precise ring and
+     numeral per control, so the thing you click reads as a switch on a
+     panel rather than as a glow you are guessing at.
 
-  .map-spin { animation: map-spin 64s linear infinite; }
-  .map-spin-slow { animation: map-spin 116s linear infinite reverse; }
-
+     The scene writes each button's `transform` every frame from the
+     projected 3D position, so nothing here may set one. */
   .map-node {
-    /* Written by the proximity loop, 0…1 as the pointer approaches. */
-    --near: 0;
     will-change: transform;
   }
 
-  /* Every node breathes, and none of them together: the phase comes
-     from the node's own index, so the ring reads as six things running
-     rather than one thing blinking. */
-  @keyframes node-breathe {
-    0%, 100% { opacity: 0.55; transform: scale(1); }
-    50% { opacity: 0.14; transform: scale(1.85); }
-  }
-
-  .map-node-halo {
+  .map-node-ring {
     position: absolute;
-    inset: 0;
-    border-radius: 9999px;
-    border: 1px solid var(--color-cyan);
-    opacity: 0;
-    pointer-events: none;
-    animation: node-breathe 3.4s ease-in-out infinite;
-    animation-delay: calc(var(--i, 0) * -0.56s);
-  }
-
-  /* Only the live nodes breathe; a ring where all six pulse at once is
-     a loading spinner, not a diagram. */
-  .map-node[data-state="off"] .map-node-halo { animation-play-state: paused; opacity: 0; }
-
-  .map-node-disc {
-    display: grid;
-    place-items: center;
-    inline-size: 1.9rem;
-    block-size: 1.9rem;
+    inset: 0.45rem;
     border-radius: 9999px;
     border: 1px solid var(--color-ink-3);
-    background: var(--color-void);
+    opacity: 0.45;
+    transition: inset 0.35s var(--ease-signal), border-color 0.35s, opacity 0.35s, box-shadow 0.35s;
+  }
+
+  .map-node[data-state="lit"] .map-node-ring {
+    border-color: var(--color-cyan);
+    opacity: 0.8;
+    inset: 0.3rem;
+  }
+
+  .map-node[data-state="on"] .map-node-ring {
+    inset: 0;
+    border-color: var(--color-cyan);
+    opacity: 1;
+    box-shadow: 0 0 18px rgb(92 225 230 / 0.3);
+  }
+
+  /* The ground under this is a moving 3D scene, so every mark on top of
+     it carries its own shadow or it disappears over a bright wire. */
+  .map-node-num {
+    position: relative;
     font-family: var(--font-mono);
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     line-height: 1;
     color: var(--color-ink-3);
-    transform: scale(calc(1 + var(--near) * 0.16));
-    box-shadow: 0 0 0 calc(var(--near) * 10px) rgb(92 225 230 / calc(var(--near) * 0.1));
-    transition: border-color 0.35s, color 0.35s, background-color 0.35s;
+    text-shadow: 0 0 7px rgb(7 8 10 / 0.95);
+    transition: color 0.35s;
   }
 
-  /* Wide screens carry the name beside the node, so the disc itself can
-     step back down to a marker. */
-  @media (min-width: 1024px) {
-    .map-node-disc {
-      inline-size: 1.6rem;
-      block-size: 1.6rem;
-      font-size: 0.58rem;
-    }
-  }
+  .map-node[data-state="lit"] .map-node-num { color: var(--color-cyan); }
+  .map-node[data-state="on"] .map-node-num { color: var(--color-ink); }
 
-  .map-node[data-state="lit"] .map-node-disc {
-    border-color: var(--color-cyan);
-    color: var(--color-cyan);
-  }
-
-  .map-node[data-state="on"] .map-node-disc {
-    border-color: var(--color-cyan);
-    background: var(--color-cyan);
-    color: var(--color-void);
-    transform: scale(calc(1.16 + var(--near) * 0.14));
-    box-shadow: 0 0 0 9px rgb(92 225 230 / 0.14), 0 0 26px rgb(92 225 230 / 0.45);
-  }
-
-  /* Six names around a 23rem circle collide. They only appear once the
-     ring is wide enough to hold them. */
+  /* Directly under its own control. The bodies move in three
+     dimensions now, so a label pushed out along a fixed radius would
+     part company with the node it belongs to. */
   .map-node-label {
     position: absolute;
+    top: 100%;
+    margin-block-start: 0.4rem;
     display: none;
     white-space: nowrap;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--color-ink-3);
+    text-shadow: 0 0 8px rgb(7 8 10 / 0.95);
     transition: color 0.35s;
   }
 
@@ -1323,13 +1297,9 @@
   .hero-camera,
   .vel-lean { transform: none !important; }
 
-  .map-spin,
-  .map-spin-slow,
-  .map-node-halo,
   .signal-bars span,
   .edge-run:hover::before { animation: none !important; }
 
   .plate-scan { display: none !important; }
 
-  .map-node-disc { transform: none !important; box-shadow: none !important; }
 }

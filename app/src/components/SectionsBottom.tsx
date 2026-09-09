@@ -137,6 +137,19 @@ export function Career() {
        squares up as it reaches the middle of the screen. */
     depthPass(q('[data-entry]'), { rotate: 8 });
 
+    /* And they arrive from alternating sides. The travel is small on
+       purpose — 22px stays inside the container's own padding, so a
+       card is never parked off-page waiting for its trigger, which
+       `overflow-x: clip` would then hide. */
+    q('[data-entry]').forEach((card, i) => {
+      gsap.from(card, {
+        x: (i % 2 === 0 ? 1 : -1) * (lang === 'ar' ? -22 : 22),
+        duration: 0.7,
+        ease: EASE,
+        scrollTrigger: { trigger: card, start: 'top 88%' }
+      });
+    });
+
     q('[data-entry]').forEach((card, i) => {
       ScrollTrigger.create({
         trigger: card,
@@ -161,9 +174,9 @@ export function Career() {
           on the screens with room for it. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 hidden items-center justify-center overflow-hidden lg:flex"
+        className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden"
       >
-        <span className="vel-lean display-type text-[clamp(9rem,26vw,26rem)] leading-none tabular-nums text-ink/[0.05]">
+        <span className="vel-lean display-type text-[clamp(6rem,30vw,26rem)] leading-none tabular-nums text-ink/[0.05] lg:text-[clamp(9rem,26vw,26rem)]">
           {t.career.entries[live].year}
         </span>
       </div>
@@ -559,19 +572,36 @@ export function Credentials() {
             they read as a list that happens to be sliding. */}
         <div data-rows>
           <VelocityRows className="space-y-3">
+            {/* Two planes, not two lists: the second track sits behind
+                the first, smaller and softer, so the archive has a front
+                and a back rather than being two rows that slide. */}
             {tracks.map((track, i) => (
-              <VelocityRow key={i} baseVelocity={3.2} direction={i % 2 === 0 ? 1 : -1}>
-                {track.map((c) => (
-                  <span
-                    key={c}
-                    lang="en"
-                    className="row-step me-3 inline-flex items-center gap-3 whitespace-nowrap border border-[var(--line)] bg-graphite/50 px-5 py-3 text-sm text-ink-2 hover:text-ink" style={{ ['--step' as string]: '0px' }}
-                  >
-                    <span aria-hidden="true" className="h-1 w-1 shrink-0 rounded-full bg-cyan/70" />
-                    {c}
-                  </span>
-                ))}
-              </VelocityRow>
+              <div
+                key={i}
+                style={
+                  i === 1
+                    ? { transform: 'scale(0.88)', opacity: 0.5, filter: 'blur(0.6px)' }
+                    : undefined
+                }
+              >
+                <VelocityRow baseVelocity={3.2} direction={i % 2 === 0 ? 1 : -1}>
+                  {track.map((c, j) => (
+                    <span
+                      key={c}
+                      lang="en"
+                      className="row-step me-3 inline-flex items-center gap-3 whitespace-nowrap border border-[var(--line)] bg-graphite/50 px-5 py-3 text-sm text-ink-2 hover:border-cyan/40 hover:text-ink"
+                      style={{ ['--step' as string]: '0px' }}
+                    >
+                      {/* A record in an archive has a number. */}
+                      <span aria-hidden="true" className="font-mono text-[0.6rem] text-cyan/70">
+                        {String(i * half + j + 1).padStart(2, '0')}
+                      </span>
+                      <span aria-hidden="true" className="h-3 w-px shrink-0 bg-[var(--line-2)]" />
+                      {c}
+                    </span>
+                  ))}
+                </VelocityRow>
+              </div>
             ))}
           </VelocityRows>
 

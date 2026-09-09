@@ -1,17 +1,20 @@
 import {
+  Suspense,
+  lazy,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent
 } from 'react';
 import { useLang } from '../lib/lang';
 import { Chapter } from './Chapter';
 import { CAPABILITIES, STACK } from '../content';
-import { gsap, useScene, aura, EASE, prefersReduced, isCoarse } from '../lib/motion';
+import { gsap, useScene, aura, EASE, prefersReduced } from '../lib/motion';
+
+const CapabilityField = lazy(() => import('./CapabilityField'));
 
 /* ═══════════════════════════════════════════════════════════════
    SYSTEM MAP — the signature interaction.
@@ -38,84 +41,25 @@ import { gsap, useScene, aura, EASE, prefersReduced, isCoarse } from '../lib/mot
    swipe across the map walks the ring.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Geometry, in viewBox units. The box is square and the ring leaves
-   room outside itself for labels on wide screens. */
-const BOX = 400;
-const C = BOX / 2;
-const RING = 140;
-const CORE_R = 54;
-const NODE_R = 15;
-
-type Pt = { x: number; y: number; ux: number; uy: number };
-
-const NODES: Pt[] = CAPABILITIES.map((_, i) => {
+/* Where the controls sit when there is no WebGL — the same ring, laid
+   out in percentages. When the field is running it takes these over and
+   writes each button's transform from the projected 3D position
+   instead; this is what the page falls back to, not what it aims for. */
+const FALLBACK = CAPABILITIES.map((_, i) => {
   const a = (i / CAPABILITIES.length) * Math.PI * 2 - Math.PI / 2;
-  return { x: C + Math.cos(a) * RING, y: C + Math.sin(a) * RING, ux: Math.cos(a), uy: Math.sin(a) };
-});
-
-type Edge = { key: string; a: number; b: number; x1: number; y1: number; x2: number; y2: number; len: number };
-
-/* Core → node, then node → node for every relationship, de-duplicated.
-   Every segment is trimmed back to the edge of the discs it joins, so a
-   wire meets a node rather than running under it. */
-const EDGES: Edge[] = (() => {
-  const out: Edge[] = [];
-
-  NODES.forEach((n, i) => {
-    const x1 = C + n.ux * CORE_R;
-    const y1 = C + n.uy * CORE_R;
-    const x2 = C + n.ux * (RING - NODE_R);
-    const y2 = C + n.uy * (RING - NODE_R);
-    out.push({ key: `c-${i}`, a: -1, b: i, x1, y1, x2, y2, len: Math.hypot(x2 - x1, y2 - y1) });
-  });
-
-  CAPABILITIES.forEach((cap, i) => {
-    (cap.links as readonly number[]).forEach((j) => {
-      if (j <= i) return;
-      const dx = NODES[j].x - NODES[i].x;
-      const dy = NODES[j].y - NODES[i].y;
-      const d = Math.hypot(dx, dy) || 1;
-      const ux = dx / d;
-      const uy = dy / d;
-      out.push({
-        key: `${i}-${j}`,
-        a: i,
-        b: j,
-        x1: NODES[i].x + ux * NODE_R,
-        y1: NODES[i].y + uy * NODE_R,
-        x2: NODES[j].x - ux * NODE_R,
-        y2: NODES[j].y - uy * NODE_R,
-        len: d - NODE_R * 2
-      });
-    });
-  });
-
-  return out;
-})();
-
-/* Tick marks around the core — the instrument register, and the one
-   piece of pure decoration in the diagram. */
-const TICKS = Array.from({ length: 48 }, (_, i) => {
-  const a = (i / 48) * Math.PI * 2;
-  const r1 = CORE_R + 10;
-  const r2 = r1 + (i % 4 === 0 ? 7 : 3.5);
-  return {
-    x1: C + Math.cos(a) * r1,
-    y1: C + Math.sin(a) * r1,
-    x2: C + Math.cos(a) * r2,
-    y2: C + Math.sin(a) * r2,
-    major: i % 4 === 0
-  };
+  return { left: 50 + Math.cos(a) * 35, top: 50 + Math.sin(a) * 35 };
 });
 
 const CYCLE_MS = 3600;
 
-/* How far a node leans toward the pointer, and how close the pointer
-   has to get before it does. Both as fractions of the map's own width,
-   so the effect is identical at every breakpoint. */
-const LEAN = 0.035;
-const REACH = 0.42;
 const SWIPE = 44;
+
+/* Counted off the same data the scene wires, so a readout cannot claim
+   a link the structure does not draw. */
+const LINK_COUNT = CAPABILITIES.reduce(
+  (sum, cap, i) => sum + (cap.links as readonly number[]).filter((j) => j > i).length,
+  0
+);
 
 export function SystemMap() {
   const { t, lang } = useLang();
@@ -134,13 +78,6 @@ export function SystemMap() {
   const linked = useCallback(
     (i: number) => i === active || (CAPABILITIES[active].links as readonly number[]).includes(i),
     [active]
-  );
-
-  /* An edge is live when both of its ends are lit. The core counts as
-     always lit, so its wire to the active node is live too. */
-  const liveEdge = useCallback(
-    (e: Edge) => (e.a === -1 ? e.b === active : linked(e.a) && linked(e.b)),
-    [active, linked]
   );
 
   /* The map breathes on its own until it is in someone's hands: it only
@@ -169,81 +106,22 @@ export function SystemMap() {
     };
   }, [claimed, held, n]);
 
-  /* Proximity. The nodes lean toward the pointer and brighten as it
-     nears them — the diagram acknowledges the cursor before anything is
-     clicked, which is most of what makes it read as an instrument
-     rather than a picture.
-
-     Local coordinates, because the global pointer signal is
-     viewport-relative and this needs to know where the cursor is
-     inside the map. One rAF, and only where there is a pointer. */
+  /* The scene needs to know how heavy the WebGL may be — and whether it
+     may run at all. Reduced motion keeps the fallback ring, which is
+     static, legible and does everything the diagram has to do. */
+  const [field, setField] = useState<null | 'full' | 'lite'>(null);
   useEffect(() => {
     if (prefersReduced()) return;
-    const el = wrap.current;
-    if (!el) return;
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-
-    let raf = 0;
-    let px = 0;
-    let py = 0;
-    let inside = false;
-
-    const rest = (b: HTMLButtonElement) => {
-      b.style.transform = 'translate(-50%, -50%)';
-      b.style.setProperty('--near', '0');
-    };
-
-    const apply = () => {
-      raf = 0;
-      const r = el.getBoundingClientRect();
-      if (!r.width) return;
-
-      NODES.forEach((node, i) => {
-        const b = btns.current[i];
-        if (!b) return;
-        if (!inside) return rest(b);
-
-        const nx = r.left + (node.x / BOX) * r.width;
-        const ny = r.top + (node.y / BOX) * r.height;
-        const dist = Math.hypot(px - nx, py - ny);
-        const near = Math.max(0, 1 - dist / (REACH * r.width));
-
-        // Squared, so the lean stays subtle until the pointer is close.
-        const pull = near * near * LEAN * r.width;
-        const ax = dist > 0 ? ((px - nx) / dist) * pull : 0;
-        const ay = dist > 0 ? ((py - ny) / dist) * pull : 0;
-
-        b.style.transform = `translate(-50%, -50%) translate3d(${ax.toFixed(2)}px, ${ay.toFixed(2)}px, 0)`;
-        b.style.setProperty('--near', near.toFixed(3));
-      });
-    };
-
-    const schedule = () => {
-      if (!raf) raf = requestAnimationFrame(apply);
-    };
-
-    const onMove = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse') return;
-      px = e.clientX;
-      py = e.clientY;
-      inside = true;
-      schedule();
-    };
-    const onLeave = () => {
-      inside = false;
-      schedule();
-    };
-
-    el.addEventListener('pointermove', onMove, { passive: true });
-    el.addEventListener('pointerleave', onLeave, { passive: true });
-
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-      el.removeEventListener('pointermove', onMove);
-      el.removeEventListener('pointerleave', onLeave);
-      btns.current.forEach((b) => b && rest(b));
-    };
+    try {
+      const c = document.createElement('canvas');
+      if (!(c.getContext('webgl2') || c.getContext('webgl'))) return;
+      setField(window.innerWidth < 768 ? 'lite' : 'full');
+    } catch {
+      setField(null);
+    }
   }, []);
+
+  const core = useRef<HTMLDivElement>(null);
 
   const choose = useCallback((i: number) => {
     setActive(i);
@@ -324,20 +202,6 @@ export function SystemMap() {
       scrollTrigger: { trigger: el, start: 'top 74%' }
     });
 
-    /* A slow camera across the section, so the diagram is never sitting
-       at exactly the same angle twice. */
-    const swing = isCoarse() ? 7 : 3.5;
-    gsap.fromTo(
-      q('[data-camera]'),
-      { rotate: -swing, scale: 0.94 },
-      {
-        rotate: swing,
-        scale: 1.03,
-        ease: 'none',
-        scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 1.1 }
-      }
-    );
-
     gsap.from(q('[data-lead]'), {
       opacity: 0,
       y: 24,
@@ -388,127 +252,74 @@ export function SystemMap() {
             onPointerUp={onUp}
           >
             <div data-camera className="absolute inset-0">
-              <svg
-                viewBox={`0 0 ${BOX} ${BOX}`}
-                className="absolute inset-0 h-full w-full overflow-visible"
-                aria-hidden="true"
-                focusable="false"
-              >
-                {/* Two rings, opposite directions, slow enough to read as
-                    drift rather than as spin. */}
-                <g className="map-spin-slow" style={{ transformOrigin: `${C}px ${C}px` }}>
+              {/* The structure. Seven bodies in real space, wired by
+                  curves that bow through the volume, with charge running
+                  the live ones — see `CapabilityField`. */}
+              {field && (
+                <Suspense fallback={null}>
+                  <CapabilityField
+                    active={active}
+                    isLit={linked}
+                    nodeEls={btns}
+                    coreEl={core}
+                    lite={field === 'lite'}
+                  />
+                </Suspense>
+              )}
+
+              {/* Without WebGL the ring is drawn flat and the controls
+                  keep their percentage positions. */}
+              {!field && (
+                <svg
+                  viewBox="0 0 100 100"
+                  className="absolute inset-0 h-full w-full"
+                  aria-hidden="true"
+                  focusable="false"
+                >
                   <circle
-                    cx={C}
-                    cy={C}
-                    r={RING}
+                    cx="50"
+                    cy="50"
+                    r="35"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth={0.6}
-                    strokeDasharray="2 7"
-                    className="text-ink-3/55"
+                    strokeWidth="0.2"
+                    strokeDasharray="1 2"
+                    className="text-ink-3/50"
                   />
-                </g>
-
-                <g className="map-spin" style={{ transformOrigin: `${C}px ${C}px` }}>
-                  {TICKS.map((tk, i) => (
-                    <line
-                      key={i}
-                      x1={tk.x1}
-                      y1={tk.y1}
-                      x2={tk.x2}
-                      y2={tk.y2}
-                      stroke="currentColor"
-                      strokeWidth={tk.major ? 1 : 0.6}
-                      className={tk.major ? 'text-cyan/55' : 'text-ink-3/40'}
-                    />
-                  ))}
-                </g>
-
-                {EDGES.map((e) => {
-                  const live = liveEdge(e);
-                  return (
-                    <g key={e.key}>
-                      <line
-                        x1={e.x1}
-                        y1={e.y1}
-                        x2={e.x2}
-                        y2={e.y2}
-                        stroke="currentColor"
-                        strokeWidth={live ? 1.2 : 0.8}
-                        className={live ? 'text-cyan' : 'text-ink-3'}
-                        opacity={live ? 0.8 : 0.32}
-                        style={{ transition: 'opacity .45s, stroke-width .45s' }}
-                      />
-                      {/* The core feeds the whole ring, always — dim and
-                          slow on the spokes that are not selected, so the
-                          diagram is never actually still. */}
-                      {e.a === -1 && !live && (
-                        <line
-                          x1={e.x1}
-                          y1={e.y1}
-                          x2={e.x2}
-                          y2={e.y2}
-                          stroke="var(--color-cyan)"
-                          strokeWidth={1.6}
-                          strokeLinecap="round"
-                          className="edge-pulse"
-                          opacity={0.28}
-                          style={
-                            {
-                              '--edge-len': e.len,
-                              '--edge-dur': `${(e.len / 26).toFixed(2)}s`,
-                              '--edge-delay': `${e.b * 0.9}s`
-                            } as CSSProperties
-                          }
-                        />
-                      )}
-
-                      {/* The travelling signal, on live wires only. */}
-                      {live && (
-                        <line
-                          x1={e.x1}
-                          y1={e.y1}
-                          x2={e.x2}
-                          y2={e.y2}
-                          stroke="var(--color-cyan)"
-                          strokeWidth={2.4}
-                          strokeLinecap="round"
-                          className="edge-pulse"
-                          style={
-                            {
-                              '--edge-len': e.len,
-                              '--edge-dur': `${(e.len / 120).toFixed(2)}s`,
-                              '--edge-delay': `${(e.b % 3) * 0.22}s`
-                            } as CSSProperties
-                          }
-                        />
-                      )}
-                    </g>
-                  );
-                })}
-              </svg>
+                </svg>
+              )}
 
               {/* ── the core ───────────────────────────────────── */}
               <div
-                className="pointer-events-none absolute left-1/2 top-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-[var(--line-2)] bg-void/80 text-center backdrop-blur-sm"
-                style={{ width: `${(CORE_R * 2 * 100) / BOX}%`, height: `${(CORE_R * 2 * 100) / BOX}%` }}
+                ref={core}
+                className="pointer-events-none absolute grid place-items-center text-center"
+                style={
+                  field
+                    ? { left: 0, top: 0, width: '13rem' }
+                    : { left: '50%', top: '50%', width: '13rem', transform: 'translate(-50%, -50%)' }
+                }
               >
-                <div className="aperture-sweep" />
-                <div className="px-2">
-                  <p className="font-display text-[clamp(0.62rem,1.9vw,0.9rem)] font-bold leading-tight text-ink">
-                    {t.caps.core}
-                  </p>
-                  <p className="mt-1 text-[clamp(0.5rem,1.35vw,0.62rem)] leading-tight text-cyan">
-                    {t.caps.coreRole}
-                  </p>
-                </div>
+                <p
+                  className="font-display text-[clamp(0.68rem,2vw,1rem)] font-bold leading-tight text-ink"
+                  style={{ textShadow: '0 0 10px rgb(7 8 10 / 0.95), 0 0 22px rgb(7 8 10 / 0.8)' }}
+                >
+                  {t.caps.core}
+                </p>
+                <p
+                  className="mt-1 text-[clamp(0.52rem,1.4vw,0.66rem)] leading-tight text-cyan"
+                  style={{ textShadow: '0 0 10px rgb(7 8 10 / 0.95)' }}
+                >
+                  {t.caps.coreRole}
+                </p>
               </div>
 
-              {/* ── the nodes ──────────────────────────────────
-                  Disc, numeral, hit area, focus ring and lean all on one
-                  element. `--near` is written by the proximity loop and
-                  drives the glow from CSS. */}
-              {NODES.map((node, i) => (
+              {/* ── the controls ───────────────────────────────
+                  Real buttons, carried by the scene. It writes each
+                  one's transform from the projected position of its body
+                  every frame, so the hit area, the focus ring and the
+                  accessible name stay the platform's while the thing you
+                  look at is WebGL. */}
+              {CAPABILITIES.map((_, i) => (
                 <button
                   key={i}
                   ref={(el) => {
@@ -522,24 +333,23 @@ export function SystemMap() {
                   aria-pressed={active === i}
                   aria-controls="capability-detail"
                   data-state={active === i ? 'on' : linked(i) ? 'lit' : 'off'}
-                  className="map-node absolute grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full"
-                  style={{ left: `${(node.x / BOX) * 100}%`, top: `${(node.y / BOX) * 100}%` }}
+                  className="map-node absolute grid h-12 w-12 place-items-center rounded-full"
+                  style={
+                    field
+                      ? { left: 0, top: 0 }
+                      : {
+                          left: `${FALLBACK[i].left}%`,
+                          top: `${FALLBACK[i].top}%`,
+                          transform: 'translate(-50%, -50%)'
+                        }
+                  }
                 >
                   <span className="sr-only">{t.caps.items[i].name}</span>
-                  <span
-                    aria-hidden="true"
-                    className="map-node-halo"
-                    style={{ ['--i' as string]: i }}
-                  />
-                  <span aria-hidden="true" className="map-node-disc">
+                  <span aria-hidden="true" className="map-node-ring" />
+                  <span aria-hidden="true" className="map-node-num">
                     {String(i + 1).padStart(2, '0')}
                   </span>
-
-                  <span
-                    aria-hidden="true"
-                    className="map-node-label"
-                    style={{ transform: `translate(${node.ux * 3.2}rem, ${node.uy * 2.6}rem)` }}
-                  >
+                  <span aria-hidden="true" className="map-node-label">
                     {t.caps.items[i].name}
                   </span>
                 </button>
@@ -584,9 +394,9 @@ export function SystemMap() {
             <div className="readout-grid mt-8" aria-hidden="true">
               {[
                 ['NODES', String(n).padStart(2, '0')],
-                ['LINKS', String(EDGES.filter((e) => e.a !== -1).length).padStart(2, '0')],
+                ['LINKS', String(LINK_COUNT).padStart(2, '0')],
                 ['ACTIVE', String(active + 1).padStart(2, '0')],
-                ['LIT', String(NODES.filter((_, i) => linked(i)).length).padStart(2, '0')]
+                ['LIT', String(CAPABILITIES.filter((_, i) => linked(i)).length).padStart(2, '0')]
               ].map(([k, v]) => (
                 <div key={k} className="readout-cell">
                   <p lang="en" className="readout-value">{v}</p>
