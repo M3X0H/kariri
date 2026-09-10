@@ -8,7 +8,7 @@ import { gsap, prefersReduced, EASE } from '../lib/motion';
    is not one of them: it is reached through the wordmark, which every
    visitor already reads as "home", and dropping it from the bar buys the
    width that the credentials chapter needs. */
-export const NAV = ['capabilities', 'about', 'career', 'work', 'credentials', 'contact'] as const;
+export const NAV = ['about', 'capabilities', 'career', 'work', 'credentials', 'direction', 'contact'] as const;
 
 /* What the scroll spy watches. `start` and `fault` have no entry in the
    bar, but they still have to be here or the spy reports the chapter
@@ -125,11 +125,12 @@ export function Nav() {
   const labels: Record<string, string> = {
     start: t.nav.home,
     fault: t.fault.tag,
-    capabilities: t.nav.caps,
     about: t.nav.about,
+    capabilities: t.nav.caps,
     career: t.nav.career,
     work: t.nav.work,
     credentials: t.cred.tag,
+    direction: t.nav.direction,
     contact: t.nav.contact
   };
 

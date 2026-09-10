@@ -1,4 +1,4 @@
-import{a as re,j as be}from"./motion-BTxF_OsE.js";import{W as Ce,S as xe,P as Fe,V as ke,B as T,a as d,b as We,C as se,c as P,A as z,d as ie,F as le,L as Te,D as Pe,G as ze,e as Ne}from"./three-Dj5mgqjs.js";import{S as x}from"./index-Czc34Em0.js";import"./gsap-C8IefbVz.js";const F=8,Re=26,N=Re*(F-1),Ee={full:{nodes:1500,packets:90,dpr:1.75,aa:!0,reach:3},lite:{nodes:520,packets:34,dpr:1.3,aa:!1,reach:2}},ue=`
+import{a as re,j as be}from"./motion-BTxF_OsE.js";import{W as Ce,S as xe,P as Fe,V as ke,B as T,a as d,b as We,C as se,c as P,A as z,d as ie,F as le,L as Te,D as Pe,G as ze,e as Ne}from"./three-Dj5mgqjs.js";import{S as x}from"./index-xd8PNuut.js";import"./gsap-C8IefbVz.js";const F=8,Re=26,N=Re*(F-1),Ee={full:{nodes:1500,packets:90,dpr:1.75,aa:!0,reach:3},lite:{nodes:520,packets:34,dpr:1.3,aa:!1,reach:2}},ue=`
   attribute float aScale;
   attribute float aSeed;
   attribute float aWarm;

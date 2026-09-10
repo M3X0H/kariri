@@ -15,7 +15,7 @@
 export function Chapter({
   index,
   name,
-  count = '06',
+  count = '07',
   ghost = true,
   as: Tag = 'h2',
   className = ''

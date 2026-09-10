@@ -9,23 +9,28 @@ import { Hud } from './components/Hud';
 import { SmoothCursor } from './components/lightswind/smooth-cursor';
 import { About, Fault, Hero } from './components/SectionsTop';
 import { SystemMap } from './components/SystemMap';
-import { Career, Contact, Credentials, Footer, Work } from './components/SectionsBottom';
+import { Career, Contact, Credentials, Direction, Footer, Work } from './components/SectionsBottom';
 import { useWebglQuality } from './lib/quality';
 
 const SystemScene = lazy(() => import('./components/SystemScene'));
 
 /* The page is a route, not a résumé layout: a fault enters, it is
-   traced through a system, and the person who does the tracing is
-   introduced by his work rather than ahead of it.
+   traced through a system, and the route ends by saying where it is
+   going next.
 
-     hero      — who, at the centre of his own network
+     hero      — who, what, and where it is heading
      fault     — three faults from an ordinary day
-     map       — the six connected areas each one runs through   01
-     about     — the operator behind them                        02
+     about     — the operator behind them                        01
+     map       — the six connected areas each fault runs through 02
      career    — where he has applied them                       03
      work      — what he has built                               04
      cred      — what validates it                               05
-     contact   — how to reach him                                06 */
+     direction — where it goes next, and what each starts from   06
+     contact   — how to reach him                                07
+
+   About now precedes the map. A recruiter needs *who* before *what*,
+   and the map is a better second chapter than a first: it reads as
+   his system once you know whose it is. */
 function Site() {
   const { t } = useLang();
   const [ready, setReady] = useState(false);
@@ -88,11 +93,12 @@ function Site() {
       <main id="main" className="relative">
         <Hero ready={ready} />
         <Fault />
-        <SystemMap />
         <About />
+        <SystemMap />
         <Career />
         <Work />
         <Credentials />
+        <Direction />
         <Contact />
       </main>
 

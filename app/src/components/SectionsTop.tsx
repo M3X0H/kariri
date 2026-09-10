@@ -102,11 +102,15 @@ export function Hero({ ready }: { ready: boolean }) {
     drift(q('[data-float]'), isCoarse() ? 5 : 11);
   }, [ready, lang]);
 
+  /* The rail's last cell used to repeat the languages, which the About
+     specification already states. It carries the direction instead —
+     the one thing a recruiter should see above the fold that the role
+     line cannot say on its own. */
   const spec: [string, string][] = [
     [t.spec.role, t.spec.roleV],
     [t.spec.base, t.spec.baseV],
     [t.spec.since, t.spec.sinceV],
-    [t.spec.langs, t.spec.langsV]
+    [t.spec.focus, t.spec.focusV]
   ];
 
   return (
@@ -181,8 +185,13 @@ export function Hero({ ready }: { ready: boolean }) {
 
         {/* ── the name ──────────────────────────────────────────── */}
         <div className="hero-type name-box relative">
-          <div data-meta className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div data-meta className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2">
             <span className="label">{t.hero.role}</span>
+            {/* The degree, stated beside the role rather than three
+                chapters below it. Both halves of the positioning are
+                now above the fold. */}
+            <span aria-hidden="true" className="h-3 w-px bg-[var(--line-2)]" />
+            <span className="label">{t.hero.field}</span>
             <span className="inline-flex items-center gap-2">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-cyan shadow-[0_0_10px_2px_rgb(92_225_230/0.7)]" />
               <ShinyText
@@ -217,7 +226,14 @@ export function Hero({ ready }: { ready: boolean }) {
             {t.hero.claim}
           </p>
 
-          <div className="mt-6 flex flex-col gap-2.5 sm:mt-7 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+          {/* Where it goes next, set quieter than what it is now. The
+              hierarchy is the honesty: the claim is what he has done,
+              this is what he is moving toward. */}
+          <p data-meta className="measure-sm mt-2.5 text-sm leading-snug text-ink-3 md:text-base md:leading-relaxed">
+            {t.hero.next}
+          </p>
+
+          <div className="mt-5 flex flex-col gap-2.5 sm:mt-7 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
             <div data-act className="w-full sm:w-auto">
               <MagneticButton
                 href={LINKS.whatsapp}
@@ -243,13 +259,26 @@ export function Hero({ ready }: { ready: boolean }) {
                 {t.hero.cv}
               </ShineButton>
             </div>
+
+            {/* The third recruiter action. Deliberately not a third
+                button: three stacked 56px controls is most of a phone
+                screen, and this one is a jump down the same page rather
+                than a commitment. */}
+            <a
+              data-act
+              href="#career"
+              className="group inline-flex w-fit items-center gap-2 py-1.5 text-sm text-ink-2 transition-colors hover:text-ink sm:py-0 sm:ps-1"
+            >
+              <span className="u-line">{t.hero.see}</span>
+              <ArrowDown size={14} aria-hidden className="shrink-0" />
+            </a>
           </div>
         </div>
 
         {/* ── the rail ──────────────────────────────────────────── */}
-        <div data-meta className="hero-rail relative z-10 pb-[calc(1.1rem+env(safe-area-inset-bottom))] pt-6 lg:pb-0 lg:pt-0">
+        <div data-meta className="hero-rail relative z-10 pb-[calc(1.1rem+env(safe-area-inset-bottom))] pt-5 lg:pb-0 lg:pt-0">
           <div aria-hidden="true" className="wire h-px w-full" />
-          <dl className="grid12 mt-4 gap-y-4 md:mt-5 md:gap-y-5">
+          <dl className="grid12 mt-3 gap-y-3.5 md:mt-5 md:gap-y-5">
             {spec.map(([k, v]) => (
               <div key={k} className="col-span-6 md:col-span-3">
                 <dt className="label">{k}</dt>
@@ -357,7 +386,7 @@ export function Fault() {
       <div className="aura" />
 
       <div className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <Chapter index="00" name={t.fault.tag} count="06" ghost={false} className="mb-8" />
+        <Chapter index="00" name={t.fault.tag} count="07" ghost={false} className="mb-8" />
         <p className="measure mb-10 text-lg text-ink-2 md:mb-14 md:text-xl">{t.fault.lead}</p>
 
         <div className="relative ps-6 md:ps-10">
@@ -482,7 +511,7 @@ export function About() {
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
         <div data-tag>
           {/* No watermark here: the figures below are this scene's. */}
-          <Chapter index="02" name={t.about.tag} ghost={false} className="mb-12 md:mb-20" />
+          <Chapter index="01" name={t.about.tag} ghost={false} className="mb-12 md:mb-20" />
         </div>
 
         {/* ── the lead ──────────────────────────────────────────── */}

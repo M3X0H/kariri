@@ -456,14 +456,18 @@
        navigation clearance plus the name plus the rail have to fit one
        screen, and a circle sized only by viewport width pushed the
        closing rail past the fold on a 390. The svh term is what keeps
-       the composition on one screen at every phone proportion. */
-    inline-size: min(64vw, 40svh, 18rem);
+       the composition on one screen at every phone proportion.
+
+       Trimmed from 64vw/40svh when the hero took on the direction line
+       and the third action: the type block grew, so the lens gives the
+       height back rather than the rail losing the fold. */
+    inline-size: min(58vw, 36svh, 18rem);
     aspect-ratio: 1;
     block-size: auto;
     /* Clear of the navigation. The lens starting at the very top of the
        viewport put the wordmark across the headdress, which is the one
        thing on this screen that has to be nobody's background. */
-    margin-block-start: var(--rail);
+    margin-block-start: calc(var(--rail) - 1rem);
     margin-inline: auto;
     border-radius: 50%;
     box-shadow: 0 0 0 1px var(--line);
@@ -483,7 +487,10 @@
     order: 2;
     position: relative;
     z-index: 10;
-    margin-block-start: -4.5svh;
+    /* The name climbs further over the lens than it used to, which is
+       both the composition it always wanted and where the height for
+       the direction line comes from. */
+    margin-block-start: -7svh;
   }
 
   .hero-rail { order: 3; margin-block-start: auto; }

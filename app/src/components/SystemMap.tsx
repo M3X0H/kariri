@@ -237,7 +237,7 @@ export function SystemMap() {
 
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
         <div data-lead>
-          <Chapter index="01" name={t.caps.tag} className="mb-8" />
+          <Chapter index="02" name={t.caps.tag} className="mb-8" />
           <p className="measure mb-10 text-lg text-ink-2 md:mb-14 md:text-xl">{t.caps.lead}</p>
         </div>
 
@@ -403,8 +403,15 @@ export function SystemMap() {
 
           {/* ── the readable half ────────────────────────────── */}
           <div ref={panel} id="capability-detail" aria-live="polite" className="lg:min-h-[19rem]">
-            <p data-morph className="label ltr">
-              {String(active + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}
+            {/* The index, and the professional category the node sits
+                in. Six nodes read as six unrelated badges without the
+                grouping; with it they read as three areas of practice. */}
+            <p data-morph className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="label ltr">
+                {String(active + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}
+              </span>
+              <span aria-hidden="true" className="h-3 w-px bg-[var(--line-2)]" />
+              <span className="label text-cyan">{cap.group}</span>
             </p>
 
             <h3 data-morph className="display-type mt-3 text-[clamp(1.7rem,5vw,3rem)]">

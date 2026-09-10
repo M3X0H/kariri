@@ -289,12 +289,13 @@ export function Work() {
      rather than a wireframe of some other website or, worse, the
      portrait a second time twenty centimetres below the first. */
   const chapters: [string, string][] = [
-    ['01', t.nav.caps],
-    ['02', t.nav.about],
+    ['01', t.nav.about],
+    ['02', t.nav.caps],
     ['03', t.nav.career],
     ['04', t.nav.work],
     ['05', t.cred.tag],
-    ['06', t.nav.contact]
+    ['06', t.nav.direction],
+    ['07', t.nav.contact]
   ];
 
   const root = useScene<HTMLElement>((el) => {
@@ -459,6 +460,21 @@ export function Work() {
               </p>
             </div>
 
+            {/* Four decisions rather than a feature list. A hiring
+                manager reading this section is looking for judgement,
+                and a stack line cannot show any. */}
+            <div data-detail className="rule mt-6 pt-6">
+              <p className="label">{p.notesTag}</p>
+              <ul className="mt-4 space-y-2.5">
+                {p.notes.map((note) => (
+                  <li key={note} className="flex gap-3 text-sm text-ink-2">
+                    <span aria-hidden="true" className="mt-2.5 h-px w-3 shrink-0 bg-cyan/60" />
+                    <span className="measure-sm">{note}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <div data-detail className="mt-10 flex flex-wrap items-center gap-3">
               <ShineButton href={LINKS.repo} external rtl={lang === 'ar'}>
                 <Github size={16} aria-hidden />
@@ -578,6 +594,140 @@ export function Credentials() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   DIRECTION — the answer to the fault chapter, at the other end of
+   the page.
+
+   00 opened with three faults, strung on one wire, arriving one at a
+   time. This closes with four directions on the same wire — the same
+   spine, the same dots, the same cadence — so the corridor reads as
+   having gone somewhere rather than as having listed eight sections.
+
+   The chapter is load-bearing for the site's honesty. Every vector
+   carries the real thing it starts from, printed under it, and the
+   section says in plain words that these are directions rather than
+   posts held. Ambition with a receipt attached, not ambition.
+   ═══════════════════════════════════════════════════════════════ */
+export function Direction() {
+  const { t, lang } = useLang();
+  const d = t.direction;
+
+  const root = useScene<HTMLElement>((el) => {
+    const q = gsap.utils.selector(el);
+
+    gsap.fromTo(
+      q('[data-spine]'),
+      { scaleY: 0 },
+      {
+        scaleY: 1,
+        ease: 'none',
+        scrollTrigger: { trigger: q('[data-vectors]')[0], start: 'top 82%', end: 'bottom 78%', scrub: 0.5 }
+      }
+    );
+
+    arrive(q('[data-vector]'), { y: 30, stagger: 0.1, start: 'top 88%' });
+
+    // The closing line rises out of its own mask, the way the fault
+    // chapter's statement does — same gesture, opposite end.
+    const units = q('[data-close]').flatMap((n) => splitUnits(n as HTMLElement));
+    gsap.from(units, {
+      yPercent: 118,
+      duration: 0.9,
+      stagger: 0.03,
+      ease: EASE,
+      scrollTrigger: { trigger: q('[data-closing]')[0], start: 'top 85%' }
+    });
+  }, [lang]);
+
+  return (
+    <section
+      ref={root}
+      id="direction"
+      className="chapter-edge relative scroll-mt-[var(--rail)] px-[var(--pad)] py-[clamp(4rem,9vh,7rem)]"
+      style={aura(266)}
+    >
+      <div className="aura" />
+
+      <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
+        <Chapter index="06" name={d.tag} className="mb-8" />
+
+        <p className="measure text-lg text-ink-2 md:text-xl">{d.lead}</p>
+
+        {/* Said before the claims, not after them. */}
+        <p className="measure-sm mt-4 flex gap-3 text-sm text-ink-3">
+          <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan/70" />
+          <span>{d.honest}</span>
+        </p>
+
+        <div data-vectors className="relative mt-12 ps-6 md:mt-16 md:ps-10">
+          <span
+            aria-hidden="true"
+            data-spine
+            className="signal-spine absolute inset-y-0 start-0 w-px origin-top"
+          />
+
+          {/* One column, on one wire — the same shape the fault chapter
+              opens with. Two columns would have put the right-hand
+              dots in the gutter, off their own wire. */}
+          <ol>
+            {d.items.map((v, i) => (
+              <li
+                data-vector
+                key={v.name}
+                className="relative border-b border-[var(--line)] py-7"
+              >
+                <span
+                  aria-hidden="true"
+                  className="signal-dot absolute -start-6 h-1.5 w-1.5 rounded-full md:-start-10"
+                  style={{ insetBlockStart: '2.4rem' }}
+                />
+
+                <p lang="en" className="label label-signal ltr">
+                  {String(i + 1).padStart(2, '0')}
+                </p>
+
+                <h3 className="display-soft mt-2 text-[clamp(1.35rem,3.4vw,2.1rem)] text-ink">
+                  {v.name}
+                </h3>
+
+                <p className="measure-sm mt-3 text-sm leading-relaxed text-ink-2 md:text-base">
+                  {v.desc}
+                </p>
+
+                {/* The receipt. */}
+                <p className="mt-4 flex flex-wrap items-baseline gap-x-2.5 gap-y-1 border-s-2 border-cyan/40 ps-3">
+                  <span className="label">{d.fromK}</span>
+                  <span dir="auto" className="text-sm text-ink-3">{v.fromV}</span>
+                </p>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* The same two-line close the fault chapter lands on, at the
+            other end of the corridor. */}
+        {/* Two separate paragraphs, read as two sentences. No aria-label
+            games: unlike the name, these lines do not run together. */}
+        <div data-closing className="vel-lean mask-stack mt-14 md:mt-20">
+          <p className="mask-line">
+            <span data-close className="block display-type display-xl text-[clamp(1.45rem,4.6vw,3.4rem)]">
+              {d.close.l1}
+            </span>
+          </p>
+          <p className="mask-line">
+            <span
+              data-close
+              className="block display-type display-xl text-[clamp(1.45rem,4.6vw,3.4rem)] text-ink-3"
+            >
+              {d.close.l2}
+            </span>
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    CONTACT — the close. Large type arriving line by line over drifting
    motes, a magnetic primary action, and every route to him as one list.
 
@@ -626,7 +776,7 @@ export function Contact() {
       <div className="aura" />
 
       <div data-stage className="relative z-10 mx-auto w-full max-w-[88rem]">
-        <Chapter index="06" name={t.contact.tag} as="p" ghost={false} className="mb-12" />
+        <Chapter index="07" name={t.contact.tag} as="p" ghost={false} className="mb-12" />
 
         <h2
           aria-label={`${t.contact.l1} ${t.contact.l2}`}
@@ -664,7 +814,7 @@ export function Contact() {
           <span aria-hidden="true" className="signal-bars">
             <span /><span /><span /><span />
           </span>
-          <span lang="en" className="label ltr">06 / 06</span>
+          <span lang="en" className="label ltr">07 / 07</span>
           <span aria-hidden="true" className="wire h-px flex-1" />
         </div>
         <ul className="mt-0">
